@@ -537,11 +537,11 @@
                 if (statValues[2]) statValues[2].textContent = '$' + calculation.monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 if (statValues[3]) statValues[3].textContent = '$' + calculation.weekly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 
-                // Update gauge (mock progress for now)
-                const todayIncome = 3076.88; // This would come from income tracking
+                // Get today's income from localStorage (synced with dashboard)
+                const todayIncome = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
                 const progress = Math.min((todayIncome / calculation.daily) * 100, 100);
                 document.querySelector('.gauge-percent').textContent = Math.round(progress) + '%';
-                document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString() + ' / $' + calculation.daily.toLocaleString();
+                document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / $' + calculation.daily.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 
                 // Update gauge background
                 const degrees = (progress / 100) * 360;
