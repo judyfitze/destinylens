@@ -345,6 +345,10 @@
                 <span class="logo-bottom">Your Dream Life In Focus</span>
             </div>
         </a>
+        <div class="nav-actions" style="display: flex; gap: 12px;">
+            <a href="/dashboard.html" style="padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600; text-decoration: none;">📊 Dashboard</a>
+            <a href="/members.html" style="padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600; text-decoration: none;">👤 Account</a>
+        </div>
     </nav>
     <div class="container">
         <div class="progress-bar">
@@ -709,6 +713,25 @@
         function saveVersion() {
             alert('Calculation saved to your account!');
         }
+        
+        // Load previous entries if they exist
+        function loadPreviousEntries() {
+            const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
+            if (calc.answers) {
+                const a = calc.answers;
+                if (a.home) { document.getElementById('homeDescription').value = a.home.description || ''; document.getElementById('homeAmount').value = a.home.amount || ''; }
+                if (a.vehicle) { document.getElementById('vehicleDescription').value = a.vehicle.description || ''; document.getElementById('vehicleAmount').value = a.vehicle.amount || ''; }
+                if (a.travel) { document.getElementById('travelDescription').value = a.travel.description || ''; document.getElementById('travelAmount').value = a.travel.amount || ''; }
+                if (a.food) { document.getElementById('foodDescription').value = a.food.description || ''; document.getElementById('foodAmount').value = a.food.amount || ''; }
+                if (a.trainer) { document.getElementById('trainerDescription').value = a.trainer.description || ''; document.getElementById('trainerAmount').value = a.trainer.amount || ''; }
+                if (a.chef) { document.getElementById('chefDescription').value = a.chef.description || ''; document.getElementById('chefAmount').value = a.chef.amount || ''; }
+                if (a.college) { document.getElementById('collegeDescription').value = a.college.description || ''; document.getElementById('collegeAmount').value = a.college.amount || ''; }
+                if (a.retirement) { document.getElementById('retirementDescription').value = a.retirement.description || ''; document.getElementById('retirementAmount').value = a.retirement.amount || ''; }
+            }
+        }
+        
+        // Load previous entries on page load
+        document.addEventListener('DOMContentLoaded', loadPreviousEntries);
         
         updateProgress();
     </script>

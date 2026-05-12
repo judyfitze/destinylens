@@ -6,83 +6,28 @@
     <title>My Dream Life Dashboard — DestinyLens</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --purple: #A94CF0;
-            --gold: #F6C26B;
-            --glass-bg: rgba(10, 10, 18, 0.8);
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a12;
-            color: #fff;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-        }
-        .dashboard {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        .background-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
-        }
-        .background-layer img {
-            width: 100%; height: 100%; object-fit: cover;
-        }
-        .background-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(10,10,18,0.6) 0%, rgba(10,10,18,0.4) 40%, rgba(10,10,18,0.7) 100%);
-            z-index: 2;
-        }
-        .nav {
-            position: fixed; top: 0; left: 0; right: 0; padding: 20px 40px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 1000;
-            background: linear-gradient(180deg, rgba(10,10,18,0.9) 0%, transparent 100%);
-        }
+        :root { --purple: #A94CF0; --gold: #F6C26B; --glass-bg: rgba(10, 10, 18, 0.8); }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a12; color: #fff; overflow: hidden; height: 100vh; width: 100vw; }
+        .dashboard { position: relative; width: 100%; height: 100%; }
+        .background-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .background-layer img { width: 100%; height: 100%; object-fit: cover; }
+        .background-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(10,10,18,0.6) 0%, rgba(10,10,18,0.4) 40%, rgba(10,10,18,0.7) 100%); z-index: 2; }
+        .nav { position: fixed; top: 0; left: 0; right: 0; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; background: linear-gradient(180deg, rgba(10,10,18,0.9) 0%, transparent 100%); }
         .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .logo-icon {
-            width: 42px; height: 42px;
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
-            border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            font-weight: 900; color: #fff; font-size: 1.1rem;
-        }
+        .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 1.1rem; }
         .logo-title { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
         .logo-subtitle { font-size: 0.65rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
         .nav-actions { display: flex; gap: 12px; }
-        .nav-btn {
-            padding: 10px 20px; background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
-            color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-        }
+        .nav-btn { padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
         .nav-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--purple); }
-        .content {
-            position: relative; z-index: 10; width: 100%; height: 100%;
-            padding: 100px 40px 40px; display: flex; flex-direction: column;
-        }
-        .top-section {
-            display: flex; justify-content: flex-end; gap: 16px;
-            margin-bottom: auto; padding-top: 20px;
-        }
-        .metric-card {
-            background: var(--glass-bg); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
-            padding: 20px 28px; min-width: 140px; text-align: center;
-        }
+        .content { position: relative; z-index: 10; width: 100%; height: 100%; padding: 100px 40px 40px; display: flex; flex-direction: column; }
+        .top-section { display: flex; justify-content: flex-end; gap: 16px; margin-bottom: auto; padding-top: 20px; }
+        .metric-card { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px 28px; min-width: 140px; text-align: center; }
         .metric-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
         .metric-value { font-size: 1.4rem; font-weight: 800; }
-        .metric-value.highlight {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
+        .metric-value.highlight { background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .middle-section { display: flex; align-items: center; flex: 1; padding-bottom: 40px; }
-        .progress-panel {
-            width: 340px; background: var(--glass-bg); backdrop-filter: blur(30px);
-            border: 1px solid rgba(169, 76, 240, 0.25); border-radius: 24px;
-            padding: 32px; box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-        }
+        .progress-panel { width: 340px; background: var(--glass-bg); backdrop-filter: blur(30px); border: 1px solid rgba(169, 76, 240, 0.25); border-radius: 24px; padding: 32px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
         .panel-header { margin-bottom: 24px; }
         .panel-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; background: linear-gradient(135deg, #fff 0%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .panel-subtitle { font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
@@ -206,12 +151,11 @@
             <div class="upload-area" onclick="document.getElementById('bgFile').click()">
                 <div style="font-size: 3rem; margin-bottom: 12px;">📤</div>
                 <div>Click to upload new background</div>
-                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 8px;">Recommended: 1920x1080 or higher</div>
             </div>
             <input type="file" id="bgFile" accept="image/*" style="display: none;" onchange="previewBgImage(event)">
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" onclick="closeModal('bgModal')">Cancel</button>
-                <button class="modal-btn modal-btn-primary" onclick="saveBackground()">Save Background</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveBackground()">💾 Save Background</button>
             </div>
         </div>
     </div>
@@ -243,7 +187,7 @@
             <div class="form-group"><label class="form-label">Monthly Amount</label><input type="number" class="form-input" id="newGoalAmount" placeholder="0.00" step="0.01"></div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" onclick="closeModal('addGoalModal')">Cancel</button>
-                <button class="modal-btn modal-btn-primary" onclick="saveNewGoal()">Save Goal</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveNewGoal()">💾 Save Goal</button>
             </div>
         </div>
     </div>
@@ -261,6 +205,7 @@
     </div>
     
     <script>
+        // Dashboard State
         let isEditMode = false, goalToRemove = null, selectedIcon = '🏖️', tempBgImage = null, tempGoalImage = null;
         let dashboardData = { dailyTarget: 0, weeklyTarget: 0, monthlyTarget: 0, yearlyTarget: 0, todayIncome: 0, goals: [] };
         
@@ -268,8 +213,10 @@
             return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
         
+        // Load Dashboard Data
         function loadDashboard() {
             const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
+            
             if (calc.daily) {
                 dashboardData.dailyTarget = calc.daily;
                 dashboardData.weeklyTarget = calc.weekly;
@@ -281,7 +228,7 @@
                 document.getElementById('monthlyTarget').textContent = formatCurrency(calc.monthly);
                 document.getElementById('yearlyTarget').textContent = formatCurrency(calc.yearly);
                 
-                // Load goals from calculation OR from saved goals
+                // Load saved goals or create from calculation
                 const savedGoals = JSON.parse(localStorage.getItem('destinylens_goals') || '[]');
                 if (savedGoals.length > 0) {
                     dashboardData.goals = savedGoals;
@@ -328,14 +275,15 @@
                     </div>
                     <div class="goal-card-menu" onclick="event.stopPropagation(); toggleDropdown(${i})">⋮</div>
                     <div class="dropdown-menu" id="dropdown-${i}">
-                        <div class="dropdown-item" onclick="editGoal(${i})">Edit Goal</div>
-                        <div class="dropdown-item" onclick="replaceGoalImage(${i})">Replace Image</div>
+                        <div class="dropdown-item" onclick="editGoal(${i})">✏️ Edit Goal</div>
+                        <div class="dropdown-item" onclick="replaceGoalImage(${i})">🖼️ Replace Image</div>
                         <div class="dropdown-divider"></div>
-                        <div class="dropdown-item danger" onclick="removeGoal(${i})">Remove Goal</div>
+                        <div class="dropdown-item danger" onclick="removeGoal(${i})">🗑️ Remove Goal</div>
                     </div>
                 </div>
             `).join('');
             
+            // Always show Add Goal button if less than 4 goals
             if (dashboardData.goals.length < 4) {
                 html += `<div class="goal-card goal-card-add" onclick="openModal('addGoalModal')"><div class="goal-card-add-icon">+</div><div class="goal-card-add-text">Add Goal</div></div>`;
             }
@@ -367,9 +315,11 @@
             document.getElementById('newGoalAmount').value = g.amount;
             selectIcon(document.querySelector('.icon-option'), g.icon);
             tempGoalImage = g.image;
-            document.getElementById('goalPreview').src = g.image;
-            document.getElementById('goalPreview').style.display = 'block';
-            goalToRemove = i; // Mark for replacement
+            if (g.image && g.image !== 'dashboard-preview.jpg') {
+                document.getElementById('goalPreview').src = g.image;
+                document.getElementById('goalPreview').style.display = 'block';
+            }
+            goalToRemove = i;
             openModal('addGoalModal');
         }
         
@@ -378,7 +328,10 @@
             document.getElementById('goalFile').click();
         }
         
-        function removeGoal(i) { goalToRemove = i; openModal('confirmModal'); }
+        function removeGoal(i) { 
+            goalToRemove = i; 
+            openModal('confirmModal'); 
+        }
         
         function confirmRemove() {
             if (goalToRemove !== null) {
@@ -390,10 +343,12 @@
             closeModal('confirmModal');
         }
         
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+        }
+        
         function closeModal(id) { 
             document.getElementById(id).classList.remove('active'); 
-            // Reset previews
             if (id === 'addGoalModal') {
                 document.getElementById('newGoalTitle').value = '';
                 document.getElementById('newGoalAmount').value = '';
@@ -407,7 +362,7 @@
             }
         }
         
-        // Background Image Functions
+        // Background Functions
         function previewBgImage(e) {
             const file = e.target.files[0];
             if (file) {
@@ -422,14 +377,19 @@
         }
         
         function saveBackground() {
+            console.log('Saving background...', tempBgImage ? 'Image loaded' : 'No image');
             if (tempBgImage) {
                 document.getElementById('bgImage').src = tempBgImage;
                 localStorage.setItem('destinylens_bg', tempBgImage);
+                console.log('Background saved to localStorage');
+                alert('Background saved successfully!');
+            } else {
+                alert('Please upload an image first');
             }
             closeModal('bgModal');
         }
         
-        // Goal Image Functions
+        // Goal Functions
         function previewGoalImage(e) {
             const file = e.target.files[0];
             if (file) {
@@ -466,10 +426,8 @@
             };
             
             if (goalToRemove !== null) {
-                // Editing existing
                 dashboardData.goals[goalToRemove] = newGoal;
             } else if (dashboardData.goals.length < 4) {
-                // Adding new
                 dashboardData.goals.push(newGoal);
             } else {
                 alert('Maximum 4 goals. Remove one first.');
@@ -479,18 +437,24 @@
             saveGoals();
             renderGoals();
             closeModal('addGoalModal');
+            alert('Goal saved successfully!');
         }
         
         function saveGoals() {
             localStorage.setItem('destinylens_goals', JSON.stringify(dashboardData.goals));
+            console.log('Goals saved:', dashboardData.goals);
         }
         
-        // Load saved background
+        // Load saved background on page load
         const savedBg = localStorage.getItem('destinylens_bg');
-        if (savedBg) document.getElementById('bgImage').src = savedBg;
+        if (savedBg) {
+            document.getElementById('bgImage').src = savedBg;
+            console.log('Loaded saved background');
+        }
         
-        // Initialize
+        // Initialize dashboard
         loadDashboard();
+        console.log('Dashboard initialized');
     </script>
 </body>
 </html>
