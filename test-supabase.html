@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supabase Connection — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #0a0a12; color: #fff; }
+        .status { padding: 20px; margin: 10px 0; border-radius: 8px; }
+        .success { background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; }
+        .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+        .loading { background: rgba(169, 76, 240, 0.2); border: 1px solid #A94CF0; }
+    </style>
+</head>
+<body>
+    <h1>DestinyLens — Supabase Connection Test</h1>
+    <div id="status"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://nfyabrvkqgzuzxjetqbe.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5meWFicnZrcWd6dXp4amV0cWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2MjAxMzYsImV4cCI6MjA5NDE5NjEzNn0.BmpDxYXwPNR1RftmjtKIqpE5h3Ljkn5gaGmHkFDfTm0';
+        
+        const status = document.getElementById('status');
+        
+        function log(message, type = 'loading') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            status.appendChild(div);
+        }
+        
+        async function testConnection() {
+            log('Initializing Supabase client...');
+            
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            log('Testing authentication...');
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            
+            if (authError) {
+                log(`Auth check: ${authError.message}`, 'error');
+            } else if (user) {
+                log(`✓ Authenticated as: ${user.email}`, 'success');
+            } else {
+                log('✓ Not authenticated (expected for new users)', 'success');
+            }
+            
+            log('Testing database connection (dream_life_calculations)...');
+            const { data, error } = await supabase
+                .from('dream_life_calculations')
+                .select('count')
+                .limit(1);
+            
+            if (error) {
+                log(`✗ Database error: ${error.message}`, 'error');
+            } else {
+                log('✓ Database connection successful!', 'success');
+            }
+            
+            log('Testing dashboard_settings...');
+            const { error: dashError } = await supabase
+                .from('dashboard_settings')
+                .select('count')
+                .limit(1);
+            
+            if (dashError) {
+                log(`✗ Dashboard settings error: ${dashError.message}`, 'error');
+            } else {
+                log('✓ Dashboard settings table accessible!', 'success');
+            }
+            
+            log('All tests complete!', 'success');
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>
