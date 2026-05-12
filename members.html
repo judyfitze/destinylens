@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Area — DestinyLens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a12;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+        }
+        
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-top {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .logo-bottom {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #F6C26B;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        .nav-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover {
+            color: #F6C26B;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 40px 80px;
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+        
+        .welcome-section h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .welcome-section p {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* Progress Overview */
+        .progress-overview {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 48px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .progress-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .progress-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #22c55e;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .progress-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+        
+        .gauge-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B 180deg, rgba(255,255,255,0.1) 180deg);
+            mask: radial-gradient(circle at center, transparent 60%, black 61%);
+            -webkit-mask: radial-gradient(circle at center, transparent 60%, black 61%);
+        }
+        
+        .gauge-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .gauge-percent {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gauge-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        
+        .stat-box.highlight {
+            border-color: rgba(169, 76, 240, 0.3);
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.08) 0%, rgba(246, 194, 107, 0.05) 100%);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        
+        .stat-value.highlight {
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-sub {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+        
+        /* Modules Section */
+        .modules-section {
+            margin-bottom: 48px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .section-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .view-all {
+            color: #F6C26B;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .module-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 28px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(169, 76, 240, 0.3);
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.05) 0%, rgba(246, 194, 107, 0.03) 100%);
+        }
+        
+        .module-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        
+        .module-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .module-card p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        
+        .module-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 6px 12px;
+            background: rgba(34, 197, 94, 0.15);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #22c55e;
+            font-weight: 600;
+            align-self: flex-start;
+        }
+        
+        .module-status.pending {
+            background: rgba(246, 194, 107, 0.15);
+            color: #F6C26B;
+        }
+        
+        /* Goal Cards Section */
+        .goals-section {
+            margin-bottom: 48px;
+        }
+        
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .goal-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .goal-card-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        
+        .goal-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .goal-card-amount {
+            font-size: 0.9rem;
+            color: #F6C26B;
+            font-weight: 600;
+        }
+        
+        /* Support Section */
+        .support-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+        
+        .support-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .support-section p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 16px;
+        }
+        
+        .support-section a {
+            color: #F6C26B;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .progress-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#calculator">Calculator</a>
+            <a href="#goals">Goals</a>
+            <a href="#income">Income</a>
+            <a href="#settings">Settings</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="welcome-section">
+            <h1>Welcome back, Dream Builder</h1>
+            <p>Day 247 of 720 • You're 78% to today's target</p>
+        </div>
+        
+        <div class="progress-overview">
+            <div class="progress-header">
+                <h2>Today's Progress</h2>
+                <div class="progress-status">
+                    <span>●</span>
+                    <span>On Track</span>
+                </div>
+            </div>
+            <div class="progress-grid">
+                <div class="gauge-container">
+                    <div class="gauge-bg"></div>
+                    <div class="gauge-inner">
+                        <div class="gauge-percent">78%</div>
+                        <div class="gauge-label">$3,076 / $3,937</div>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box highlight">
+                        <div class="stat-label">Daily Target</div>
+                        <div class="stat-value highlight">$3,937.02</div>
+                        <div class="stat-sub">Your Dream Life Number</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Today's Income</div>
+                        <div class="stat-value">$3,076.88</div>
+                        <div class="stat-sub">$860.14 to go</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Monthly Target</div>
+                        <div class="stat-value">$118,110.51</div>
+                        <div class="stat-sub">On track</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Weekly Target</div>
+                        <div class="stat-value">$27,276.10</div>
+                        <div class="stat-sub">$5,420 remaining</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modules-section">
+            <div class="section-header">
+                <h2>Your Tools</h2>
+                <a href="#" class="view-all">View All →</a>
+            </div>
+            <div class="modules-grid">
+                <a href="#" class="module-card">
+                    <div class="module-icon">🎯</div>
+                    <h3>Dream Life Calculator</h3>
+                    <p>Recalculate or create new scenarios for your dream life number</p>
+                    <span class="module-status"><span>✓</span> Complete</span>
+                </a>
+                <a href="#" class="module-card">
+                    <div class="module-icon">📊</div>
+                    <h3>Financial Dashboard</h3>
+                    <p>View and customize your visual command center</p>
+                    <span class="module-status pending"><span>○</span> In Progress</span>
+                </a>
+                <a href="#" class="module-card">
+                    <div class="module-icon">🖼️</div>
+                    <h3>AI Prompt Generator</h3>
+                    <p>Create personalized vision board images</p>
+                    <span class="module-status pending"><span>○</span> Not Started</span>
+                </a>
+                <a href="#" class="module-card">
+                    <div class="module-icon">💰</div>
+                    <h3>Income Sources</h3>
+                    <p>Connect Stripe, PayPal, or add manual entries</p>
+                    <span class="module-status pending"><span>○</span> Setup Required</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="goals-section">
+            <div class="section-header">
+                <h2>Your Dream Life Goals</h2>
+                <a href="#" class="view-all">Edit Goals →</a>
+            </div>
+            <div class="goals-grid">
+                <div class="goal-card">
+                    <div class="goal-card-icon">🏖️</div>
+                    <h4>Oceanfront Home</h4>
+                    <div class="goal-card-amount">$25,000/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">🚗</div>
+                    <h4>Dream Vehicle</h4>
+                    <div class="goal-card-amount">$1,200/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">✈️</div>
+                    <h4>Travel</h4>
+                    <div class="goal-card-amount">$5,000/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">💪</div>
+                    <h4>Wellness</h4>
+                    <div class="goal-card-amount">$750/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">📈</div>
+                    <h4>Investments</h4>
+                    <div class="goal-card-amount">$2,000/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">👨‍🍳</div>
+                    <h4>Personal Chef</h4>
+                    <div class="goal-card-amount">$2,200/mo</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="support-section">
+            <h3>Need Help?</h3>
+            <p>Questions about your dashboard or need assistance? We're here to help.</p>
+            <a href="mailto:support@destinylens.io">Contact Support</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to DestinyLens — Your Purchase Is Confirmed</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a12;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+        }
+        
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(10, 10, 18, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-top {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .logo-bottom {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #F6C26B;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 140px 40px 80px;
+        }
+        
+        .confirmation-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #22c55e;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 48px;
+        }
+        
+        .welcome-video {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.1) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.3);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .welcome-video h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        
+        .welcome-video p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 20px;
+        }
+        
+        .video-placeholder {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .next-steps {
+            margin-bottom: 48px;
+        }
+        
+        .next-steps h2 {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+        
+        .step-pills {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .step-pill {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .step-content h4 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        
+        .step-content p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.95rem;
+        }
+        
+        .modules-section {
+            margin-bottom: 48px;
+        }
+        
+        .modules-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        
+        .module-card {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.08) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            text-decoration: none;
+            color: #fff;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(169, 76, 240, 0.4);
+        }
+        
+        .module-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .module-card p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+        }
+        
+        .guarantee-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .guarantee-box h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #F6C26B;
+        }
+        
+        .guarantee-box p {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .support {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .support a {
+            color: #F6C26B;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+    </nav>
+    
+    <div class="container">
+        <div class="confirmation-badge">
+            <span>✓</span>
+            <span>Purchase Confirmed</span>
+        </div>
+        
+        <h1>Welcome to DestinyLens</h1>
+        <p class="subtitle">Your Dream Life Number is waiting. Here's everything you need to get started.</p>
+        
+        <div class="welcome-video">
+            <h3>🎥 Watch This First</h3>
+            <p>A quick welcome message and your next steps (2 minutes)</p>
+            <div class="video-placeholder">
+                <span>Welcome Video Coming Soon</span>
+            </div>
+        </div>
+        
+        <div class="next-steps">
+            <h2>Your Next Steps</h2>
+            <div class="step-pills">
+                <div class="step-pill">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Create Your Account</h4>
+                        <p>Check your email for login credentials and access link</p>
+                    </div>
+                </div>
+                <div class="step-pill">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Calculate Your Dream Life Number</h4>
+                        <p>Go through the 9-question calculator to discover your exact targets</p>
+                    </div>
+                </div>
+                <div class="step-pill">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Build Your Visual Dashboard</h4>
+                        <p>Set up your command center with goal cards and income tracking</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modules-section">
+            <h2>Your DestinyLens Resources</h2>
+            <div class="module-grid">
+                <a href="#" class="module-card">
+                    <h4>🎯 Dream Life Calculator</h4>
+                    <p>Calculate your exact monthly, weekly, daily, and hourly targets</p>
+                </a>
+                <a href="#" class="module-card">
+                    <h4>📊 Financial Dashboard</h4>
+                    <p>Your visual command center for tracking daily progress</p>
+                </a>
+                <a href="#" class="module-card">
+                    <h4>🖼️ AI Prompt Generator</h4>
+                    <p>Create personalized vision board images</p>
+                </a>
+                <a href="#" class="module-card">
+                    <h4>💰 Income Sources</h4>
+                    <p>Connect Stripe, PayPal, Shopify, or enter manually</p>
+                </a>
+                <a href="#" class="module-card">
+                    <h4>⚙️ Settings</h4>
+                    <p>Customize your dashboard, goals, and preferences</p>
+                </a>
+                <a href="#" class="module-card">
+                    <h4>🎓 Quick Start Guide</h4>
+                    <p>Step-by-step tutorial for getting the most from DestinyLens</p>
+                </a>
+            </div>
+        </div>
+        
+        <div class="guarantee-box">
+            <h3>🛡️ 30-Day Money-Back Guarantee</h3>
+            <p>Not satisfied? Email us within 30 days for a full refund, no questions asked.</p>
+        </div>
+        
+        <div class="support">
+            <p>Need help? Contact us at <a href="mailto:support@destinylens.io">support@destinylens.io</a></p>
+        </div>
+    </div>
+</body>
+</html>
