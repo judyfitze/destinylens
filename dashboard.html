@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dream Life Dashboard — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --purple: #A94CF0;
+            --gold: #F6C26B;
+            --glass-bg: rgba(10, 10, 18, 0.75);
+            --glass-border: rgba(169, 76, 240, 0.3);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a12;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* Full Screen Dashboard */
+        .dashboard-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Background Image Layer */
+        .background-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .background-layer img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10, 10, 18, 0.7) 0%, rgba(10, 10, 18, 0.5) 50%, rgba(10, 10, 18, 0.8) 100%);
+            z-index: 2;
+        }
+        
+        /* Navigation */
+        .dashboard-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 18, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .logo-top {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        .logo-bottom {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        
+        .nav-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: var(--purple);
+        }
+        
+        /* Main Dashboard Content */
+        .dashboard-content {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            padding: 100px 40px 40px;
+            display: flex;
+            gap: 32px;
+        }
+        
+        /* Left Panel - Progress */
+        .left-panel {
+            width: 30%;
+            min-width: 320px;
+            max-width: 400px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 60px rgba(169, 76, 240, 0.1);
+        }
+        
+        .panel-header {
+            margin-bottom: 24px;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .panel-subtitle {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Daily Target Display */
+        .daily-target-section {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 20px;
+            background: rgba(169, 76, 240, 0.1);
+            border-radius: 16px;
+            border: 1px solid rgba(169, 76, 240, 0.2);
+        }
+        
+        .daily-target-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        
+        .daily-target-amount {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Circular Progress Gauge */
+        .gauge-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin: 0 auto 32px;
+        }
+        
+        .gauge-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        
+        .gauge-bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.1);
+            stroke-width: 20;
+        }
+        
+        .gauge-progress {
+            fill: none;
+            stroke: url(#gaugeGradient);
+            stroke-width: 20;
+            stroke-linecap: round;
+            stroke-dasharray: 754;
+            stroke-dashoffset: 754;
+            transition: stroke-dashoffset 1s ease;
+        }
+        
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .gauge-percentage {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+        
+        .gauge-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+        }
+        
+        .gauge-amounts {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+        
+        /* Income Breakdown */
+        .income-breakdown {
+            margin-top: auto;
+        }
+        
+        .breakdown-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .breakdown-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .breakdown-name .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .breakdown-amount {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        
+        /* Right Side - Metrics & Cards */
+        .right-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        /* Top Metrics Row */
+        .metrics-row {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .metric-card {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-2px);
+        }
+        
+        .metric-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        
+        .metric-value.highlight {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Day Counter */
+        .day-counter {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 16px 24px;
+            text-align: center;
+        }
+        
+        .day-counter-label {
+            font-size: 0.75rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 4px;
+        }
+        
+        .day-counter-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+        
+        /* Goal Cards Grid */
+        .goals-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .goals-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .goals-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            overflow-y: auto;
+            max-height: calc(100vh - 400px);
+        }
+        
+        .goal-card {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .goal-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--gold);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        
+        .goal-card-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .goal-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, transparent 0%, rgba(10,10,18,0.9) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 16px;
+        }
+        
+        .goal-card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+        
+        .goal-card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        
+        .goal-card-amount {
+            font-size: 0.8rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        .goal-card-add {
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .goal-card-add:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--purple);
+        }
+        
+        .goal-card-add-icon {
+            font-size: 2rem;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .goal-card-add-text {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* Edit Mode Styles */
+        .edit-mode .editable {
+            border: 2px dashed var(--purple);
+            cursor: pointer;
+        }
+        
+        .edit-mode .editable:hover {
+            background: rgba(169, 76, 240, 0.1);
+        }
+        
+        /* Image Upload Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--purple);
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--purple);
+            background: rgba(169, 76, 240, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            color: #fff;
+        }
+        
+        .modal-btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-content {
+                flex-direction: column;
+                padding: 100px 20px 20px;
+            }
+            
+            .left-panel {
+                width: 100%;
+                max-width: none;
+                min-width: auto;
+            }
+            
+            .gauge-container {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .goals-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SVG Gradient Definition -->
+    <svg width="0" height="0" style="position: absolute;">
+        <defs>
+            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#A94CF0" />
+                <stop offset="100%" style="stop-color:#F6C26B" />
+            </linearGradient>
+        </defs>
+    </svg>
+    
+    <div class="dashboard-container">
+        <!-- Background Layer -->
+        <div class="background-layer">
+            <img id="backgroundImage" src="dashboard-preview.jpg" alt="Dream Life Background">
+            <div class="background-overlay"></div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <a href="/" class="logo-mark">
+                <div class="logo-icon">DL</div>
+                <div class="logo-text">
+                    <span class="logo-top">DestinyLens</span>
+                    <span class="logo-bottom">Your Dream Life In Focus</span>
+                </div>
+            </a>
+            <div class="nav-actions">
+                <button class="nav-btn" onclick="toggleEditMode()">✏️ Edit Dashboard</button>
+                <button class="nav-btn" onclick="changeBackground()">🖼️ Change Background</button>
+                <button class="nav-btn" onclick="location.href='/members.html'">👤 My Account</button>
+            </div>
+        </nav>
+        
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Left Panel - Progress -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <div class="panel-title" id="dashboardTitle" contenteditable="false">Dream Life Dashboard</div>
+                    <div class="panel-subtitle" id="dashboardSubtitle" contenteditable="false">Financial Command Center</div>
+                </div>
+                
+                <!-- Daily Target -->
+                <div class="daily-target-section">
+                    <div class="daily-target-label">Daily Income Target</div>
+                    <div class="daily-target-amount" id="dailyTarget">$0.00</div>
+                </div>
+                
+                <!-- Circular Progress Gauge -->
+                <div class="gauge-container">
+                    <svg class="gauge-svg" viewBox="0 0 260 260">
+                        <circle class="gauge-bg" cx="130" cy="130" r="120"></circle>
+                        <circle class="gauge-progress" id="gaugeProgress" cx="130" cy="130" r="120"></circle>
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="gauge-percentage" id="gaugePercentage">0%</div>
+                        <div class="gauge-label">Today's Progress</div>
+                        <div class="gauge-amounts" id="gaugeAmounts">$0 / $0</div>
+                    </div>
+                </div>
+                
+                <!-- Income Breakdown -->
+                <div class="income-breakdown">
+                    <div class="breakdown-title">Today's Income Sources</div>
+                    <div id="incomeBreakdown">
+                        <div class="breakdown-item">
+                            <div class="breakdown-name">
+                                <span class="dot" style="background: #A94CF0;"></span>
+                                Manual Entries
+                            </div>
+                            <div class="breakdown-amount" id="manualIncome">$0.00</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-name">
+                                <span class="dot" style="background: #F6C26B;"></span>
+                                Connected Sources
+                            </div>
+                            <div class="breakdown-amount" id="connectedIncome">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Section -->
+            <div class="right-section">
+                <!-- Top Metrics -->
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Weekly Target</div>
+                        <div class="metric-value" id="weeklyTarget">$0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Monthly Target</div>
+                        <div class="metric-value highlight" id="monthlyTarget">$0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Yearly Target</div>
+                        <div class="metric-value" id="yearlyTarget">$0</div>
+                    </div>
+                    <div class="day-counter">
+                        <div class="day-counter-label">Journey Progress</div>
+                        <div class="day-counter-value" id="dayCounter">Day 1 of 720</div>
+                    </div>
+                </div>
+                
+                <!-- Goal Cards -->
+                <div class="goals-section">
+                    <div class="goals-header">
+                        <div class="goals-title">My Dream Life Goals</div>
+                        <button class="nav-btn" onclick="addGoalCard()">+ Add Goal</button>
+                    </div>
+                    <div class="goals-grid" id="goalsGrid">
+                        <!-- Goal cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Image Upload Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal">
+            <div class="modal-title">Upload Background Image</div>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📤</div>
+                <div>Click to upload or drag and drop</div>
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 8px;">Recommended: 1920x1080 or higher</div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="closeModal()">Done</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Dashboard State
+        let dashboardData = {
+            dailyTarget: 0,
+            weeklyTarget: 0,
+            monthlyTarget: 0,
+            yearlyTarget: 0,
+            todayIncome: 0,
+            dayCounter: { current: 1, total: 720 },
+            goals: []
+        };
+        
+        let isEditMode = false;
+        
+        // Load data from localStorage
+        function loadDashboardData() {
+            const calculation = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
+            
+            if (calculation.daily) {
+                dashboardData.dailyTarget = calculation.daily;
+                dashboardData.weeklyTarget = calculation.weekly;
+                dashboardData.monthlyTarget = calculation.monthly;
+                dashboardData.yearlyTarget = calculation.yearly;
+                
+                // Update displays
+                document.getElementById('dailyTarget').textContent = formatCurrency(calculation.daily);
+                document.getElementById('weeklyTarget').textContent = formatCurrency(calculation.weekly);
+                document.getElementById('monthlyTarget').textContent = formatCurrency(calculation.monthly);
+                document.getElementById('yearlyTarget').textContent = formatCurrency(calculation.yearly);
+                
+                // Create goals from calculation answers
+                if (calculation.answers) {
+                    const goalMap = [
+                        { key: 'home', icon: '🏖️', title: 'Dream Home' },
+                        { key: 'vehicle', icon: '🚗', title: 'Dream Vehicle' },
+                        { key: 'travel', icon: '✈️', title: 'Travel & Adventure' },
+                        { key: 'food', icon: '🍽️', title: 'Food & Dining' },
+                        { key: 'trainer', icon: '💪', title: 'Wellness' },
+                        { key: 'chef', icon: '👨‍🍳', title: 'Personal Chef' },
+                        { key: 'college', icon: '🎓', title: 'Education' },
+                        { key: 'retirement', icon: '📈', title: 'Investments' }
+                    ];
+                    
+                    dashboardData.goals = goalMap
+                        .map(g => ({
+                            ...g,
+                            amount: calculation.answers[g.key]?.amount || 0,
+                            description: calculation.answers[g.key]?.description || ''
+                        }))
+                        .filter(g => g.amount > 0);
+                    
+                    renderGoals();
+                }
+            }
+            
+            // Load today's income (mock for now)
+            loadTodayIncome();
+        }
+        
+        function formatCurrency(num) {
+            return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
+        function loadTodayIncome() {
+            // Mock income data - would come from Supabase in production
+            const manualIncome = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
+            const connectedIncome = 0; // Would come from Stripe/PayPal/etc
+            
+            dashboardData.todayIncome = manualIncome + connectedIncome;
+            
+            // Update gauge
+            updateGauge();
+            
+            // Update breakdown
+            document.getElementById('manualIncome').textContent = formatCurrency(manualIncome);
+            document.getElementById('connectedIncome').textContent = formatCurrency(connectedIncome);
+        }
+        
+        function updateGauge() {
+            const percentage = Math.min((dashboardData.todayIncome / dashboardData.dailyTarget) * 100, 100);
+            const circumference = 2 * Math.PI * 120; // r=120
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            document.getElementById('gaugeProgress').style.strokeDashoffset = offset;
+            document.getElementById('gaugePercentage').textContent = Math.round(percentage) + '%';
+            document.getElementById('gaugeAmounts').textContent = 
+                formatCurrency(dashboardData.todayIncome) + ' / ' + formatCurrency(dashboardData.dailyTarget);
+        }
+        
+        function renderGoals() {
+            const grid = document.getElementById('goalsGrid');
+            
+            let html = dashboardData.goals.map(goal => `
+                <div class="goal-card" onclick="editGoal('${goal.key}')">
+                    <img class="goal-card-image" src="dashboard-preview.jpg" alt="${goal.title}">
+                    <div class="goal-card-overlay">
+                        <div class="goal-card-icon">${goal.icon}</div>
+                        <div class="goal-card-title">${goal.title}</div>
+                        <div class="goal-card-amount">${formatCurrency(goal.amount)}/mo</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add "Add Goal" card
+            html += `
+                <div class="goal-card goal-card-add" onclick="addGoalCard()">
+                    <div class="goal-card-add-icon">+</div>
+                    <div class="goal-card-add-text">Add Goal</div>
+                </div>
+            `;
+            
+            grid.innerHTML = html;
+        }
+        
+        // Edit Mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            document.body.classList.toggle('edit-mode', isEditMode);
+            
+            // Make elements editable
+            document.getElementById('dashboardTitle').contentEditable = isEditMode;
+            document.getElementById('dashboardSubtitle').contentEditable = isEditMode;
+            
+            // Visual feedback
+            const btn = document.querySelector('.nav-btn');
+            btn.textContent = isEditMode ? '✓ Done Editing' : '✏️ Edit Dashboard';
+            btn.style.background = isEditMode ? 'linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%)' : '';
+        }
+        
+        // Background Image
+        function changeBackground() {
+            document.getElementById('uploadModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+        }
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('backgroundImage').src = e.target.result;
+                    // Save to localStorage (in production, upload to Supabase Storage)
+                    localStorage.setItem('destinylens_background', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Goal Management
+        function addGoalCard() {
+            alert('Add goal functionality - would open goal editor');
+        }
+        
+        function editGoal(key) {
+            if (isEditMode) {
+                alert('Edit goal: ' + key);
+            }
+        }
+        
+        // Load saved background
+        function loadSavedBackground() {
+            const savedBg = localStorage.getItem('destinylens_background');
+            if (savedBg) {
+                document.getElementById('backgroundImage').src = savedBg;
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedBackground();
+            loadDashboardData();
+        });
+    </script>
+</body>
+</html>
