@@ -523,5 +523,70 @@
             <a href="mailto:support@destinylens.io">Contact Support</a>
         </div>
     </div>
+    
+    <script>
+        // Load calculation from localStorage
+        function loadDashboardData() {
+            const calculation = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
+            
+            if (calculation.daily) {
+                // Update daily target
+                document.querySelector('.stat-value.highlight').textContent = '$' + calculation.daily.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                // Update other stats
+                const statValues = document.querySelectorAll('.stat-value');
+                if (statValues[2]) statValues[2].textContent = '$' + calculation.monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (statValues[3]) statValues[3].textContent = '$' + calculation.weekly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                // Update gauge (mock progress for now)
+                const todayIncome = 3076.88; // This would come from income tracking
+                const progress = Math.min((todayIncome / calculation.daily) * 100, 100);
+                document.querySelector('.gauge-percent').textContent = Math.round(progress) + '%';
+                document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString() + ' / $' + calculation.daily.toLocaleString();
+                
+                // Update gauge background
+                const degrees = (progress / 100) * 360;
+                document.querySelector('.gauge-bg').style.background = `conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B ${degrees}deg, rgba(255,255,255,0.1) ${degrees}deg)`;
+            }
+            
+            // Load goal cards from calculation answers
+            if (calculation.answers) {
+                const goalsGrid = document.querySelector('.goals-grid');
+                const answers = calculation.answers;
+                
+                const goalData = [
+                    { icon: '🏖️', title: 'Dream Home', key: 'home' },
+                    { icon: '🚗', title: 'Dream Vehicle', key: 'vehicle' },
+                    { icon: '✈️', title: 'Travel', key: 'travel' },
+                    { icon: '🍽️', title: 'Food & Dining', key: 'food' },
+                    { icon: '💪', title: 'Wellness', key: 'trainer' },
+                    { icon: '👨‍🍳', title: 'Personal Chef', key: 'chef' },
+                    { icon: '🎓', title: 'Education', key: 'college' },
+                    { icon: '📈', title: 'Investments', key: 'retirement' }
+                ];
+                
+                let goalsHTML = '';
+                goalData.forEach(goal => {
+                    const answer = answers[goal.key];
+                    if (answer && answer.amount > 0) {
+                        goalsHTML += `
+                            <div class="goal-card">
+                                <div class="goal-card-icon">${goal.icon}</div>
+                                <h4>${goal.title}</h4>
+                                <div class="goal-card-amount">$${answer.amount.toLocaleString()}/mo</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                if (goalsHTML) {
+                    goalsGrid.innerHTML = goalsHTML;
+                }
+            }
+        }
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
 </body>
 </html>
