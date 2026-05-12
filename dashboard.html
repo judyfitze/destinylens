@@ -134,8 +134,9 @@
         .modal-overlay.active { display: flex; }
         .modal { background: #1a1a2e; border-radius: 20px; padding: 32px; width: 90%; max-width: 480px; border: 1px solid var(--purple); }
         .modal-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 24px; }
-        .upload-area { border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; }
+        .upload-area { border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 20px; }
         .upload-area:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.05); }
+        .upload-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; margin-bottom: 20px; display: none; }
         .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
         .modal-btn { flex: 1; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; }
         .modal-btn-primary { background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff; }
@@ -146,23 +147,9 @@
         .form-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.7); }
         .form-input { width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 1rem; }
         .form-input:focus { outline: none; border-color: var(--purple); }
-        @media (max-width: 1200px) {
-            .progress-panel { width: 300px; }
-            .goal-card { width: 240px; height: 140px; }
-        }
-        @media (max-width: 1024px) {
-            .content { padding: 100px 24px 24px; }
-            .middle-section { justify-content: center; }
-            .progress-panel { width: 100%; max-width: 400px; }
-            .goals-row { flex-wrap: wrap; }
-            .goal-card { width: calc(50% - 10px); }
-        }
-        @media (max-width: 768px) {
-            .top-section { flex-wrap: wrap; justify-content: center; }
-            .metric-card { min-width: 100px; padding: 16px 20px; }
-            .metric-value { font-size: 1.1rem; }
-            .goal-card { width: 100%; max-width: 320px; }
-        }
+        .icon-selector { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .icon-option { width: 44px; height: 44px; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; }
+        .icon-option:hover, .icon-option.selected { border-color: var(--purple); background: rgba(169, 76, 240, 0.15); }
     </style>
 </head>
 <body>
@@ -205,21 +192,76 @@
             </div>
             
             <div class="bottom-section">
-                <div class="goals-header"><div class="goals-title">My Dream Life Goals</div><div><button class="goals-btn" onclick="alert('Manage Goals - coming soon')">Manage</button><button class="goals-btn" onclick="openModal('addGoalModal')">+ Add</button></div></div>
+                <div class="goals-header"><div class="goals-title">My Dream Life Goals</div><div><button class="goals-btn" onclick="openModal('addGoalModal')">+ Add Goal</button></div></div>
                 <div class="goals-row" id="goalsRow"></div>
             </div>
         </div>
     </div>
     
-    <!-- Modals -->
-    <div class="modal-overlay" id="bgModal"><div class="modal"><div class="modal-title">Change Background</div><div class="upload-area" onclick="document.getElementById('bgFile').click()"><div style="font-size: 3rem; margin-bottom: 12px;">📤</div><div>Click to upload image</div></div><input type="file" id="bgFile" accept="image/*" style="display: none;" onchange="handleBgUpload(event)"><div class="modal-actions"><button class="modal-btn modal-btn-secondary" onclick="closeModal('bgModal')">Cancel</button></div></div></div>
+    <!-- Background Modal -->
+    <div class="modal-overlay" id="bgModal">
+        <div class="modal">
+            <div class="modal-title">Change Background</div>
+            <img id="bgPreview" class="upload-preview" alt="Preview">
+            <div class="upload-area" onclick="document.getElementById('bgFile').click()">
+                <div style="font-size: 3rem; margin-bottom: 12px;">📤</div>
+                <div>Click to upload new background</div>
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 8px;">Recommended: 1920x1080 or higher</div>
+            </div>
+            <input type="file" id="bgFile" accept="image/*" style="display: none;" onchange="previewBgImage(event)">
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('bgModal')">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveBackground()">Save Background</button>
+            </div>
+        </div>
+    </div>
     
-    <div class="modal-overlay" id="addGoalModal"><div class="modal"><div class="modal-title">Add New Goal</div><div class="form-group"><label class="form-label">Goal Title</label><input type="text" class="form-input" id="newGoalTitle" placeholder="e.g., Oceanfront Home"></div><div class="form-group"><label class="form-label">Monthly Amount</label><input type="number" class="form-input" id="newGoalAmount" placeholder="0.00" step="0.01"></div><div class="modal-actions"><button class="modal-btn modal-btn-secondary" onclick="closeModal('addGoalModal')">Cancel</button><button class="modal-btn modal-btn-primary" onclick="saveNewGoal()">Save Goal</button></div></div></div>
+    <!-- Add Goal Modal -->
+    <div class="modal-overlay" id="addGoalModal">
+        <div class="modal">
+            <div class="modal-title">Add New Goal</div>
+            <img id="goalPreview" class="upload-preview" alt="Goal Preview">
+            <div class="upload-area" onclick="document.getElementById('goalFile').click()">
+                <div style="font-size: 2.5rem; margin-bottom: 8px;">🖼️</div>
+                <div>Click to upload goal image</div>
+            </div>
+            <input type="file" id="goalFile" accept="image/*" style="display: none;" onchange="previewGoalImage(event)">
+            <div class="form-group">
+                <label class="form-label">Choose Icon</label>
+                <div class="icon-selector">
+                    <div class="icon-option selected" onclick="selectIcon(this, '🏖️')">🏖️</div>
+                    <div class="icon-option" onclick="selectIcon(this, '🚗')">🚗</div>
+                    <div class="icon-option" onclick="selectIcon(this, '✈️')">✈️</div>
+                    <div class="icon-option" onclick="selectIcon(this, '🍽️')">🍽️</div>
+                    <div class="icon-option" onclick="selectIcon(this, '💪')">💪</div>
+                    <div class="icon-option" onclick="selectIcon(this, '👨‍🍳')">👨‍🍳</div>
+                    <div class="icon-option" onclick="selectIcon(this, '🎓')">🎓</div>
+                    <div class="icon-option" onclick="selectIcon(this, '📈')">📈</div>
+                </div>
+            </div>
+            <div class="form-group"><label class="form-label">Goal Title</label><input type="text" class="form-input" id="newGoalTitle" placeholder="e.g., Oceanfront Home"></div>
+            <div class="form-group"><label class="form-label">Monthly Amount</label><input type="number" class="form-input" id="newGoalAmount" placeholder="0.00" step="0.01"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('addGoalModal')">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveNewGoal()">Save Goal</button>
+            </div>
+        </div>
+    </div>
     
-    <div class="modal-overlay" id="confirmModal"><div class="modal"><div class="modal-title">Remove Goal?</div><div class="confirm-text">Remove this goal from your dashboard?</div><div class="modal-actions"><button class="modal-btn modal-btn-secondary" onclick="closeModal('confirmModal')">Cancel</button><button class="modal-btn modal-btn-danger" onclick="confirmRemove()">Remove</button></div></div></div>
+    <!-- Confirm Remove Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal-title">Remove Goal?</div>
+            <div class="confirm-text">Remove this goal from your dashboard?</div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+                <button class="modal-btn modal-btn-danger" onclick="confirmRemove()">Remove Goal</button>
+            </div>
+        </div>
+    </div>
     
     <script>
-        let isEditMode = false, goalToRemove = null;
+        let isEditMode = false, goalToRemove = null, selectedIcon = '🏖️', tempBgImage = null, tempGoalImage = null;
         let dashboardData = { dailyTarget: 0, weeklyTarget: 0, monthlyTarget: 0, yearlyTarget: 0, todayIncome: 0, goals: [] };
         
         function formatCurrency(num) {
@@ -239,7 +281,11 @@
                 document.getElementById('monthlyTarget').textContent = formatCurrency(calc.monthly);
                 document.getElementById('yearlyTarget').textContent = formatCurrency(calc.yearly);
                 
-                if (calc.answers) {
+                // Load goals from calculation OR from saved goals
+                const savedGoals = JSON.parse(localStorage.getItem('destinylens_goals') || '[]');
+                if (savedGoals.length > 0) {
+                    dashboardData.goals = savedGoals;
+                } else if (calc.answers) {
                     const goalMap = [
                         { key: 'home', icon: '🏖️', title: 'Dream Home' },
                         { key: 'vehicle', icon: '🚗', title: 'Dream Vehicle' },
@@ -248,10 +294,11 @@
                     ];
                     dashboardData.goals = goalMap.map(g => ({
                         ...g, amount: calc.answers[g.key]?.amount || 0,
-                        description: calc.answers[g.key]?.description || ''
+                        description: calc.answers[g.key]?.description || '',
+                        image: 'dashboard-preview.jpg'
                     })).filter(g => g.amount > 0).slice(0, 4);
-                    renderGoals();
                 }
+                renderGoals();
             }
             updateGauge();
         }
@@ -272,17 +319,17 @@
         function renderGoals() {
             const row = document.getElementById('goalsRow');
             let html = dashboardData.goals.map((g, i) => `
-                <div class="goal-card" onclick="${isEditMode ? '' : 'return false'}">
-                    <img class="goal-card-image" src="dashboard-preview.jpg" alt="${g.title}">
+                <div class="goal-card" data-index="${i}">
+                    <img class="goal-card-image" src="${g.image || 'dashboard-preview.jpg'}" alt="${g.title}">
                     <div class="goal-card-overlay">
                         <div class="goal-card-icon">${g.icon}</div>
                         <div class="goal-card-title">${g.title}</div>
                         <div class="goal-card-amount">${formatCurrency(g.amount)}/mo</div>
                     </div>
-                    <div class="goal-card-menu" onclick="event.stopPropagation(); showDropdown(${i})">⋮</div>
+                    <div class="goal-card-menu" onclick="event.stopPropagation(); toggleDropdown(${i})">⋮</div>
                     <div class="dropdown-menu" id="dropdown-${i}">
                         <div class="dropdown-item" onclick="editGoal(${i})">Edit Goal</div>
-                        <div class="dropdown-item" onclick="replaceImage(${i})">Replace Image</div>
+                        <div class="dropdown-item" onclick="replaceGoalImage(${i})">Replace Image</div>
                         <div class="dropdown-divider"></div>
                         <div class="dropdown-item danger" onclick="removeGoal(${i})">Remove Goal</div>
                     </div>
@@ -295,16 +342,11 @@
             row.innerHTML = html;
         }
         
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            document.body.classList.toggle('edit-mode', isEditMode);
-            document.querySelector('.nav-btn').textContent = isEditMode ? '✓ Done' : '✏️ Edit';
-            renderGoals();
-        }
-        
-        function showDropdown(i) {
+        function toggleDropdown(i) {
+            const menu = document.getElementById('dropdown-' + i);
+            const isActive = menu.classList.contains('active');
             document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('active'));
-            document.getElementById('dropdown-' + i).classList.add('active');
+            if (!isActive) menu.classList.add('active');
         }
         
         document.addEventListener('click', (e) => {
@@ -313,38 +355,141 @@
             }
         });
         
-        function editGoal(i) { alert('Edit: ' + dashboardData.goals[i].title); }
-        function replaceImage(i) { alert('Replace image for: ' + dashboardData.goals[i].title); }
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            document.body.classList.toggle('edit-mode', isEditMode);
+            document.querySelector('.nav-btn').textContent = isEditMode ? '✓ Done' : '✏️ Edit';
+        }
+        
+        function editGoal(i) { 
+            const g = dashboardData.goals[i];
+            document.getElementById('newGoalTitle').value = g.title;
+            document.getElementById('newGoalAmount').value = g.amount;
+            selectIcon(document.querySelector('.icon-option'), g.icon);
+            tempGoalImage = g.image;
+            document.getElementById('goalPreview').src = g.image;
+            document.getElementById('goalPreview').style.display = 'block';
+            goalToRemove = i; // Mark for replacement
+            openModal('addGoalModal');
+        }
+        
+        function replaceGoalImage(i) {
+            goalToRemove = i;
+            document.getElementById('goalFile').click();
+        }
+        
         function removeGoal(i) { goalToRemove = i; openModal('confirmModal'); }
-        function confirmRemove() { if (goalToRemove !== null) { dashboardData.goals.splice(goalToRemove, 1); goalToRemove = null; renderGoals(); } closeModal('confirmModal'); }
+        
+        function confirmRemove() {
+            if (goalToRemove !== null) {
+                dashboardData.goals.splice(goalToRemove, 1);
+                saveGoals();
+                renderGoals();
+                goalToRemove = null;
+            }
+            closeModal('confirmModal');
+        }
         
         function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('active'); 
+            // Reset previews
+            if (id === 'addGoalModal') {
+                document.getElementById('newGoalTitle').value = '';
+                document.getElementById('newGoalAmount').value = '';
+                document.getElementById('goalPreview').style.display = 'none';
+                tempGoalImage = null;
+                goalToRemove = null;
+            }
+            if (id === 'bgModal') {
+                document.getElementById('bgPreview').style.display = 'none';
+                tempBgImage = null;
+            }
+        }
         
-        function handleBgUpload(e) {
+        // Background Image Functions
+        function previewBgImage(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (ev) => { document.getElementById('bgImage').src = ev.target.result; localStorage.setItem('destinylens_bg', ev.target.result); };
+                reader.onload = (ev) => {
+                    tempBgImage = ev.target.result;
+                    document.getElementById('bgPreview').src = ev.target.result;
+                    document.getElementById('bgPreview').style.display = 'block';
+                };
                 reader.readAsDataURL(file);
             }
+        }
+        
+        function saveBackground() {
+            if (tempBgImage) {
+                document.getElementById('bgImage').src = tempBgImage;
+                localStorage.setItem('destinylens_bg', tempBgImage);
+            }
             closeModal('bgModal');
+        }
+        
+        // Goal Image Functions
+        function previewGoalImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    tempGoalImage = ev.target.result;
+                    document.getElementById('goalPreview').src = ev.target.result;
+                    document.getElementById('goalPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function selectIcon(el, icon) {
+            document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedIcon = icon;
         }
         
         function saveNewGoal() {
             const title = document.getElementById('newGoalTitle').value;
             const amount = parseFloat(document.getElementById('newGoalAmount').value) || 0;
-            if (title && amount > 0 && dashboardData.goals.length < 4) {
-                dashboardData.goals.push({ icon: '✨', title, amount, description: '' });
-                renderGoals();
-                closeModal('addGoalModal');
-                document.getElementById('newGoalTitle').value = '';
-                document.getElementById('newGoalAmount').value = '';
+            
+            if (!title || amount <= 0) {
+                alert('Please enter a title and amount');
+                return;
             }
+            
+            const newGoal = {
+                icon: selectedIcon,
+                title: title,
+                amount: amount,
+                image: tempGoalImage || 'dashboard-preview.jpg'
+            };
+            
+            if (goalToRemove !== null) {
+                // Editing existing
+                dashboardData.goals[goalToRemove] = newGoal;
+            } else if (dashboardData.goals.length < 4) {
+                // Adding new
+                dashboardData.goals.push(newGoal);
+            } else {
+                alert('Maximum 4 goals. Remove one first.');
+                return;
+            }
+            
+            saveGoals();
+            renderGoals();
+            closeModal('addGoalModal');
         }
         
+        function saveGoals() {
+            localStorage.setItem('destinylens_goals', JSON.stringify(dashboardData.goals));
+        }
+        
+        // Load saved background
         const savedBg = localStorage.getItem('destinylens_bg');
         if (savedBg) document.getElementById('bgImage').src = savedBg;
+        
+        // Initialize
         loadDashboard();
     </script>
 </body>
