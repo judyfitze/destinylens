@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Life Calculator — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a12;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-top {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .logo-bottom {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #F6C26B;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 120px 40px 80px;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #A94CF0 0%, #F6C26B 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 32px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+        }
+        
+        .question-container {
+            display: none;
+        }
+        .question-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .question-subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 32px;
+            font-size: 1.1rem;
+        }
+        
+        .microcopy {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border-left: 3px solid #A94CF0;
+            padding: 16px 20px;
+            margin-bottom: 32px;
+            border-radius: 0 8px 8px 0;
+            color: rgba(255,255,255,0.8);
+            font-style: italic;
+        }
+        
+        .input-group {
+            margin-bottom: 32px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #A94CF0;
+        }
+        
+        .input-group input::placeholder,
+        .input-group textarea::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        
+        .input-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .amount-input {
+            position: relative;
+        }
+        
+        .amount-input::before {
+            content: '$';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 1.2rem;
+        }
+        
+        .amount-input input {
+            padding-left: 40px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            color: #fff;
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(169, 76, 240, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .results-container {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .results-container.active {
+            display: block;
+        }
+        
+        .results-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .results-subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 48px;
+        }
+        
+        .number-display {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.15) 0%, rgba(246, 194, 107, 0.1) 100%);
+            border: 2px solid rgba(169, 76, 240, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+        }
+        
+        .number-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        
+        .number-value {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        
+        .number-sublabel {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        
+        .breakdown-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .breakdown-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        
+        .breakdown-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        .other-expenses-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .expense-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 120px auto;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .expense-row input {
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+        }
+        
+        .expense-row input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        
+        .btn-remove {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-add {
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.7);
+            border: 1px dashed rgba(255,255,255,0.2);
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .btn-add:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        @media (max-width: 600px) {
+            .expense-row {
+                grid-template-columns: 1fr;
+            }
+            .number-value {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+    </nav>
+    
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 11%"></div>
+        </div>
+        
+        <div class="step-indicator" id="stepIndicator">Question 1 of 9</div>
+        
+        <!-- Question 1: Dream Home -->
+        <div class="question-container active" data-step="1">
+            <h2 class="question-title">Where do you want to live?</h2>
+            <p class="question-subtitle">Describe your dream home — and what would the exact monthly mortgage or rent be? Down to the penny.</p>
+            <div class="microcopy">"There's no need to shrink the dream here. Just name it clearly."</div>
+            
+            <div class="input-group">
+                <label>Your Dream Home Description</label>
+                <textarea id="homeDescription" placeholder="An oceanfront villa in Sayulita, Mexico with a pool, tropical gardens, ocean views, and space for friends and family."></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="homeAmount" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 2: Vehicle -->
+        <div class="question-container" data-step="2">
+            <h2 class="question-title">What are you driving?</h2>
+            <p class="question-subtitle">What is your dream vehicle? What is the exact monthly payment?</p>
+            <div class="microcopy">"Specific numbers make the dream easier to build."</div>
+            
+            <div class="input-group">
+                <label>Your Dream Vehicle</label>
+                <textarea id="vehicleDescription" placeholder="White Land Rover Defender P300e"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="vehicleAmount" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 3: Travel -->
+        <div class="question-container" data-step="3">
+            <h2 class="question-title">How often are you traveling?</h2>
+            <p class="question-subtitle">Where are you going? What is your exact monthly travel budget?</p>
+            <div class="microcopy">"This isn't about pressure. It's about clarity."</div>
+            
+            <div class="input-group">
+                <label>Your Travel Plans</label>
+                <textarea id="travelDescription" placeholder="Four international trips per year, extended Mexico stays, beach vacations, retreats, and family travel"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="travelAmount" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 4: Food -->
+        <div class="question-container" data-step="4">
+            <h2 class="question-title">What does your food life look like?</h2>
+            <p class="question-subtitle">Groceries, restaurants, date nights. What is your exact monthly food budget?</p>
+            <div class="microcopy">"Let the number be honest. You can refine it later."</div>
+            
+            <div class="input-group">
+                <label>Your Food & Dining Vision</label>
+                <textarea id="foodDescription" placeholder="Fresh organic groceries, oceanfront dinners, date nights, friends over for sunset meals"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="foodAmount" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 5: Personal Trainer -->
+        <div class="question-container" data-step="5">
+            <h2 class="question-title">Are you investing in wellness?</h2>
+            <p class="question-subtitle">Personal trainer? Fitness? What is the exact monthly cost?</p>
+            <div class="microcopy">"You're not guessing anymore. You're designing."</div>
+            
+            <div class="input-group">
+                <label>Your Wellness Investment</label>
+                <textarea id="trainerDescription" placeholder="Private trainer three times per week for strength, energy, and longevity"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="trainerAmount" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 6: Personal Chef -->
+        <div class="question-container" data-step="6">
+            <h2 class="question-title">Do you have a personal chef?</h2>
+            <p class="question-subtitle">What is the exact monthly cost? (Enter $0.00 if not applicable)</p>
+            <div class="microcopy">"Every detail matters. Include it all."</div>
+            
+            <div class="input-group">
+                <label>Your Chef Service</label>
+                <textarea id="chefDescription" placeholder="A chef who prepares beautiful healthy meals several days per week"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="chefAmount" placeholder="0.00" step="0.01" value="0.00">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 7: Kids College -->
+        <div class="question-container" data-step="7">
+            <h2 class="question-title">Are you saving for education?</h2>
+            <p class="question-subtitle">Kids' college or other education? What is the exact monthly amount?</p>
+            <div class="microcopy">"Think long-term. What legacy are you building?"</div>
+            
+            <div class="input-group">
+                <label>Your Education Savings</label>
+                <textarea id="collegeDescription" placeholder="Monthly savings for children or grandchildren's education"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="collegeAmount" placeholder="0.00" step="0.01" value="0.00">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 8: Retirement -->
+        <div class="question-container" data-step="8">
+            <h2 class="question-title">How much are you building wealth?</h2>
+            <p class="question-subtitle">Retirement, investments, emergency fund. What is the exact monthly amount?</p>
+            <div class="microcopy">"Your future self will thank you for this number."</div>
+            
+            <div class="input-group">
+                <label>Your Wealth Building</label>
+                <textarea id="retirementDescription" placeholder="Long-term investments, retirement savings, emergency fund, wealth-building accounts"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label>Monthly Amount</label>
+                <div class="amount-input">
+                    <input type="number" id="retirementAmount" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Question 9: Everything Else -->
+        <div class="question-container" data-step="9">
+            <h2 class="question-title">What else is in your dream life?</h2>
+            <p class="question-subtitle">Any other monthly expenses? Give me every last one — down to the penny.</p>
+            <div class="microcopy">"This is the final piece. Make it complete."</div>
+            
+            <div class="other-expenses-list" id="otherExpensesList">
+                <div class="expense-row">
+                    <input type="text" placeholder="Category (e.g., Health & Wellness)" class="other-label">
+                    <input type="text" placeholder="Description" class="other-desc">
+                    <input type="number" placeholder="0.00" step="0.01" class="other-amount">
+                    <button class="btn-remove" onclick="removeExpenseRow(this)">×</button>
+                </div>
+            </div>
+            
+            <button class="btn-add" onclick="addExpenseRow()">+ Add Another Expense</button>
+            
+            <div class="button-group" style="margin-top: 32px;">
+                <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary" onclick="calculateResults()">Calculate My Dream Life Number</button>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="results-container" id="resultsContainer">
+            <h2 class="results-title">Your Dream Life Number</h2>
+            <p class="results-subtitle">This is the monthly income that supports the life you just designed.</p>
+            
+            <div class="number-display">
+                <div class="number-label">Monthly Dream Life Number</div>
+                <div class="number-value" id="monthlyTotal">$0.00</div>
+                <div class="number-sublabel">Everything you calculated, added up</div>
+            </div>
+            
+            <div class="breakdown-grid">
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Yearly</div>
+                    <div class="breakdown-value" id="yearlyTotal">$0</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Weekly</div>
+                    <div class="breakdown-value" id="weeklyTotal">$0</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Daily</div>
+                    <div class="breakdown-value" id="dailyTotal">$0</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-label">Hourly</div>
+                    <div class="breakdown-value" id="hourlyTotal">$0</div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary btn-full" onclick="applyToDashboard()">Apply to My Dashboard</button>
+                <button class="btn btn-secondary btn-full" onclick="generatePrompt()">Generate My Dream Life Image Prompt</button>
+                <button class="btn btn-secondary btn-full" onclick="editAnswers()">Edit My Answers</button>
+                <button class="btn btn-secondary btn-full" onclick="saveVersion()">Save This Version</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentStep = 1;
+        const totalSteps = 9;
+        
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('stepIndicator').textContent = `Question ${currentStep} of ${totalSteps}`;
+        }
+        
+        function showStep(step) {
+            document.querySelectorAll('.question-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+            currentStep = step;
+            updateProgress();
+        }
+        
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                showStep(currentStep + 1);
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        }
+        
+        function addExpenseRow() {
+            const list = document.getElementById('otherExpensesList');
+            const row = document.createElement('div');
+            row.className = 'expense-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Category" class="other-label">
+                <input type="text" placeholder="Description" class="other-desc">
+                <input type="number" placeholder="0.00" step="0.01" class="other-amount">
+                <button class="btn-remove" onclick="removeExpenseRow(this)">×</button>
+            `;
+            list.appendChild(row);
+        }
+        
+        function removeExpenseRow(btn) {
+            const rows = document.querySelectorAll('.expense-row');
+            if (rows.length > 1) {
+                btn.parentElement.remove();
+            }
+        }
+        
+        function calculateResults() {
+            // Get all amounts
+            const amounts = [
+                parseFloat(document.getElementById('homeAmount').value) || 0,
+                parseFloat(document.getElementById('vehicleAmount').value) || 0,
+                parseFloat(document.getElementById('travelAmount').value) || 0,
+                parseFloat(document.getElementById('foodAmount').value) || 0,
+                parseFloat(document.getElementById('trainerAmount').value) || 0,
+                parseFloat(document.getElementById('chefAmount').value) || 0,
+                parseFloat(document.getElementById('collegeAmount').value) || 0,
+                parseFloat(document.getElementById('retirementAmount').value) || 0
+            ];
+            
+            // Add other expenses
+            document.querySelectorAll('.other-amount').forEach(input => {
+                amounts.push(parseFloat(input.value) || 0);
+            });
+            
+            // Calculate totals
+            const monthly = amounts.reduce((a, b) => a + b, 0);
+            const yearly = monthly * 12;
+            const weekly = monthly / 4.33;
+            const daily = monthly / 30;
+            const hourly = daily / 8;
+            
+            // Format currency
+            const formatCurrency = (num) => {
+                return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            };
+            
+            // Display results
+            document.getElementById('monthlyTotal').textContent = formatCurrency(monthly);
+            document.getElementById('yearlyTotal').textContent = formatCurrency(yearly);
+            document.getElementById('weeklyTotal').textContent = formatCurrency(weekly);
+            document.getElementById('dailyTotal').textContent = formatCurrency(daily);
+            document.getElementById('hourlyTotal').textContent = formatCurrency(hourly);
+            
+            // Save to localStorage for now (will integrate with Supabase later)
+            const calculation = {
+                monthly,
+                yearly,
+                weekly,
+                daily,
+                hourly,
+                answers: {
+                    home: { description: document.getElementById('homeDescription').value, amount: parseFloat(document.getElementById('homeAmount').value) || 0 },
+                    vehicle: { description: document.getElementById('vehicleDescription').value, amount: parseFloat(document.getElementById('vehicleAmount').value) || 0 },
+                    travel: { description: document.getElementById('travelDescription').value, amount: parseFloat(document.getElementById('travelAmount').value) || 0 },
+                    food: { description: document.getElementById('foodDescription').value, amount: parseFloat(document.getElementById('foodAmount').value) || 0 },
+                    trainer: { description: document.getElementById('trainerDescription').value, amount: parseFloat(document.getElementById('trainerAmount').value) || 0 },
+                    chef: { description: document.getElementById('chefDescription').value, amount: parseFloat(document.getElementById('chefAmount').value) || 0 },
+                    college: { description: document.getElementById('collegeDescription').value, amount: parseFloat(document.getElementById('collegeAmount').value) || 0 },
+                    retirement: { description: document.getElementById('retirementDescription').value, amount: parseFloat(document.getElementById('retirementAmount').value) || 0 }
+                },
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('destinylens_calculation', JSON.stringify(calculation));
+            
+            // Show results
+            document.querySelectorAll('.question-container').forEach(c => c.classList.remove('active'));
+            document.querySelector('.progress-bar').style.display = 'none';
+            document.getElementById('stepIndicator').style.display = 'none';
+            document.getElementById('resultsContainer').classList.add('active');
+        }
+        
+        function applyToDashboard() {
+            alert('Dashboard integration coming soon! Your calculation has been saved.');
+        }
+        
+        function generatePrompt() {
+            const calculation = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
+            if (!calculation.answers) return;
+            
+            const prompt = `Create a photorealistic dream-life image showing ${calculation.answers.home.description}. The scene should feel warm, abundant, peaceful, and emotionally grounded. Include ${calculation.answers.vehicle.description} in a natural way. The atmosphere should radiate freedom, prosperity, confidence, connection, and ease. Subtly incorporate these numbers: Monthly Dream Life Number: $${calculation.monthly.toLocaleString()}, Daily Dream Life Target: $${calculation.daily.toFixed(2)}. Use a luxurious color palette with purple #A94CF0 and gold #F6C26B accents, warm golden hour lighting, cinematic composition, high-end editorial style, ultra realistic, 16:9 aspect ratio.`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(prompt).then(() => {
+                alert('AI image prompt copied to clipboard! Paste it into ChatGPT or your favorite image generator.');
+            });
+        }
+        
+        function editAnswers() {
+            document.getElementById('resultsContainer').classList.remove('active');
+            document.querySelector('.progress-bar').style.display = 'block';
+            document.getElementById('stepIndicator').style.display = 'block';
+            showStep(1);
+        }
+        
+        function saveVersion() {
+            alert('Calculation saved
