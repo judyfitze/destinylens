@@ -31,49 +31,63 @@
         }
         
         async function testConnection() {
-            log('Initializing Supabase client...');
-            
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            log('Testing authentication...');
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
-            
-            if (authError) {
-                log(`Auth check: ${authError.message}`, 'error');
-            } else if (user) {
-                log(`✓ Authenticated as: ${user.email}`, 'success');
-            } else {
-                log('✓ Not authenticated (expected for new users)', 'success');
+            try {
+                log('Initializing Supabase client...');
+                
+                // Check if supabase is available
+                if (typeof window.supabase === 'undefined') {
+                    log('✗ Supabase library not loaded', 'error');
+                    return;
+                }
+                
+                const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                log('Testing authentication...');
+                const { data, error: authError } = await client.auth.getUser();
+                
+                if (authError) {
+                    log(`Auth check: ${authError.message}`, 'error');
+                } else if (data && data.user) {
+                    log(`✓ Authenticated as: ${data.user.email}`, 'success');
+                } else {
+                    log('✓ Not authenticated (expected for new users)', 'success');
+                }
+                
+                log('Testing database connection (dream_life_calculations)...');
+                const { data: calcData, error: calcError } = await client
+                    .from('dream_life_calculations')
+                    .select('count', { count: 'exact', head: true });
+                
+                if (calcError) {
+                    log(`✗ Database error: ${calcError.message}`, 'error');
+                } else {
+                    log('✓ Database connection successful!', 'success');
+                }
+                
+                log('Testing dashboard_settings...');
+                const { error: dashError } = await client
+                    .from('dashboard_settings')
+                    .select('count', { count: 'exact', head: true });
+                
+                if (dashError) {
+                    log(`✗ Dashboard settings error: ${dashError.message}`, 'error');
+                } else {
+                    log('✓ Dashboard settings table accessible!', 'success');
+                }
+                
+                log('All tests complete!', 'success');
+            } catch (err) {
+                log(`✗ Unexpected error: ${err.message}`, 'error');
+                console.error(err);
             }
-            
-            log('Testing database connection (dream_life_calculations)...');
-            const { data, error } = await supabase
-                .from('dream_life_calculations')
-                .select('count')
-                .limit(1);
-            
-            if (error) {
-                log(`✗ Database error: ${error.message}`, 'error');
-            } else {
-                log('✓ Database connection successful!', 'success');
-            }
-            
-            log('Testing dashboard_settings...');
-            const { error: dashError } = await supabase
-                .from('dashboard_settings')
-                .select('count')
-                .limit(1);
-            
-            if (dashError) {
-                log(`✗ Dashboard settings error: ${dashError.message}`, 'error');
-            } else {
-                log('✓ Dashboard settings table accessible!', 'success');
-            }
-            
-            log('All tests complete!', 'success');
         }
         
-        testConnection();
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', testConnection);
+        } else {
+            testConnection();
+        }
     </script>
 </body>
 </html>
