@@ -218,6 +218,154 @@
             line-height: 1.6;
         }
         
+        /* Dashboard Preview Section */
+        .dashboard-preview {
+            background: linear-gradient(180deg, #11111a 0%, #0a0a12 100%);
+            text-align: center;
+        }
+        .dashboard-preview p {
+            color: rgba(255,255,255,0.7);
+            max-width: 700px;
+            margin: 0 auto 60px;
+            font-size: 1.15rem;
+        }
+        .dashboard-mockup {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 2px solid rgba(169, 76, 240, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .dashboard-mockup::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(169, 76, 240, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .mockup-content {
+            position: relative;
+            z-index: 1;
+        }
+        .mockup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .mockup-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .mockup-nav {
+            display: flex;
+            gap: 24px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+        }
+        .mockup-main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        .gauge-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
+        }
+        .gauge-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B 252deg, rgba(255,255,255,0.1) 252deg);
+            mask: radial-gradient(circle at center, transparent 60%, black 61%);
+            -webkit-mask: radial-gradient(circle at center, transparent 60%, black 61%);
+        }
+        .gauge-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .gauge-percent {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gauge-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+        }
+        .mockup-stats {
+            text-align: left;
+        }
+        .stat-item {
+            margin-bottom: 24px;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        .stat-value.daily {
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .mockup-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 40px;
+        }
+        .goal-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+        }
+        .goal-card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        .goal-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .goal-card-amount {
+            font-size: 0.8rem;
+            color: #F6C26B;
+        }
+        
         /* Solution Section */
         .solution {
             background: #0a0a12;
@@ -251,6 +399,64 @@
         .feature p {
             color: rgba(255,255,255,0.6);
             font-size: 0.95rem;
+        }
+        
+        /* Image Gallery */
+        .image-gallery {
+            background: linear-gradient(180deg, #0a0a12 0%, #11111a 100%);
+        }
+        .gallery-intro {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .gallery-item {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+        .gallery-image {
+            width: 100%;
+            aspect-ratio: 16/10;
+            background: linear-gradient(135deg, #1a1a2e 0%, #2a1a3e 50%, #1a2a3e 100%);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .gallery-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(169, 76, 240, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(246, 194, 107, 0.2) 0%, transparent 50%);
+        }
+        .gallery-image span {
+            position: relative;
+            z-index: 1;
+        }
+        .gallery-item h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .gallery-item p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
         }
         
         /* What You Get */
@@ -390,6 +596,22 @@
             font-size: 0.85rem;
             border-top: 1px solid rgba(255,255,255,0.05);
         }
+
+        @media (max-width: 768px) {
+            .mockup-main {
+                grid-template-columns: 1fr;
+            }
+            .mockup-cards {
+                grid-template-columns: 1fr;
+            }
+            .gauge-container {
+                width: 220px;
+                height: 220px;
+            }
+            .gauge-percent {
+                font-size: 2.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -406,9 +628,9 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="eyebrow">Introducing The Dream Life Calculator</div>
-        <h1>Finally Know <span>Exactly</span> What Your Dream Life Costs — Down To The Penny</h1>
-        <p class="hero-subheadline">Stop guessing. Start building. Calculate your personal Dream Life Number and track your daily income progress with a beautiful financial command center designed for abundance.</p>
+        <div class="eyebrow">Introducing The Dream Life Command Center</div>
+        <h1>Finally Know <span>Exactly</span> What Your Dream Life Costs — Then Watch Yourself Build It</h1>
+        <p class="hero-subheadline">Calculate your personal Dream Life Number. Generate AI vision board images. Track your daily income progress with a stunning financial dashboard that keeps your goals emotionally visible and practically measurable.</p>
         
         <div class="video-container">
             <div class="video-placeholder">
@@ -418,6 +640,70 @@
         </div>
         
         <a href="#pricing" class="cta-button">Get DestinyLens — $47</a>
+    </section>
+
+    <!-- Dashboard Preview Section -->
+    <section class="dashboard-preview">
+        <h2 class="section-title">Your Personal <span>Financial Command Center</span></h2>
+        <p>Not a spreadsheet. Not a budgeting app. A living, breathing dashboard that shows your dream life progress in real-time.</p>
+        
+        <div class="dashboard-mockup">
+            <div class="mockup-content">
+                <div class="mockup-header">
+                    <div class="mockup-title">Dream Life Financial Command Center</div>
+                    <div class="mockup-nav">
+                        <span>Dashboard</span>
+                        <span>Goals</span>
+                        <span>Income</span>
+                        <span>Settings</span>
+                    </div>
+                </div>
+                <div class="mockup-main">
+                    <div class="gauge-container">
+                        <div class="gauge-bg"></div>
+                        <div class="gauge-inner">
+                            <div class="gauge-percent">78%</div>
+                            <div class="gauge-label">Today's Progress</div>
+                        </div>
+                    </div>
+                    <div class="mockup-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Daily Target</div>
+                            <div class="stat-value daily">$3,937.02</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Today's Income</div>
+                            <div class="stat-value">$3,076.88</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Monthly Target</div>
+                            <div class="stat-value">$118,110.51</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Day Counter</div>
+                            <div class="stat-value">Day 247 of 720</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-cards">
+                    <div class="goal-card">
+                        <div class="goal-card-icon">🏖️</div>
+                        <div class="goal-card-title">Oceanfront Home</div>
+                        <div class="goal-card-amount">$25,000/mo</div>
+                    </div>
+                    <div class="goal-card">
+                        <div class="goal-card-icon">🚗</div>
+                        <div class="goal-card-title">Dream Vehicle</div>
+                        <div class="goal-card-amount">$1,200/mo</div>
+                    </div>
+                    <div class="goal-card">
+                        <div class="goal-card-icon">✈️</div>
+                        <div class="goal-card-title">Travel & Adventure</div>
+                        <div class="goal-card-amount">$5,000/mo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- Problem Section -->
@@ -454,28 +740,67 @@
             </div>
             <div class="feature">
                 <div class="feature-icon">📊</div>
-                <h4>Financial Command Center</h4>
-                <p>A stunning dashboard with your daily income target, circular progress gauge, and visual goal cards you can customize.</p>
+                <h4>Visual Financial Dashboard</h4>
+                <p>A stunning command center with circular progress gauge, daily income target, editable goal cards, and real-time tracking that makes your goals feel alive.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">🖼️</div>
                 <h4>AI Image Prompt Generator</h4>
-                <p>Generate personalized prompts for ChatGPT or image tools to create your dream-life vision board visuals.</p>
+                <p>Generate personalized prompts for ChatGPT or image tools to create your dream-life vision board visuals. Photorealistic scenes, luxury dashboards, morning command centers.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">💰</div>
-                <h4>Income Source Tracking</h4>
-                <p>Connect Stripe, PayPal, Shopify, affiliate platforms, bank feeds, or enter income manually. See all your revenue in one place.</p>
+                <h4>Dynamic Income Tracking</h4>
+                <p>Connect Stripe, PayPal, Shopify, affiliate platforms, bank feeds, or enter income manually. Watch your progress gauge fill in real-time as revenue flows in.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">📅</div>
                 <h4>Day Counter</h4>
-                <p>"Day 247 of 720" — track your journey with a customizable countdown or count-up timer.</p>
+                <p>"Day 247 of 720" — track your journey with a customizable countdown or count-up timer that keeps you focused on the long game.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">✨</div>
                 <h4>Editable Vision Board</h4>
-                <p>Upload images, rearrange goal cards, customize colors, and make it yours. This isn't a template — it's YOUR command center.</p>
+                <p>Upload images, rearrange goal cards, customize colors, and make it yours. This isn't a template — it's YOUR personal command center.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Gallery Section -->
+    <section class="image-gallery">
+        <h2 class="section-title">Visualize Your <span>Dream Life</span></h2>
+        <p class="gallery-intro">DestinyLens generates custom AI prompts based on your exact answers. Create stunning visuals that keep your goals emotionally present.</p>
+        
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <div class="gallery-image"><span>🏖️</span></div>
+                <h4>Photorealistic Dream Scene</h4>
+                <p>Your oceanfront home, dream vehicle, and lifestyle rendered in stunning detail with your Dream Life Number elegantly integrated.</p>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image"><span>📊</span></div>
+                <h4>Luxury Financial Dashboard</h4>
+                <p>Your personal command center visualized as a high-end morning dashboard with progress gauges and goal cards.</p>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image"><span>🎯</span></div>
+                <h4>Vision Board Collage</h4>
+                <p>All your goals in one inspiring image — home, travel, wellness, investments — with your daily target prominently displayed.</p>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image"><span>☕</span></div>
+                <h4>Morning Command Center</h4>
+                <p>Your dream workspace with soft morning light, coffee, and your daily income target as the central focus.</p>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image"><span>📱</span></div>
+                <h4>Social Share Image</h4>
+                <p>Polished graphics showing your Dream Life Number, perfect for sharing your journey with your community.</p>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image"><span>🎨</span></div>
+                <h4>Custom Goal Cards</h4>
+                <p>Personalized cards for each dream life category that you can arrange, edit, and display on your dashboard.</p>
             </div>
         </div>
     </section>
@@ -489,21 +814,21 @@
                 <div class="deliverable-check">✓</div>
                 <div class="deliverable-text">
                     <h4>Dream Life Calculator</h4>
-                    <p>Complete 9-question wizard with auto-save, precise calculations, and multiple scenario saving.</p>
+                    <p>Complete 9-question wizard with auto-save, precise calculations down to the penny, and multiple scenario saving.</p>
                 </div>
             </div>
             <div class="deliverable-item">
                 <div class="deliverable-check">✓</div>
                 <div class="deliverable-text">
-                    <h4>Personalized Financial Dashboard</h4>
-                    <p>Your daily income target, progress gauge, goal cards, and income tracking — fully customizable.</p>
+                    <h4>Visual Financial Dashboard</h4>
+                    <p>Your personal command center with circular progress gauge, daily income target, editable goal cards, and day counter.</p>
                 </div>
             </div>
             <div class="deliverable-item">
                 <div class="deliverable-check">✓</div>
                 <div class="deliverable-text">
                     <h4>AI Prompt Generator</h4>
-                    <p>5 prompt styles: Photorealistic scene, Luxury dashboard, Vision board collage, Morning command center, Social share image.</p>
+                    <p>5 prompt styles customized to your dream life: Photorealistic scene, Luxury dashboard, Vision board, Morning command center, Social share.</p>
                 </div>
             </div>
             <div class="deliverable-item">
@@ -566,7 +891,7 @@
     <!-- Final CTA -->
     <section class="final-cta">
         <h2>Your Dream Life Has A <span>Number</span>.</h2>
-        <p>Stop wondering what it takes. Start knowing. Calculate your Dream Life Number today and build the financial command center that gets you there.</p>
+        <p>Stop wondering what it takes. Start knowing. Calculate your Dream Life Number today and build the visual command center that gets you there.</p>
         <a href="#pricing" class="cta-button">Get DestinyLens — $47</a>
     </section>
 
