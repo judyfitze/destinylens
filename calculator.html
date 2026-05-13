@@ -682,8 +682,6 @@
                 },
                 timestamp: new Date().toISOString()
             };
-            localStorage.setItem('destinylens_calculation', JSON.stringify(calculation));
-            
             // Save to Supabase and link to dashboard
             saveCalculationToSupabase(calculation);
             
@@ -698,8 +696,17 @@
             window.location.href = '/members.html';
         }
         
-        function generatePrompt() {
-            const calculation = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
+        async function generatePrompt() {
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            const { data: calculation } = await supabaseClient
+                .from('dream_life_calculations')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
             if (!calculation.answers) return;
             
             const prompt = `Create a photorealistic dream-life image showing ${calculation.answers.home.description}. The scene should feel warm, abundant, peaceful, and emotionally grounded. Include ${calculation.answers.vehicle.description} in a natural way. The atmosphere should radiate freedom, prosperity, confidence, connection, and ease. Subtly incorporate these numbers: Monthly Dream Life Number: $${calculation.monthly.toLocaleString()}, Daily Dream Life Target: $${calculation.daily.toFixed(2)}. Use a luxurious color palette with purple #A94CF0 and gold #F6C26B accents, warm golden hour lighting, cinematic composition, high-end editorial style, ultra realistic, 16:9 aspect ratio.`;
@@ -775,23 +782,31 @@
             alert('Calculation saved to your account!');
         }
         
-        // Load previous entries if they exist
-        function loadPreviousEntries() {
-            const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
-            if (calc.answers) {
-                const a = calc.answers;
-                if (a.home) { document.getElementById('homeDescription').value = a.home.description || ''; document.getElementById('homeAmount').value = a.home.amount || ''; }
-                if (a.vehicle) { document.getElementById('vehicleDescription').value = a.vehicle.description || ''; document.getElementById('vehicleAmount').value = a.vehicle.amount || ''; }
-                if (a.travel) { document.getElementById('travelDescription').value = a.travel.description || ''; document.getElementById('travelAmount').value = a.travel.amount || ''; }
-                if (a.food) { document.getElementById('foodDescription').value = a.food.description || ''; document.getElementById('foodAmount').value = a.food.amount || ''; }
-                if (a.trainer) { document.getElementById('trainerDescription').value = a.trainer.description || ''; document.getElementById('trainerAmount').value = a.trainer.amount || ''; }
-                if (a.chef) { document.getElementById('chefDescription').value = a.chef.description || ''; document.getElementById('chefAmount').value = a.chef.amount || ''; }
-                if (a.college) { document.getElementById('collegeDescription').value = a.college.description || ''; document.getElementById('collegeAmount').value = a.college.amount || ''; }
-                if (a.retirement) { document.getElementById('retirementDescription').value = a.retirement.description || ''; document.getElementById('retirementAmount').value = a.retirement.amount || ''; }
+        // Load from Supabase on page load
+        async function loadPreviousEntries() {
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            const { data: calc } = await supabaseClient
+                .from('dream_life_calculations')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+            
+            if (calc) {
+                if (calc.home_description) { document.getElementById('homeDescription').value = calc.home_description; document.getElementById('homeAmount').value = calc.home_monthly_amount || ''; }
+                if (calc.vehicle_description) { document.getElementById('vehicleDescription').value = calc.vehicle_description; document.getElementById('vehicleAmount').value = calc.vehicle_monthly_amount || ''; }
+                if (calc.travel_description) { document.getElementById('travelDescription').value = calc.travel_description; document.getElementById('travelAmount').value = calc.travel_monthly_amount || ''; }
+                if (calc.food_description) { document.getElementById('foodDescription').value = calc.food_description; document.getElementById('foodAmount').value = calc.food_monthly_amount || ''; }
+                if (calc.trainer_description) { document.getElementById('trainerDescription').value = calc.trainer_description; document.getElementById('trainerAmount').value = calc.trainer_monthly_amount || ''; }
+                if (calc.chef_description) { document.getElementById('chefDescription').value = calc.chef_description; document.getElementById('chefAmount').value = calc.chef_monthly_amount || ''; }
+                if (calc.college_description) { document.getElementById('collegeDescription').value = calc.college_description; document.getElementById('collegeAmount').value = calc.college_monthly_amount || ''; }
+                if (calc.retirement_description) { document.getElementById('retirementDescription').value = calc.retirement_description; document.getElementById('retirementAmount').value = calc.retirement_monthly_amount || ''; }
             }
         }
         
-        // Load previous entries on page load
         document.addEventListener('DOMContentLoaded', loadPreviousEntries);
         
         updateProgress();
