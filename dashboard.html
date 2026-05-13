@@ -672,12 +672,94 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', init);
         
-        function init() {
-            // Load background
+        async function init() {
+            // Wait for auth
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            // Load from Supabase
+            await loadDashboardData(user.id);
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.goal-menu-btn') && !e.target.closest('.goal-dropdown')) {
+                    closeAllDropdowns();
+                }
+            });
+        }
+        
+        async function loadDashboardData(userId) {
+            try {
+                // Load dashboard settings with calculation
+                const { data: settings, error: settingsError } = await supabaseClient
+                    .from('dashboard_settings')
+                    .select('*, dream_life_calculations(*)')
+                    .eq('user_id', userId)
+                    .single();
+                
+                if (settingsError || !settings) {
+                    console.log('No dashboard settings found, using fallback');
+                    loadFromLocalStorage();
+                    return;
+                }
+                
+                // Load background
+                if (settings.background_image_url) {
+                    document.getElementById('bgImage').src = settings.background_image_url;
+                }
+                
+                // Load targets
+                const calc = settings.dream_life_calculations;
+                if (calc) {
+                    dailyTarget = calc.daily_total || 0;
+                    document.getElementById('dailyTarget').textContent = format$(calc.daily_total);
+                    document.getElementById('weeklyTarget').textContent = format$(calc.weekly_total);
+                    document.getElementById('monthlyTarget').textContent = format$(calc.monthly_total);
+                    document.getElementById('yearlyTarget').textContent = format$(calc.yearly_total);
+                }
+                
+                // Load goals
+                const { data: dbGoals, error: goalsError } = await supabaseClient
+                    .from('goal_cards')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('sort_order', { ascending: true });
+                
+                if (!goalsError && dbGoals && dbGoals.length > 0) {
+                    goals = dbGoals.map(g => ({
+                        id: g.id,
+                        icon: g.icon,
+                        title: g.title,
+                        amount: g.monthly_amount,
+                        image: g.image_url || 'dashboard-preview.jpg'
+                    }));
+                } else if (calc) {
+                    const map = [
+                        {k: 'home', i: '🏖️', t: 'Dream Home'},
+                        {k: 'vehicle', i: '🚗', t: 'Dream Vehicle'},
+                        {k: 'travel', i: '✈️', t: 'Travel'},
+                        {k: 'food', i: '🍽️', t: 'Food & Dining'}
+                    ];
+                    goals = map.map(g => ({
+                        icon: g.i, title: g.t,
+                        amount: calc[g.k + '_monthly_amount'] || 0,
+                        image: 'dashboard-preview.jpg'
+                    })).filter(g => g.amount > 0).slice(0, 4);
+                }
+                
+                renderGoals();
+                updateIncome();
+                
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+                loadFromLocalStorage();
+            }
+        }
+        
+        function loadFromLocalStorage() {
             const bg = localStorage.getItem('destinylens_background');
             if (bg) document.getElementById('bgImage').src = bg;
             
-            // Load calculation
             const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
             if (calc.daily) {
                 dailyTarget = calc.daily;
@@ -686,7 +768,6 @@
                 document.getElementById('monthlyTarget').textContent = format$(calc.monthly);
                 document.getElementById('yearlyTarget').textContent = format$(calc.yearly);
                 
-                // Load goals
                 const saved = JSON.parse(localStorage.getItem('destinylens_goals') || '[]');
                 if (saved.length) {
                     goals = saved;
@@ -823,13 +904,32 @@
             openModal('goalModal');
         }
         
-        function deleteGoal(index) {
+        async function deleteGoal(index) {
             closeAllDropdowns();
-            if (confirm('Delete this goal?')) {
-                goals.splice(index, 1);
-                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
-                renderGoals();
+            if (!confirm('Delete this goal?')) return;
+            
+            const goal = goals[index];
+            if (goal.id) {
+                // Delete from Supabase
+                const { user } = await getCurrentUser();
+                if (user) {
+                    const { error } = await supabaseClient
+                        .from('goal_cards')
+                        .delete()
+                        .eq('id', goal.id)
+                        .eq('user_id', user.id);
+                    
+                    if (error) {
+                        console.error('Error deleting goal:', error);
+                        alert('Error deleting goal');
+                        return;
+                    }
+                }
             }
+            
+            goals.splice(index, 1);
+            localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+            renderGoals();
         }
         
         // Modal functions
@@ -919,7 +1019,7 @@
             selectedIcon = icon;
         }
         
-        function saveGoal() {
+        async function saveGoal() {
             const title = document.getElementById('goalTitle').value.trim();
             const amount = parseFloat(document.getElementById('goalAmount').value) || 0;
             
@@ -932,6 +1032,22 @@
                 return;
             }
             
+            // Get current user
+            const { user } = await getCurrentUser();
+            if (!user) {
+                alert('Not authenticated');
+                return;
+            }
+            
+            // Get dashboard settings for dashboard_id
+            const { data: settings } = await supabaseClient
+                .from('dashboard_settings')
+                .select('id')
+                .eq('user_id', user.id)
+                .single();
+            
+            const dashboardId = settings?.id || null;
+            
             const goal = {
                 icon: selectedIcon,
                 title: title,
@@ -939,31 +1055,71 @@
                 image: tempGoalImage || 'dashboard-preview.jpg'
             };
             
-            if (goalEditIndex !== null) {
-                goals[goalEditIndex] = goal;
-            } else if (goals.length < 4) {
-                goals.push(goal);
-            } else {
-                alert('Maximum 4 goals reached');
-                return;
+            // Save to Supabase
+            try {
+                if (goalEditIndex !== null && goals[goalEditIndex].id) {
+                    // Update existing
+                    const { error } = await supabaseClient
+                        .from('goal_cards')
+                        .update({
+                            title: goal.title,
+                            icon: goal.icon,
+                            monthly_amount: goal.amount,
+                            image_url: goal.image,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', goals[goalEditIndex].id)
+                        .eq('user_id', user.id);
+                    
+                    if (error) throw error;
+                    goals[goalEditIndex] = { ...goals[goalEditIndex], ...goal };
+                } else if (goals.length < 4) {
+                    // Insert new
+                    const { data, error } = await supabaseClient
+                        .from('goal_cards')
+                        .insert({
+                            user_id: user.id,
+                            dashboard_id: dashboardId,
+                            title: goal.title,
+                            icon: goal.icon,
+                            monthly_amount: goal.amount,
+                            image_url: goal.image,
+                            sort_order: goals.length,
+                            visible: true
+                        })
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    goals.push({ id: data.id, ...goal });
+                } else {
+                    alert('Maximum 4 goals reached');
+                    return;
+                }
+                
+                // Also save to localStorage as backup
+                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                
+                renderGoals();
+                closeModal('goalModal');
+                
+                // Reset form
+                document.getElementById('goalTitle').value = '';
+                document.getElementById('goalAmount').value = '';
+                document.getElementById('goalPreview').style.display = 'none';
+                document.getElementById('goalUploadText').textContent = 'Upload goal image';
+                document.getElementById('goalUploadArea').classList.remove('has-image');
+                tempGoalImage = null;
+                goalEditIndex = null;
+                
+            } catch (err) {
+                console.error('Error saving goal:', err);
+                alert('Error saving goal. Please try again.');
             }
-            
-            localStorage.setItem('destinylens_goals', JSON.stringify(goals));
-            renderGoals();
-            closeModal('goalModal');
-            
-            // Reset form
-            document.getElementById('goalTitle').value = '';
-            document.getElementById('goalAmount').value = '';
-            document.getElementById('goalPreview').style.display = 'none';
-            document.getElementById('goalUploadText').textContent = 'Upload goal image';
-            document.getElementById('goalUploadArea').classList.remove('has-image');
-            tempGoalImage = null;
-            goalEditIndex = null;
         }
         
         // Income functions
-        function saveIncome() {
+        async function saveIncome() {
             const source = document.getElementById('incomeSource').value.trim();
             const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
             
@@ -972,14 +1128,37 @@
                 return;
             }
             
-            const current = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
-            localStorage.setItem('destinylens_today_manual', (current + amount).toString());
+            // Get current user
+            const { user } = await getCurrentUser();
+            if (!user) {
+                alert('Not authenticated');
+                return;
+            }
             
-            const entries = JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
-            entries.push({ source, amount, date: new Date().toISOString() });
-            localStorage.setItem('destinylens_income_entries', JSON.stringify(entries));
-            
-            updateIncome();
+            try {
+                // Save to Supabase
+                const { error } = await supabaseClient
+                    .from('manual_income_entries')
+                    .insert({
+                        user_id: user.id,
+                        amount: amount,
+                        income_source_label: source,
+                        entry_date: new Date().toISOString().split('T')[0],
+                        note: '',
+                        include_in_dashboard: true
+                    });
+                
+                if (error) throw error;
+                
+                // Also update localStorage for quick access
+                const current = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
+                localStorage.setItem('destinylens_today_manual', (current + amount).toString());
+                
+                const entries = JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
+                entries.push({ source, amount, date: new Date().toISOString() });
+                localStorage.setItem('destinylens_income_entries', JSON.stringify(entries));
+                
+                updateIncome();
             closeModal('incomeModal');
             
             document.getElementById('incomeSource').value = '';
