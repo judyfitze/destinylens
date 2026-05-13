@@ -359,8 +359,20 @@
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        const pathParts = window.location.pathname.split('/');
-        const shareSlug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+        // Parse slug from URL: /share/SLUG or /share.html?slug=SLUG
+        const pathParts = window.location.pathname.split('/').filter(p => p);
+        let shareSlug = '';
+        
+        // Check if we're at /share/SLUG
+        const shareIndex = pathParts.indexOf('share');
+        if (shareIndex >= 0 && pathParts[shareIndex + 1]) {
+            shareSlug = pathParts[shareIndex + 1];
+        } else {
+            // Fallback: last part of path
+            shareSlug = pathParts[pathParts.length - 1];
+        }
+        
+        console.log('Share slug:', shareSlug, 'Path:', window.location.pathname);
         
         async function loadSharedDashboard() {
             try {
