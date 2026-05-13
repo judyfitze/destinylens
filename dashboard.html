@@ -298,6 +298,51 @@
         .goal-name { font-weight: 700; font-size: 0.85rem; }
         .goal-amt { color: var(--gold); font-weight: 600; font-size: 0.75rem; }
         
+        /* Three Dot Menu */
+        .goal-menu-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 5;
+        }
+        .goal-card:hover .goal-menu-btn { opacity: 1; }
+        .goal-dropdown {
+            display: none;
+            position: absolute;
+            top: 38px;
+            right: 8px;
+            background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            min-width: 140px;
+            z-index: 10;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .goal-dropdown.active { display: block; }
+        .goal-dropdown-item {
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.9);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .goal-dropdown-item:hover { background: rgba(169, 76, 240, 0.2); }
+        .goal-dropdown-item.delete { color: #ff6b6b; }
+        .goal-dropdown-item.delete:hover { background: rgba(255, 107, 107, 0.2); }
+        
         /* Add Goal Card */
         .add-card {
             border: 2px dashed rgba(255,255,255,0.25);
@@ -355,9 +400,18 @@
             text-align: center;
             cursor: pointer;
             margin-bottom: 16px;
+            transition: all 0.2s;
         }
         .upload-area:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.05); }
-        .preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; display: none; }
+        .upload-area.has-image { border-style: solid; border-color: var(--purple); background: rgba(169, 76, 240, 0.1); }
+        .preview-img { 
+            width: 100%; 
+            height: 120px; 
+            object-fit: cover; 
+            border-radius: 8px; 
+            margin-bottom: 12px; 
+            display: none;
+        }
         .icon-pick { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
         .icon-opt {
             width: 40px; height: 40px;
@@ -511,7 +565,7 @@
             <div class="goals-area">
                 <div class="goals-bar">
                     <span class="goals-heading">🎯 My Dream Life Goals</span>
-                    <button class="add-goal-btn" onclick="openModal('goalModal')">+ ADD GOAL</button>
+                    <button class="add-goal-btn" onclick="openAddGoalModal()">+ ADD GOAL</button>
                 </div>
                 <div class="goals-grid" id="goalsGrid"></div>
             </div>
@@ -523,7 +577,7 @@
         <div class="modal-box">
             <div class="modal-title">Change Background</div>
             <img id="bgPreview" class="preview-img" alt="">
-            <div class="upload-area" onclick="document.getElementById('bgFile').click()">
+            <div class="upload-area" id="bgUploadArea" onclick="document.getElementById('bgFile').click()">
                 <div style="font-size: 2rem; margin-bottom: 6px;">📤</div>
                 <div style="font-size: 0.85rem;">Click to upload</div>
             </div>
@@ -538,11 +592,11 @@
     <!-- Goal Modal -->
     <div class="modal-overlay" id="goalModal">
         <div class="modal-box">
-            <div class="modal-title">Add New Goal</div>
+            <div class="modal-title" id="goalModalTitle">Add New Goal</div>
             <img id="goalPreview" class="preview-img" alt="">
-            <div class="upload-area" onclick="document.getElementById('goalFile').click()">
+            <div class="upload-area" id="goalUploadArea" onclick="document.getElementById('goalFile').click()">
                 <div style="font-size: 1.8rem; margin-bottom: 6px;">🖼️</div>
-                <div style="font-size: 0.85rem;">Upload goal image</div>
+                <div style="font-size: 0.85rem;" id="goalUploadText">Upload goal image</div>
             </div>
             <input type="file" id="goalFile" accept="image/*" style="display:none" onchange="handleGoalFile(event)">
             
@@ -597,13 +651,21 @@
     </div>
 
     <script>
-        let goals = [], selectedIcon = '🏖️', tempBgImage = null, tempGoalImage = null;
-        let goalEditIndex = null, dailyTarget = 0;
+        // State
+        let goals = [];
+        let selectedIcon = '🏖️';
+        let tempBgImage = null;
+        let tempGoalImage = null;
+        let goalEditIndex = null;
+        let dailyTarget = 0;
+        let activeDropdown = null;
         
+        // Format currency
         function format$(n) {
             return '$' + (n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
         
+        // Initialize
         document.addEventListener('DOMContentLoaded', init);
         
         function init() {
@@ -640,6 +702,13 @@
                 renderGoals();
                 updateIncome();
             }
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.goal-menu-btn') && !e.target.closest('.goal-dropdown')) {
+                    closeAllDropdowns();
+                }
+            });
         }
         
         function updateIncome() {
@@ -655,19 +724,24 @@
         function renderGoals() {
             const grid = document.getElementById('goalsGrid');
             let html = goals.map((g, i) => `
-                <div class="goal-card" onclick="goalOptions(${i})">
+                <div class="goal-card">
                     <img src="${g.image}" alt="${g.title}">
                     <div class="goal-info">
                         <div class="goal-emoji">${g.icon}</div>
                         <div class="goal-name">${g.title}</div>
                         <div class="goal-amt">${format$(g.amount)}/mo</div>
                     </div>
+                    <div class="goal-menu-btn" onclick="toggleDropdown(event, ${i})">⋮</div>
+                    <div class="goal-dropdown" id="dropdown-${i}">
+                        <div class="goal-dropdown-item" onclick="editGoal(${i})">✏️ Edit Goal</div>
+                        <div class="goal-dropdown-item delete" onclick="deleteGoal(${i})">🗑️ Delete</div>
+                    </div>
                 </div>
             `).join('');
             
             if (goals.length < 4) {
                 html += `
-                    <div class="goal-card add-card" onclick="openModal('goalModal')">
+                    <div class="goal-card add-card" onclick="openAddGoalModal()">
                         <div class="add-plus">+</div>
                         <div class="add-text">Add Goal</div>
                     </div>
@@ -676,45 +750,109 @@
             grid.innerHTML = html;
         }
         
-        function goalOptions(i) {
-            const action = prompt('Type "edit" or "remove":');
-            if (action === 'remove') {
-                goals.splice(i, 1);
+        // Dropdown functions
+        function toggleDropdown(event, index) {
+            event.stopPropagation();
+            closeAllDropdowns();
+            const dropdown = document.getElementById(`dropdown-${index}`);
+            if (dropdown) {
+                dropdown.classList.add('active');
+                activeDropdown = dropdown;
+            }
+        }
+        
+        function closeAllDropdowns() {
+            document.querySelectorAll('.goal-dropdown').forEach(d => d.classList.remove('active'));
+            activeDropdown = null;
+        }
+        
+        // Goal functions
+        function openAddGoalModal() {
+            goalEditIndex = null;
+            tempGoalImage = null;
+            selectedIcon = '🏖️;
+            
+            // Reset form
+            document.getElementById('goalTitle').value = '';
+            document.getElementById('goalAmount').value = '';
+            document.getElementById('goalPreview').style.display = 'none';
+            document.getElementById('goalUploadText').textContent = 'Upload goal image';
+            document.getElementById('goalUploadArea').classList.remove('has-image');
+            
+            // Reset icon selection
+            document.querySelectorAll('.icon-opt').forEach((btn, i) => {
+                btn.classList.toggle('selected', i === 0);
+            });
+            
+            document.getElementById('goalModalTitle').textContent = 'Add New Goal';
+            openModal('goalModal');
+        }
+        
+        function editGoal(index) {
+            closeAllDropdowns();
+            const g = goals[index];
+            goalEditIndex = index;
+            tempGoalImage = g.image;
+            selectedIcon = g.icon;
+            
+            // Fill form
+            document.getElementById('goalTitle').value = g.title;
+            document.getElementById('goalAmount').value = g.amount;
+            
+            // Show image preview if exists
+            if (g.image && g.image !== 'dashboard-preview.jpg') {
+                document.getElementById('goalPreview').src = g.image;
+                document.getElementById('goalPreview').style.display = 'block';
+                document.getElementById('goalUploadText').textContent = 'Change image';
+                document.getElementById('goalUploadArea').classList.add('has-image');
+            } else {
+                document.getElementById('goalPreview').style.display = 'none';
+                document.getElementById('goalUploadText').textContent = 'Upload goal image';
+                document.getElementById('goalUploadArea').classList.remove('has-image');
+            }
+            
+            // Set icon
+            document.querySelectorAll('.icon-opt').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent === g.icon);
+            });
+            
+            document.getElementById('goalModalTitle').textContent = 'Edit Goal';
+            openModal('goalModal');
+        }
+        
+        function deleteGoal(index) {
+            closeAllDropdowns();
+            if (confirm('Delete this goal?')) {
+                goals.splice(index, 1);
                 localStorage.setItem('destinylens_goals', JSON.stringify(goals));
                 renderGoals();
-            } else if (action === 'edit') {
-                const g = goals[i];
-                goalEditIndex = i;
-                document.getElementById('goalTitle').value = g.title;
-                document.getElementById('goalAmount').value = g.amount;
-                selectedIcon = g.icon;
-                tempGoalImage = g.image;
-                document.querySelectorAll('.icon-opt').forEach(b => b.classList.toggle('selected', b.textContent === g.icon));
-                if (g.image !== 'dashboard-preview.jpg') {
-                    document.getElementById('goalPreview').src = g.image;
-                    document.getElementById('goalPreview').style.display = 'block';
-                }
-                openModal('goalModal');
             }
         }
         
-        // Modals
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        // Modal functions
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
         
-        // Background
-        function handleBgFile(e) {
-            const file = e.target.files[0];
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        // Background functions
+        function handleBgFile(event) {
+            const file = event.target.files[0];
             if (file) {
-                const r = new FileReader();
-                r.onload = ev => {
-                    tempBgImage = ev.target.result;
-                    document.getElementById('bgPreview').src = ev.target.result;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempBgImage = e.target.result;
+                    document.getElementById('bgPreview').src = e.target.result;
                     document.getElementById('bgPreview').style.display = 'block';
+                    document.getElementById('bgUploadArea').classList.add('has-image');
                 };
-                r.readAsDataURL(file);
+                reader.readAsDataURL(file);
             }
         }
+        
         function saveBackground() {
             if (tempBgImage) {
                 document.getElementById('bgImage').src = tempBgImage;
@@ -722,68 +860,98 @@
                 closeModal('bgModal');
                 tempBgImage = null;
                 document.getElementById('bgPreview').style.display = 'none';
+                document.getElementById('bgUploadArea').classList.remove('has-image');
+                document.getElementById('bgFile').value = '';
+            } else {
+                alert('Please select an image first');
             }
         }
         
-        // Goal
-        function handleGoalFile(e) {
-            const file = e.target.files[0];
+        // Goal file handling
+        function handleGoalFile(event) {
+            const file = event.target.files[0];
             if (file) {
-                const r = new FileReader();
-                r.onload = ev => {
-                    tempGoalImage = ev.target.result;
-                    document.getElementById('goalPreview').src = ev.target.result;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempGoalImage = e.target.result;
+                    document.getElementById('goalPreview').src = e.target.result;
                     document.getElementById('goalPreview').style.display = 'block';
+                    document.getElementById('goalUploadText').textContent = 'Change image';
+                    document.getElementById('goalUploadArea').classList.add('has-image');
                 };
-                r.readAsDataURL(file);
+                reader.readAsDataURL(file);
             }
         }
-        function selectIcon(el, icon) {
-            document.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected');
+        
+        function selectIcon(element, icon) {
+            document.querySelectorAll('.icon-opt').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
             selectedIcon = icon;
         }
+        
         function saveGoal() {
             const title = document.getElementById('goalTitle').value.trim();
             const amount = parseFloat(document.getElementById('goalAmount').value) || 0;
-            if (!title || amount <= 0) {
-                alert('Please enter title and amount');
+            
+            if (!title) {
+                alert('Please enter a goal title');
                 return;
             }
-            const goal = { icon: selectedIcon, title, amount, image: tempGoalImage || 'dashboard-preview.jpg' };
+            if (amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            const goal = {
+                icon: selectedIcon,
+                title: title,
+                amount: amount,
+                image: tempGoalImage || 'dashboard-preview.jpg'
+            };
+            
             if (goalEditIndex !== null) {
                 goals[goalEditIndex] = goal;
             } else if (goals.length < 4) {
                 goals.push(goal);
             } else {
-                alert('Maximum 4 goals');
+                alert('Maximum 4 goals reached');
                 return;
             }
+            
             localStorage.setItem('destinylens_goals', JSON.stringify(goals));
             renderGoals();
             closeModal('goalModal');
+            
+            // Reset form
             document.getElementById('goalTitle').value = '';
             document.getElementById('goalAmount').value = '';
             document.getElementById('goalPreview').style.display = 'none';
+            document.getElementById('goalUploadText').textContent = 'Upload goal image';
+            document.getElementById('goalUploadArea').classList.remove('has-image');
             tempGoalImage = null;
             goalEditIndex = null;
         }
         
-        // Income
+        // Income functions
         function saveIncome() {
             const source = document.getElementById('incomeSource').value.trim();
             const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
+            
             if (!source || amount <= 0) {
                 alert('Please enter source and amount');
                 return;
             }
+            
             const current = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
             localStorage.setItem('destinylens_today_manual', (current + amount).toString());
+            
             const entries = JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
             entries.push({ source, amount, date: new Date().toISOString() });
             localStorage.setItem('destinylens_income_entries', JSON.stringify(entries));
+            
             updateIncome();
             closeModal('incomeModal');
+            
             document.getElementById('incomeSource').value = '';
             document.getElementById('incomeAmount').value = '';
         }
