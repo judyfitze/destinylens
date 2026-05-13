@@ -27,16 +27,19 @@ async function requireAuth() {
     return user;
 }
 
-// Check entitlement (placeholder for Stripe integration)
-async function checkEntitlement(userId, feature) {
-    // TODO: Connect to Stripe/subscription system
-    // For now, allow all authenticated users
-    return { hasAccess: true };
+// Check entitlement using the entitlements system
+async function checkEntitlementAccess(userId, feature) {
+    // Load entitlements script if not already loaded
+    if (typeof checkEntitlement === 'undefined') {
+        await loadScript('js/entitlements.js');
+    }
+    
+    return await checkEntitlement(userId, feature);
 }
 
-async function requireEntitlement(feature) {
+async function requireEntitlementAccess(feature) {
     const user = await requireAuth();
-    const { hasAccess } = await checkEntitlement(user.id, feature);
+    const { hasAccess } = await checkEntitlementAccess(user.id, feature);
     
     if (!hasAccess) {
         // Redirect to locked page
@@ -45,6 +48,17 @@ async function requireEntitlement(feature) {
     }
     
     return user;
+}
+
+// Helper to load script dynamically
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
 }
 
 // Logout function
@@ -69,18 +83,28 @@ async function addLogoutButton() {
 }
 
 // Run on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Supabase first
+    initSupabase();
+    
     // Check if this is a protected page
     const protectedPaths = [
-        '/dashboard.html',
-        '/members.html',
-        '/calculator.html'
+        { path: '/dashboard.html', entitlement: 'dream_life_dashboard' },
+        { path: '/members.html', entitlement: null }, // Members area is always accessible if logged in
+        { path: '/calculator.html', entitlement: 'dream_life_calculator' }
     ];
     
     const currentPath = window.location.pathname;
+    const protectedRoute = protectedPaths.find(p => p.path === currentPath);
     
-    if (protectedPaths.includes(currentPath)) {
-        requireAuth();
+    if (protectedRoute) {
+        if (protectedRoute.entitlement) {
+            // Require specific entitlement
+            await requireEntitlementAccess(protectedRoute.entitlement);
+        } else {
+            // Just require auth
+            await requireAuth();
+        }
     }
     
     // Add logout button to all pages

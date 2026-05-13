@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feature Locked — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/entitlements.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --purple: #A94CF0; --gold: #F6C26B; }
@@ -109,9 +112,55 @@
             <div class="lock-icon">🔒</div>
             <h1>Dream Life Dashboard</h1>
             <p>This feature is part of your premium Dream Life tools. Your dashboard helps you calculate your Dream Life Number, create a personalized visual board, and track your real income progress toward your daily goal.</p>
-            <a href="/upgrade.html" class="btn">Upgrade to Access</a>
+            <button class="btn" id="upgradeBtn" onclick="handleUpgrade()">Upgrade to Access</button>
             <a href="/members.html" class="btn btn-secondary">Return to Dashboard</a>
         </div>
     </div>
+    <script>
+        // Get feature from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const feature = urlParams.get('feature') || 'dream_life_dashboard';
+        
+        // Update page content based on feature
+        const featureNames = {
+            'dream_life_dashboard': 'Dream Life Dashboard',
+            'dream_life_calculator': 'Dream Life Calculator',
+            'abundance_playground_premium': 'Abundance Playground Premium',
+            'future_self_oracle_member': 'Future Self Oracle'
+        };
+        
+        document.querySelector('h1').textContent = featureNames[feature] || 'Premium Feature';
+        
+        async function handleUpgrade() {
+            // TODO: Replace with actual Stripe price ID
+            const priceIds = {
+                'dream_life_dashboard': 'price_dashboard_monthly',
+                'dream_life_calculator': 'price_calculator_onetime',
+                'abundance_playground_premium': 'price_premium_monthly',
+                'future_self_oracle_member': 'price_oracle_monthly'
+            };
+            
+            const priceId = priceIds[feature];
+            if (!priceId) {
+                alert('Please contact support to upgrade.');
+                return;
+            }
+            
+            // Show loading
+            const btn = document.getElementById('upgradeBtn');
+            btn.textContent = 'Loading...';
+            btn.disabled = true;
+            
+            // Create checkout session
+            const { error } = await createCheckoutSession(priceId);
+            
+            if (error) {
+                alert('Error: ' + error.message);
+                btn.textContent = 'Upgrade to Access';
+                btn.disabled = false;
+            }
+            // Otherwise redirects to Stripe
+        }
+    </script>
 </body>
 </html>
