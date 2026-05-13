@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Dream Life Dashboard — DestinyLens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a12;
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .public-banner {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);
+            border-bottom: 1px solid rgba(169, 76, 240, 0.2);
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .public-banner a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .share-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .share-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .share-header p {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .dashboard-preview {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .preview-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+        
+        .stat-value.highlight {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .goals-section {
+            margin-top: 30px;
+        }
+        
+        .goals-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .goal-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .goal-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .goal-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .goal-amount {
+            color: var(--gold);
+            font-weight: 700;
+        }
+        
+        .locked-message {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .locked-message h2 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+        
+        .locked-message p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 24px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+        }
+        
+        .footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 640px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .goals-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="public-banner">
+        This is a public share of a private Dream Life Dashboard. 
+        <a href="/">Create your own</a>
+    </div>
+    
+    <div class="container">
+        <div class="share-header">
+            <h1 id="ownerName">Dream Life Dashboard</h1>
+            <p id="shareSubtitle">Living the dream, one day at a time</p>
+        </div>
+        
+        <div id="contentArea">
+            <!-- Content loaded dynamically -->
+        </div>
+        
+        <div class="footer">
+            Powered by <a href="/">DestinyLens</a> — Calculate your Dream Life Number
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase (anon key only for public reads)
+        const SUPABASE_URL = 'https://nfyabrvkqgzuzxjetqbe.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbG…fTm0';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Get share slug from URL
+        const pathParts = window.location.pathname.split('/');
+        const shareSlug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+        
+        async function loadSharedDashboard() {
+            try {
+                // Get dashboard settings by share slug
+                const { data: settings, error } = await supabaseClient
+                    .from('dashboard_settings')
+                    .select('*, dream_life_calculations(*)')
+                    .eq('public_share_slug', shareSlug)
+                    .eq('public_share_enabled', true)
+                    .single();
+                
+                if (error || !settings) {
+                    showNotFound();
+                    return;
+                }
+                
+                // Check if share is password protected
+                if (settings.password_protected) {
+                    showPasswordPrompt();
+                    return;
+                }
+                
+                renderDashboard(settings);
+                
+            } catch (err) {
+                console.error('Error loading shared dashboard:', err);
+                showError();
+            }
+        }
+        
+        function renderDashboard(settings) {
+            const calc = settings.dream_life_calculations;
+            
+            // Update header
+            document.getElementById('ownerName').textContent = settings.dashboard_title || 'Dream Life Dashboard';
+            document.getElementById('shareSubtitle').textContent = settings.dashboard_subtitle || 'Living the dream, one day at a time';
+            
+            // Build content
+            let content = '<div class="dashboard-preview">';
+            content += '<div class="preview-title">📊 Dream Life Targets</div>';
+            
+            // Stats grid
+            content += '<div class="stats-grid">';
+            
+            if (settings.show_income_numbers_publicly !== false) {
+                content += `
+                    <div class="stat-card">
+                        <div class="stat-label">Daily Target</div>
+                        <div class="stat-value highlight">$${formatNumber(calc?.daily_total)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Monthly Target</div>
+                        <div class="stat-value">$${formatNumber(calc?.monthly_total)}</div>
+                    </div>
+                `;
+            }
+            
+            if (calc?.weekly_total) {
+                content += `
+                    <div class="stat-card">
+                        <div class="stat-label">Weekly Target</div>
+                        <div class="stat-value">$${formatNumber(calc?.weekly_total)}</div>
+                    </div>
+                `;
+            }
+            
+            if (calc?.yearly_total) {
+                content += `
+                    <div class="stat-card">
+                        <div class="stat-label">Annual Target</div>
+                        <div class="stat-value">$${formatNumber(calc?.yearly_total)}</div>
+                    </div>
+                `;
+            }
+            
+            content += '</div>'; // End stats grid
+            
+            // Show goals if enabled
+            if (settings.show_goal_cards_publicly !== false) {
+                content += '<div class="goals-section">';
+                content += '<div class="goals-title">🎯 Dream Life Goals</div>';
+                content += '<div class="goals-grid" id="goalsGrid">Loading...</div>';
+                content += '</div>';
+                
+                // Load goals separately
+                loadSharedGoals(settings.user_id);
+            }
+            
+            content += '</div>'; // End dashboard-preview
+            
+            document.getElementById('contentArea').innerHTML = content;
+        }
+        
+        async function loadSharedGoals(userId) {
+            const { data: goals, error } = await supabaseClient
+                .from('goal_cards')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('visible', true)
+                .order('sort_order', { ascending: true })
+                .limit(4);
+            
+            if (error || !goals || goals.length === 0) {
+                document.getElementById('goalsGrid').innerHTML = '<p style="color: rgba(255,255,255,0.5);">No goals shared</p>';
+                return;
+            }
+            
+            const goalsHTML = goals.map(g => `
+                <div class="goal-card">
+                    <div class="goal-icon">${g.icon || '🎯'}</div>
+                    <div class="goal-name">${g.title}</div>
+                    <div class="goal-amount">$${formatNumber(g.monthly_amount)}/mo</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('goalsGrid').innerHTML = goalsHTML;
+        }
+        
+        function formatNumber(num) {
+            if (!num) return '0.00';
+            return parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+        
+        function showNotFound() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="locked-message">
+                    <h2>🔒 Dashboard Not Found</h2>
+                    <p>This share link may have expired or been disabled by the owner.</p>
+                    <a href="/" class="btn">Create Your Own Dashboard</a>
+                </div>
+            `;
+        }
+        
+        function showPasswordPrompt() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="locked-message">
+                    <h2>🔒 Password Protected</h2>
+                    <p>This dashboard is password protected.</p>
+                    <div style="max-width: 300px; margin: 20px auto;">
+                        <input type="password" id="sharePassword" placeholder="Enter password" 
+                            style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; margin-bottom: 12px;">
+                        <button onclick="checkPassword()" class="btn" style="width: 100%; border: none; cursor: pointer;">Unlock</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showError() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="locked-message">
+                    <h2>⚠️ Error Loading Dashboard</h2>
+                    <p>Something went wrong. Please try again later.</p>
+                    <a href="/" class="btn">Go Home</a>
+                </div>
+            `;
+        }
+        
+        async function checkPassword() {
+            const password = document.getElementById('sharePassword').value;
+            // TODO: Implement password verification
+            alert('Password verification not yet implemented');
+        }
+        
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadSharedDashboard);
+    </script>
+</body>
+</html>

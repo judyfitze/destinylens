@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Settings — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a12;
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        nav {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 900;
+        }
+        
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-top { font-size: 1rem; font-weight: 800; text-transform: uppercase; }
+        .logo-bottom { font-size: 0.65rem; color: var(--gold); text-transform: uppercase; }
+        
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .nav-links a:hover { color: var(--gold); }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 40px;
+        }
+        
+        .settings-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .toggle-row:last-child { border-bottom: none; }
+        
+        .toggle-label {
+            font-weight: 600;
+        }
+        
+        .toggle-desc {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: var(--purple);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+        
+        .share-url {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .share-url input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .btn:hover { opacity: 0.9; }
+        
+        .save-status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .save-status.success {
+            display: block;
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+        
+        .save-status.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="/dashboard.html">Dashboard</a>
+            <a href="/members.html">Members</a>
+            <a href="/settings.html">Settings</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Dashboard Settings</h1>
+        <p class="subtitle">Customize your Dream Life Dashboard and sharing preferences</p>
+        
+        <!-- Public Sharing -->
+        <div class="settings-section">
+            <div class="section-title">🌐 Public Sharing</div>
+            
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Enable Public Share</div>
+                    <div class="toggle-desc">Allow others to view your dashboard with a link</div>
+                </div>
+                <div class="toggle-switch" id="shareToggle" onclick="toggleShare()"></div>
+            </div>
+            
+            <div id="shareOptions" style="display: none; margin-top: 20px;">
+                <div class="form-group">
+                    <label>Share URL</label>
+                    <div class="share-url">
+                        <input type="text" id="shareUrl" readonly>
+                        <button class="btn btn-secondary" onclick="copyUrl()">Copy</button>
+                    </div>
+                </div>
+                
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Password Protection</div>
+                        <div class="toggle-desc">Require a password to view</div>
+                    </div>
+                    <div class="toggle-switch" id="passwordToggle" onclick="togglePassword()"></div>
+                </div>
+                
+                <div class="form-group" id="passwordField" style="display: none;">
+                    <label>Share Password</label>
+                    <input type="password" id="sharePassword" placeholder="Enter password">
+                </div>
+                
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Show Income Numbers</div>
+                        <div class="toggle-desc">Display your Dream Life targets</div>
+                    </div>
+                    <div class="toggle-switch active" id="incomeToggle" onclick="toggleOption('income')"></div>
+                </div>
+                
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Show Goal Cards</div>
+                        <div class="toggle-desc">Display your Dream Life goals</div>
+                    </div>
+                    <div class="toggle-switch active" id="goalsToggle" onclick="toggleOption('goals')"></div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="saveSettings()" style="margin-top: 20px;">Save Settings</button>
+            <div class="save-status" id="saveStatus"></div>
+        </div>
+        
+        <!-- Dashboard Info -->
+        <div class="settings-section">
+            <div class="section-title">📋 Dashboard Info</div>
+            
+            <div class="form-group">
+                <label>Dashboard Title</label>
+                <input type="text" id="dashboardTitle" placeholder="My Dream Life Dashboard">
+            </div>
+            
+            <div class="form-group">
+                <label>Subtitle</label>
+                <input type="text" id="dashboardSubtitle" placeholder="Living my best life">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let settings = {};
+        
+        async function loadSettings() {
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            const { data, error } = await supabaseClient
+                .from('dashboard_settings')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
+            
+            if (data) {
+                settings = data;
+                
+                // Update UI
+                document.getElementById('dashboardTitle').value = data.dashboard_title || '';
+                document.getElementById('dashboardSubtitle').value = data.dashboard_subtitle || '';
+                
+                // Share settings
+                if (data.public_share_enabled) {
+                    document.getElementById('shareToggle').classList.add('active');
+                    document.getElementById('shareOptions').style.display = 'block';
+                    document.getElementById('shareUrl').value = `${window.location.origin}/share/${data.public_share_slug}`;
+                }
+                
+                if (data.password_protected) {
+                    document.getElementById('passwordToggle').classList.add('active');
+                    document.getElementById('passwordField').style.display = 'block';
+                }
+                
+                if (data.show_income_numbers_publicly === false) {
+                    document.getElementById('incomeToggle').classList.remove('active');
+                }
+                
+                if (data.show_goal_cards_publicly === false) {
+                    document.getElementById('goalsToggle').classList.remove('active');
+                }
+            }
+        }
+        
+        function toggleShare() {
+            const toggle = document.getElementById('shareToggle');
+            toggle.classList.toggle('active');
+            document.getElementById('shareOptions').style.display = toggle.classList.contains('active') ? 'block' : 'none';
+            
+            if (toggle.classList.contains('active') && !settings.public_share_slug) {
+                // Generate random slug
+                settings.public_share_slug = Math.random().toString(36).substring(2, 15);
+                document.getElementById('shareUrl').value = `${window.location.origin}/share/${settings.public_share_slug}`;
+            }
+        }
+        
+        function togglePassword() {
+            const toggle = document.getElementById('passwordToggle');
+            toggle.classList.toggle('active');
+            document.getElementById('passwordField').style.display = toggle.classList.contains('active') ? 'block' : 'none';
+        }
+        
+        function toggleOption(option) {
+            document.getElementById(option + 'Toggle').classList.toggle('active');
+        }
+        
+        function copyUrl() {
+            const urlInput = document.getElementById('shareUrl');
+            urlInput.select();
+            document.execCommand('copy');
+            alert('URL copied to clipboard!');
+        }
+        
+        async function saveSettings() {
+            const { user } = await getCurrentUser();
+            if (!user) {
+                showStatus('Not authenticated', 'error');
+                return;
+            }
+            
+            const updates = {
+                dashboard_title: document.getElementById('dashboardTitle').value,
+                dashboard_subtitle: document.getElementById('dashboardSubtitle').value,
+                public_share_enabled: document.getElementById('shareToggle').classList.contains('active'),
+                public_share_slug: settings.public_share_slug,
+                password_protected: document.getElementById('passwordToggle').classList.contains('active'),
+                show_income_numbers_publicly: document.getElementById('incomeToggle').classList.contains('active'),
+                show_goal_cards_publicly: document.getElementById('goalsToggle').classList.contains('active'),
+                updated_at: new Date().toISOString()
+            };
+            
+            if (updates.password_protected) {
+                updates.share_password = document.getElementById('sharePassword').value;
+            }
+            
+            const { error } = await supabaseClient
+                .from('dashboard_settings')
+                .upsert({
+                    user_id: user.id,
+                    ...updates
+                });
+            
+            if (error) {
+                showStatus('Error saving: ' + error.message, 'error');
+            } else {
+                showStatus('Settings saved!', 'success');
+            }
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('saveStatus');
+            status.textContent = message;
+            status.className = 'save-status ' + type;
+            setTimeout(() => {
+                status.className = 'save-status';
+            }, 3000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+</html>
