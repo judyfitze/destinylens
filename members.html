@@ -220,6 +220,15 @@
             color: rgba(255,255,255,0.5);
             margin-top: 4px;
         }
+        .stat-progress {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .stat-progress span {
+            color: var(--gold);
+        }
         
         /* Modules Section */
         .modules-section {
@@ -422,23 +431,23 @@
                 <div class="stats-grid">
                     <div class="stat-box highlight">
                         <div class="stat-label">Daily Target</div>
-                        <div class="stat-value highlight">$3,937.02</div>
-                        <div class="stat-sub">Your Dream Life Number</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Today's Income</div>
-                        <div class="stat-value">$3,076.88</div>
-                        <div class="stat-sub">$860.14 to go</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Monthly Target</div>
-                        <div class="stat-value">$118,110.51</div>
-                        <div class="stat-sub">On track</div>
+                        <div class="stat-value highlight" id="dailyTargetValue">$0.00</div>
+                        <div class="stat-progress" id="dailyProgress"><span>$0.00</span> / $0.00</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">Weekly Target</div>
-                        <div class="stat-value">$27,276.10</div>
-                        <div class="stat-sub">$5,420 remaining</div>
+                        <div class="stat-value" id="weeklyTargetValue">$0.00</div>
+                        <div class="stat-progress" id="weeklyProgress"><span>$0.00</span> / $0.00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Monthly Target</div>
+                        <div class="stat-value" id="monthlyTargetValue">$0.00</div>
+                        <div class="stat-progress" id="monthlyProgress"><span>$0.00</span> / $0.00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Annual Target</div>
+                        <div class="stat-value" id="annualTargetValue">$0.00</div>
+                        <div class="stat-progress" id="annualProgress"><span>$0.00</span> / $0.00</div>
                     </div>
                 </div>
             </div>
@@ -524,24 +533,69 @@
     </div>
     
     <script>
+        // Get income entries from localStorage
+        function getIncomeEntries() {
+            return JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
+        }
+        
+        // Calculate income for different time periods
+        function calculateIncome() {
+            const entries = getIncomeEntries();
+            const now = new Date();
+            
+            // Get start of today
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            // Get start of week (Monday)
+            const dayOfWeek = now.getDay();
+            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const startOfWeek = new Date(now.getFullYear(), now.getMonth(), diff);
+            startOfWeek.setHours(0, 0, 0, 0);
+            
+            // Get start of month
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            // Get start of year
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            
+            // Calculate totals
+            let daily = 0, weekly = 0, monthly = 0, annual = 0;
+            
+            entries.forEach(entry => {
+                const entryDate = new Date(entry.date);
+                const amount = parseFloat(entry.amount) || 0;
+                
+                if (entryDate >= startOfToday) daily += amount;
+                if (entryDate >= startOfWeek) weekly += amount;
+                if (entryDate >= startOfMonth) monthly += amount;
+                if (entryDate >= startOfYear) annual += amount;
+            });
+            
+            return { daily, weekly, monthly, annual };
+        }
+        
         // Load calculation from localStorage
         function loadDashboardData() {
             const calculation = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
+            const income = calculateIncome();
             
             if (calculation.daily) {
-                // Update daily target
-                document.querySelector('.stat-value.highlight').textContent = '$' + calculation.daily.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                // Update target values
+                document.getElementById('dailyTargetValue').textContent = '$' + calculation.daily.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('weeklyTargetValue').textContent = '$' + calculation.weekly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('monthlyTargetValue').textContent = '$' + calculation.monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('annualTargetValue').textContent = '$' + calculation.yearly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 
-                // Update other stats
-                const statValues = document.querySelectorAll('.stat-value');
-                if (statValues[2]) statValues[2].textContent = '$' + calculation.monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                if (statValues[3]) statValues[3].textContent = '$' + calculation.weekly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                // Update progress (income vs target)
+                document.getElementById('dailyProgress').innerHTML = `<span>$${income.daily.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.daily.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('weeklyProgress').innerHTML = `<span>$${income.weekly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.weekly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('monthlyProgress').innerHTML = `<span>$${income.monthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.monthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('annualProgress').innerHTML = `<span>$${income.annual.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.yearly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 
-                // Get today's income from localStorage (synced with dashboard)
-                const todayIncome = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
-                const progress = Math.min((todayIncome / calculation.daily) * 100, 100);
+                // Update gauge
+                const progress = Math.min((income.daily / calculation.daily) * 100, 100);
                 document.querySelector('.gauge-percent').textContent = Math.round(progress) + '%';
-                document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / $' + calculation.daily.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.querySelector('.gauge-label').textContent = '$' + income.daily.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / $' + calculation.daily.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 
                 // Update gauge background
                 const degrees = (progress / 100) * 360;
