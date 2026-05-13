@@ -309,8 +309,10 @@
                     showError(result.error.message);
                 } else {
                     if (isSignIn) {
-                        // Redirect to dashboard
-                        window.location.href = '/members.html';
+                        // Get return URL from query params
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const returnTo = urlParams.get('returnTo') || '/members.html';
+                        window.location.href = returnTo;
                     } else {
                         showSuccess('Account created! Please check your email to confirm, then sign in.');
                         setTimeout(() => {
