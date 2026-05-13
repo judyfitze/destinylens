@@ -73,7 +73,15 @@
             font-weight: 900; font-size: 0.9rem;
         }
         .logo-text { display: flex; flex-direction: column; }
-        .logo-title { font-size: 0.9rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+        .logo-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
         .logo-subtitle { font-size: 0.6rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
         .nav-btn {
             padding: 8px 14px;
