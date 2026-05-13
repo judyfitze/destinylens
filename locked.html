@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Locked — DestinyLens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        
+        body {
+            background: #0a0a12;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        nav {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 900;
+        }
+        
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-top { font-size: 1rem; font-weight: 800; text-transform: uppercase; }
+        .logo-bottom { font-size: 0.65rem; color: var(--gold); text-transform: uppercase; }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        .locked-box {
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        .lock-icon {
+            font-size: 4rem;
+            margin-bottom: 24px;
+        }
+        
+        .locked-box h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        
+        .locked-box p {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover { transform: translateY(-2px); }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+    </nav>
+    
+    <div class="container">
+        <div class="locked-box">
+            <div class="lock-icon">🔒</div>
+            <h1>Dream Life Dashboard</h1>
+            <p>This feature is part of your premium Dream Life tools. Your dashboard helps you calculate your Dream Life Number, create a personalized visual board, and track your real income progress toward your daily goal.</p>
+            <a href="/upgrade.html" class="btn">Upgrade to Access</a>
+            <a href="/members.html" class="btn btn-secondary">Return to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
