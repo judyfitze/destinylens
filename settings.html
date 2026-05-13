@@ -264,6 +264,34 @@
             background: rgba(239, 68, 68, 0.15);
             color: #ef4444;
         }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.95) 0%, rgba(246, 194, 107, 0.95) 100%);
+            color: #fff;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 32px rgba(169, 76, 240, 0.4);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .toast-icon {
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
@@ -435,7 +463,28 @@
             const urlInput = document.getElementById('shareUrl');
             urlInput.select();
             document.execCommand('copy');
-            alert('URL copied to clipboard!');
+            showToast('Link copied to clipboard!');
+        }
+
+        function showToast(message) {
+            // Remove existing toast
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            // Create new toast
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = '<span class="toast-icon">✨</span><span>' + message + '</span>';
+            document.body.appendChild(toast);
+
+            // Show
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            // Hide after 2.5 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
         }
         
         async function saveSettings() {
