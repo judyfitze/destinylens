@@ -580,13 +580,19 @@
                 return;
             }
             
-            container.innerHTML = connections.map(conn => `
+            container.innerHTML = connections.map(conn => {
+                const webhookUrl = conn.provider === 'stripe' && conn.status === 'pending' 
+                    ? `${window.location.origin}/api/stripe-webhook?connection_id=${conn.connection_id}`
+                    : null;
+                
+                return `
                 <div class="connection-item">
                     <div class="connection-info">
                         <div class="connection-icon">${providerIcons[conn.provider] || '💰'}</div>
                         <div class="connection-details">
                             <h4>${conn.connection_label || providerNames[conn.provider]}</h4>
                             <p>${providerNames[conn.provider]} • Connected ${new Date(conn.created_at).toLocaleDateString()}</p>
+                            ${webhookUrl ? `<p style="font-size: 0.75rem; margin-top: 4px;">Webhook: <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; cursor: pointer;" onclick="navigator.clipboard.writeText('${webhookUrl}'); alert('Webhook URL copied!')">${webhookUrl}</code> (click to copy)</p>` : ''}
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -597,7 +603,7 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
         
         function startConnection(provider) {
@@ -638,43 +644,43 @@
             
             closeModal('connectionModal');
             
-            // For Stripe, initiate OAuth flow
+            // For Stripe, show webhook setup instructions
             if (currentProvider === 'stripe') {
-                await initiateStripeOAuth(connection.connection_id, user.id);
+                showStripeWebhookInstructions(connection.connection_id);
             } else {
-                alert(`${providerNames[currentProvider]} connection created! OAuth integration coming soon. For now, you can add manual income entries.`);
+                alert(`${providerNames[currentProvider]} connection created! Integration coming soon. For now, you can add manual income entries.`);
                 loadConnections();
             }
         }
         
-        async function initiateStripeOAuth(connectionId, userId) {
-            try {
-                const { data, error } = await supabaseClient.functions.invoke('stripe-connect', {
-                    body: { connection_id: connectionId, user_id: userId }
-                });
-                
-                if (error) {
-                    console.error('OAuth error:', error);
-                    alert('Error initiating Stripe connection: ' + error.message);
-                    return;
-                }
-                
-                // Open OAuth popup
-                const popup = window.open(data.url, 'stripe-oauth', 'width=800,height=600');
-                
-                // Listen for message from popup
-                window.addEventListener('message', (event) => {
-                    if (event.data === 'stripe-connected') {
-                        popup?.close();
-                        alert('Stripe connected successfully!');
-                        loadConnections();
-                    }
-                }, { once: true });
-                
-            } catch (err) {
-                console.error('OAuth initiation error:', err);
-                alert('Error connecting to Stripe. Please try again.');
-            }
+        function showStripeWebhookInstructions(connectionId) {
+            const webhookUrl = `${window.location.origin}/api/stripe-webhook?connection_id=${connectionId}`;
+            
+            const instructions = `
+Stripe Connection Created!
+
+To complete the setup, you need to create a webhook in your Stripe Dashboard:
+
+1. Go to your Stripe Dashboard
+2. Click "Developers" → "Webhooks"
+3. Click "Add endpoint"
+4. Paste this URL:
+   ${webhookUrl}
+5. Select these events:
+   - charge.succeeded
+   - payment_intent.succeeded
+6. Click "Add endpoint"
+
+Once created, your Stripe payments will automatically appear in your DestinyLens dashboard!
+
+Your webhook URL has been copied to your clipboard.
+            `;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(webhookUrl).then(() => {
+                alert(instructions);
+                loadConnections();
+            });
         }
         
         async function disconnectConnection(connectionId) {
