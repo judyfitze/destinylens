@@ -598,6 +598,24 @@
             <button class="btn-add" onclick="addExpenseRow()">+ Add Another Expense</button>
             <div class="button-group" style="margin-top: 32px;">
                 <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Question 10: Timeframe -->
+        <div class="question-container" data-step="10">
+            <h2 class="question-title">When will this be your reality?</h2>
+            <p class="question-subtitle">How many days do you give yourself to manifest this dream life?</p>
+            <div class="microcopy">"A deadline creates momentum. Be ambitious but realistic."</div>
+            <div class="input-group">
+                <label>Your Manifestation Timeframe (days)</label>
+                <div class="amount-input">
+                    <input type="number" id="timeframeDays" placeholder="730" step="1" value="730">
+                </div>
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Examples: 365 days = 1 year, 730 days = 2 years, 1095 days = 3 years</p>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
                 <button class="btn btn-primary" onclick="calculateResults()">Calculate My Dream Life Number</button>
             </div>
         </div>
@@ -639,7 +657,7 @@
     </div>
     <script>
         let currentStep = 1;
-        const totalSteps = 9;
+        const totalSteps = 10;
         
         function updateProgress() {
             const progress = (currentStep / totalSteps) * 100;
@@ -727,8 +745,11 @@
             document.getElementById('dailyTotal').textContent = formatCurrency(daily);
             document.getElementById('hourlyTotal').textContent = formatCurrency(hourly);
             
+            const timeframeDays = parseInt(document.getElementById('timeframeDays').value) || 730;
+            
             const calculation = {
                 monthly, yearly, weekly, daily, hourly,
+                timeframeDays,
                 answers: {
                     home: { description: document.getElementById('homeDescription').value, amount: parseAmount(document.getElementById('homeAmount').value) },
                     vehicle: { description: document.getElementById('vehicleDescription').value, amount: parseAmount(document.getElementById('vehicleAmount').value) },
@@ -813,6 +834,7 @@
                         weekly_total: calculation.weekly,
                         daily_total: calculation.daily,
                         hourly_total: calculation.hourly,
+                        timeframe_days: calculation.timeframeDays,
                         is_active: true
                     })
                     .select()
@@ -863,6 +885,7 @@
                 if (calc.chef_description) { document.getElementById('chefDescription').value = calc.chef_description; document.getElementById('chefAmount').value = calc.chef_monthly_amount || ''; }
                 if (calc.college_description) { document.getElementById('collegeDescription').value = calc.college_description; document.getElementById('collegeAmount').value = calc.college_monthly_amount || ''; }
                 if (calc.retirement_description) { document.getElementById('retirementDescription').value = calc.retirement_description; document.getElementById('retirementAmount').value = calc.retirement_monthly_amount || ''; }
+                if (calc.timeframe_days) { document.getElementById('timeframeDays').value = calc.timeframe_days; }
             }
         }
         

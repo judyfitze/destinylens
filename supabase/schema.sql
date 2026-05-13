@@ -44,6 +44,9 @@ CREATE TABLE dream_life_calculations (
     -- Other expenses (JSON array)
     other_expenses JSONB DEFAULT '[]'::jsonb,
     
+    -- Timeframe for manifestation
+    timeframe_days INTEGER DEFAULT 730,
+    
     -- Calculated totals
     monthly_total DECIMAL(12,2) DEFAULT 0,
     yearly_total DECIMAL(12,2) DEFAULT 0,

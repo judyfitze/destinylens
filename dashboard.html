@@ -843,6 +843,14 @@
                     document.getElementById('weeklyTarget').textContent = format$(calc.weekly_total);
                     document.getElementById('monthlyTarget').textContent = format$(calc.monthly_total);
                     document.getElementById('yearlyTarget').textContent = format$(calc.yearly_total);
+                    
+                    // Update Journey counter with timeframe
+                    const timeframeDays = calc.timeframe_days || 730; // Default 2 years
+                    const calcDate = new Date(calc.created_at);
+                    const today = new Date();
+                    const daysElapsed = Math.floor((today - calcDate) / (1000 * 60 * 60 * 24)) + 1;
+                    const currentDay = Math.min(daysElapsed, timeframeDays);
+                    document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
                 }
                 
                 // Load goals
