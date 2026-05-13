@@ -1072,7 +1072,6 @@
                 
                 // Update UI with the public URL
                 document.getElementById('bgImage').src = publicUrl;
-                localStorage.setItem('destinylens_background', publicUrl);
                 
                 // Save URL to database
                 const { error } = await supabaseClient
@@ -1208,8 +1207,7 @@
                     return;
                 }
                 
-                // Also save to localStorage as backup
-                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+
                 
                 renderGoals();
                 closeModal('goalModal');
@@ -1261,13 +1259,7 @@
                 
                 if (error) throw error;
                 
-                // Also update localStorage for quick access
-                const current = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
-                localStorage.setItem('destinylens_today_manual', (current + amount).toString());
-                
-                const entries = JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
-                entries.push({ source, amount, date: new Date().toISOString() });
-                localStorage.setItem('destinylens_income_entries', JSON.stringify(entries));
+
                 
                 updateIncome();
                 closeModal('incomeModal');

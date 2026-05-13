@@ -9,7 +9,7 @@ let supabaseClient = null;
 // Initialize Supabase client
 function initSupabase() {
     if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-        console.warn('Supabase not configured. Using localStorage fallback.');
+        console.warn('Supabase not configured.');
         return null;
     }
     
@@ -63,11 +63,7 @@ async function getCurrentUser() {
 
 // Calculation functions
 async function saveCalculation(calculationData) {
-    if (!supabaseClient) {
-        // Fallback to localStorage
-        localStorage.setItem('destinylens_calculation', JSON.stringify(calculationData));
-        return { data: calculationData, error: null };
-    }
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -86,10 +82,7 @@ async function saveCalculation(calculationData) {
 }
 
 async function getCalculations() {
-    if (!supabaseClient) {
-        const local = localStorage.getItem('destinylens_calculation');
-        return { data: local ? [JSON.parse(local)] : [], error: null };
-    }
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -104,10 +97,7 @@ async function getCalculations() {
 }
 
 async function getActiveCalculation() {
-    if (!supabaseClient) {
-        const local = localStorage.getItem('destinylens_calculation');
-        return { data: local ? JSON.parse(local) : null, error: null };
-    }
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -124,7 +114,7 @@ async function getActiveCalculation() {
 
 // Dashboard settings functions
 async function getDashboardSettings() {
-    if (!supabaseClient) return { data: null, error: null };
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -139,7 +129,7 @@ async function getDashboardSettings() {
 }
 
 async function updateDashboardSettings(settings) {
-    if (!supabaseClient) return { data: settings, error: null };
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -159,7 +149,7 @@ async function updateDashboardSettings(settings) {
 
 // Goal cards functions
 async function getGoalCards() {
-    if (!supabaseClient) return { data: [], error: null };
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -174,7 +164,7 @@ async function getGoalCards() {
 }
 
 async function saveGoalCard(cardData) {
-    if (!supabaseClient) return { data: cardData, error: null };
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -194,7 +184,7 @@ async function saveGoalCard(cardData) {
 
 // Income functions
 async function getIncomeSources() {
-    if (!supabaseClient) return { data: [], error: null };
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -209,13 +199,7 @@ async function getIncomeSources() {
 }
 
 async function addManualIncome(entry) {
-    if (!supabaseClient) {
-        // Store in localStorage for now
-        const entries = JSON.parse(localStorage.getItem('destinylens_manual_income') || '[]');
-        entries.push({ ...entry, id: Date.now(), created_at: new Date().toISOString() });
-        localStorage.setItem('destinylens_manual_income', JSON.stringify(entries));
-        return { data: entry, error: null };
-    }
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
@@ -233,14 +217,9 @@ async function addManualIncome(entry) {
 }
 
 async function getTodayIncome() {
-    const today = new Date().toISOString().split('T')[0];
+    if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
-    if (!supabaseClient) {
-        const entries = JSON.parse(localStorage.getItem('destinylens_manual_income') || '[]');
-        const todayEntries = entries.filter(e => e.entry_date === today);
-        const total = todayEntries.reduce((sum, e) => sum + parseFloat(e.amount), 0);
-        return { data: { total, entries: todayEntries }, error: null };
-    }
+    const today = new Date().toISOString().split('T')[0];
     
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return { error: { message: 'Not authenticated' } };
