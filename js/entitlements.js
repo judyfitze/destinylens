@@ -15,6 +15,19 @@ async function checkEntitlement(userId, entitlement) {
         return { hasAccess: true, source: 'fallback' };
     }
     
+    // Get current user to check for admin
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    // Hardcoded admin access for Judy
+    if (user && user.email === 'judyfitze@gmail.com') {
+        return {
+            hasAccess: true,
+            source: 'admin',
+            plan: 'lifetime',
+            expiresAt: null
+        };
+    }
+    
     // First check if user has active subscription in database
     const { data: subscription, error } = await supabaseClient
         .from('user_subscriptions')
