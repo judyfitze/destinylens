@@ -67,19 +67,54 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
-        .nav-links {
+        /* Hamburger Menu */
+        .hamburger {
             display: flex;
-            gap: 32px;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 10px;
         }
-        .nav-links a {
-            color: rgba(255,255,255,0.7);
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .nav-menu {
+            position: absolute;
+            top: 70px;
+            right: 40px;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 180px;
+            display: none;
+            z-index: 1000;
+        }
+        .nav-menu.active {
+            display: block;
+        }
+        .nav-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #fff;
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 600;
-            transition: color 0.2s;
+            border-radius: 8px;
         }
-        .nav-links a:hover {
-            color: #F6C26B;
+        .nav-menu a:hover {
+            background: rgba(255,255,255,0.1);
         }
         
         .container {
@@ -394,7 +429,7 @@
     </style>
 </head>
 <body>
-    <nav>
+    <nav style="position: relative;">
         <a href="/" class="logo-mark">
             <div class="logo-icon">DL</div>
             <div class="logo-text">
@@ -402,12 +437,18 @@
                 <span class="logo-bottom">Your Dream Life In Focus</span>
             </div>
         </a>
-        <div class="nav-links">
-            <a href="/dashboard.html">Dashboard</a>
-            <a href="/calculator.html">Calculator</a>
-            <a href="/settings.html">Settings</a>
-            <a href="/members.html">Member Area</a>
-            <a href="/auth.html">Logout</a>
+        <div class="hamburger" onclick="toggleNavMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/members.html">👤 Members</a>
+            <a href="/calculator.html">🧮 Calculator</a>
+            <a href="/settings.html">⚙️ Settings</a>
+            <a href="/account.html">👤 Account</a>
+            <a href="/auth.html">🚪 Logout</a>
         </div>
     </nav>
     
@@ -663,6 +704,17 @@
         
         // Load data when page loads
         document.addEventListener('DOMContentLoaded', loadDashboardData);
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+        
+        function toggleNavMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
     </script>
 </body>
 </html>
