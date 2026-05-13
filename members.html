@@ -6,19 +6,18 @@
     <title>Member Area — DestinyLens</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --purple: #A94CF0; --gold: #F6C26B; }
-        
         body {
             background: #0a0a12;
             color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            min-height: 100vh;
         }
         
         nav {
             position: fixed;
-            top: 0; left: 0; right: 0;
+            top: 0;
+            left: 0;
+            right: 0;
             padding: 16px 40px;
             display: flex;
             justify-content: space-between;
@@ -35,8 +34,9 @@
             text-decoration: none;
         }
         .logo-icon {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -45,7 +45,10 @@
             font-weight: 900;
             color: #fff;
         }
-        .logo-text { display: flex; flex-direction: column; }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
         .logo-top {
             font-size: 0.95rem;
             font-weight: 800;
@@ -56,7 +59,7 @@
         .logo-bottom {
             font-size: 0.6rem;
             font-weight: 600;
-            color: var(--gold);
+            color: #F6C26B;
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
@@ -71,7 +74,9 @@
             font-weight: 600;
             transition: color 0.2s;
         }
-        .nav-links a:hover { color: var(--gold); }
+        .nav-links a:hover {
+            color: #F6C26B;
+        }
         
         .container {
             max-width: 1200px;
@@ -81,79 +86,18 @@
         
         .welcome-section {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 30px 0;
+            margin-bottom: 60px;
+            padding: 40px 0;
         }
+        
         .welcome-section h1 {
             font-size: 2rem;
             font-weight: 800;
             margin-bottom: 8px;
         }
+        
         .welcome-section p {
             color: rgba(255,255,255,0.6);
-        }
-        
-        /* Income Cards Section */
-        .income-section {
-            margin-bottom: 48px;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: rgba(255,255,255,0.7);
-        }
-        .income-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-        .income-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .income-card:hover {
-            border-color: rgba(169, 76, 240, 0.3);
-            background: linear-gradient(135deg, rgba(169, 76, 240, 0.08) 0%, rgba(246, 194, 107, 0.05) 100%);
-        }
-        .income-card.highlight {
-            border-color: rgba(169, 76, 240, 0.4);
-            background: linear-gradient(135deg, rgba(169, 76, 240, 0.12) 0%, rgba(246, 194, 107, 0.08) 100%);
-        }
-        .income-label {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 8px;
-        }
-        .income-amount {
-            font-size: 1.6rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-        .income-amount.highlight {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .income-period {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 8px;
-        }
-        .income-progress {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.5);
-        }
-        .income-progress.over {
-            color: #22c55e;
         }
         
         /* Progress Overview */
@@ -164,16 +108,19 @@
             padding: 40px;
             margin-bottom: 48px;
         }
+        
         .progress-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 32px;
         }
+        
         .progress-header h2 {
             font-size: 1.3rem;
             font-weight: 700;
         }
+        
         .progress-status {
             display: flex;
             align-items: center;
@@ -182,145 +129,254 @@
             font-size: 0.9rem;
             font-weight: 600;
         }
+        
         .progress-grid {
             display: grid;
             grid-template-columns: 200px 1fr;
             gap: 40px;
             align-items: center;
         }
+        
         .gauge-container {
             position: relative;
             width: 200px;
             height: 200px;
             margin: 0 auto;
         }
+        
         .gauge-bg {
             position: absolute;
-            width: 100%; height: 100%;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            background: conic-gradient(from 0deg, var(--purple) 0deg, var(--gold) 180deg, rgba(255,255,255,0.1) 180deg);
+            background: conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B 180deg, rgba(255,255,255,0.1) 180deg);
             mask: radial-gradient(circle at center, transparent 60%, black 61%);
             -webkit-mask: radial-gradient(circle at center, transparent 60%, black 61%);
         }
+        
         .gauge-inner {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
         }
+        
         .gauge-percent {
             font-size: 2.5rem;
             font-weight: 900;
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+        
         .gauge-label {
             font-size: 0.8rem;
             color: rgba(255,255,255,0.6);
             margin-top: 4px;
         }
         
-        /* Target Display */
-        .targets-display {
+        .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 24px;
         }
-        .target-box {
+        
+        .stat-box {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
         }
-        .target-label {
-            font-size: 0.7rem;
+        
+        .stat-box.highlight {
+            border-color: rgba(169, 76, 240, 0.3);
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.08) 0%, rgba(246, 194, 107, 0.05) 100%);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
             color: rgba(255,255,255,0.5);
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-bottom: 6px;
-        }
-        .target-value {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: rgba(255,255,255,0.9);
+            margin-bottom: 8px;
         }
         
-        /* Goals Section */
-        .goals-section {
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        
+        .stat-value.highlight {
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-sub {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+        
+        /* Modules Section */
+        .modules-section {
             margin-bottom: 48px;
         }
+        
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
         }
+        
         .section-header h2 {
             font-size: 1.3rem;
             font-weight: 700;
         }
-        .goals-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-        .goal-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-        }
-        .goal-card-icon {
-            font-size: 2rem;
-            margin-bottom: 12px;
-        }
-        .goal-card h4 {
-            font-size: 1rem;
+        
+        .view-all {
+            color: #F6C26B;
+            text-decoration: none;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .goal-card-amount {
-            font-size: 1.1rem;
-            color: var(--gold);
-            font-weight: 700;
         }
         
-        /* Support Section */
-        .support-section {
-            text-align: center;
-            padding: 40px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
         }
-        .support-section h3 {
+        
+        .module-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 28px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(169, 76, 240, 0.3);
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.05) 0%, rgba(246, 194, 107, 0.03) 100%);
+        }
+        
+        .module-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        
+        .module-card h3 {
             font-size: 1.2rem;
             font-weight: 700;
             margin-bottom: 8px;
         }
+        
+        .module-card p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        
+        .module-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 6px 12px;
+            background: rgba(34, 197, 94, 0.15);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #22c55e;
+            font-weight: 600;
+            align-self: flex-start;
+        }
+        
+        .module-status.pending {
+            background: rgba(246, 194, 107, 0.15);
+            color: #F6C26B;
+        }
+        
+        /* Goal Cards Section */
+        .goals-section {
+            margin-bottom: 48px;
+        }
+        
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .goal-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .goal-card-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        
+        .goal-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .goal-card-amount {
+            font-size: 0.9rem;
+            color: #F6C26B;
+            font-weight: 600;
+        }
+        
+        /* Support Section */
+        .support-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+        
+        .support-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        
         .support-section p {
             color: rgba(255,255,255,0.6);
             margin-bottom: 16px;
         }
+        
         .support-section a {
-            color: var(--gold);
+            color: #F6C26B;
             text-decoration: none;
             font-weight: 600;
         }
         
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .income-grid { grid-template-columns: repeat(2, 1fr); }
-            .goals-grid { grid-template-columns: repeat(2, 1fr); }
-            .progress-grid { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 640px) {
-            .income-grid { grid-template-columns: 1fr; }
-            .goals-grid { grid-template-columns: 1fr; }
-            .targets-display { grid-template-columns: 1fr; }
-            .container { padding: 100px 20px 40px; }
+        @media (max-width: 768px) {
+            .progress-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .nav-links {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -336,92 +392,127 @@
         <div class="nav-links">
             <a href="/dashboard.html">Dashboard</a>
             <a href="/calculator.html">Calculator</a>
-            <a href="/members.html">Members</a>
+            <a href="/members.html">Member Area</a>
+            <a href="/auth.html">Logout</a>
         </div>
     </nav>
     
     <div class="container">
         <div class="welcome-section">
-            <h1>Welcome to Your Member Area</h1>
-            <p>Track your income progress toward your Dream Life goals</p>
+            <h1>Welcome back, Dream Builder</h1>
+            <p>Day 247 of 720 • You're 78% to today's target</p>
         </div>
         
-        <!-- Dynamic Income Cards -->
-        <div class="income-section">
-            <h2 class="section-title">📊 Income Progress</h2>
-            <div class="income-grid">
-                <div class="income-card highlight">
-                    <div class="income-label">Daily Income</div>
-                    <div class="income-amount highlight" id="dailyIncome">$0.00</div>
-                    <div class="income-period">Today</div>
-                    <div class="income-progress" id="dailyProgress">0% of target</div>
-                </div>
-                <div class="income-card">
-                    <div class="income-label">Weekly Income</div>
-                    <div class="income-amount" id="weeklyIncome">$0.00</div>
-                    <div class="income-period">This week</div>
-                    <div class="income-progress" id="weeklyProgress">0% of target</div>
-                </div>
-                <div class="income-card">
-                    <div class="income-label">Monthly Income</div>
-                    <div class="income-amount" id="monthlyIncome">$0.00</div>
-                    <div class="income-period">This month</div>
-                    <div class="income-progress" id="monthlyProgress">0% of target</div>
-                </div>
-                <div class="income-card">
-                    <div class="income-label">Annual Income</div>
-                    <div class="income-amount" id="annualIncome">$0.00</div>
-                    <div class="income-period">This year</div>
-                    <div class="income-progress" id="annualProgress">0% of target</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Progress Overview -->
         <div class="progress-overview">
             <div class="progress-header">
-                <h2>Daily Progress</h2>
+                <h2>Today's Progress</h2>
                 <div class="progress-status">
                     <span>●</span>
-                    <span>Live Tracking</span>
+                    <span>On Track</span>
                 </div>
             </div>
             <div class="progress-grid">
                 <div class="gauge-container">
-                    <div class="gauge-bg" id="gaugeBg"></div>
+                    <div class="gauge-bg"></div>
                     <div class="gauge-inner">
-                        <div class="gauge-percent" id="gaugePercent">0%</div>
-                        <div class="gauge-label" id="gaugeLabel">$0 / $0</div>
+                        <div class="gauge-percent">78%</div>
+                        <div class="gauge-label">$3,076 / $3,937</div>
                     </div>
                 </div>
-                <div class="targets-display">
-                    <div class="target-box">
-                        <div class="target-label">Daily Target</div>
-                        <div class="target-value" id="dailyTarget">$0.00</div>
+                <div class="stats-grid">
+                    <div class="stat-box highlight">
+                        <div class="stat-label">Daily Target</div>
+                        <div class="stat-value highlight">$3,937.02</div>
+                        <div class="stat-sub">Your Dream Life Number</div>
                     </div>
-                    <div class="target-box">
-                        <div class="target-label">Weekly Target</div>
-                        <div class="target-value" id="weeklyTarget">$0.00</div>
+                    <div class="stat-box">
+                        <div class="stat-label">Today's Income</div>
+                        <div class="stat-value">$3,076.88</div>
+                        <div class="stat-sub">$860.14 to go</div>
                     </div>
-                    <div class="target-box">
-                        <div class="target-label">Monthly Target</div>
-                        <div class="target-value" id="monthlyTarget">$0.00</div>
+                    <div class="stat-box">
+                        <div class="stat-label">Monthly Target</div>
+                        <div class="stat-value">$118,110.51</div>
+                        <div class="stat-sub">On track</div>
                     </div>
-                    <div class="target-box">
-                        <div class="target-label">Annual Target</div>
-                        <div class="target-value" id="annualTarget">$0.00</div>
+                    <div class="stat-box">
+                        <div class="stat-label">Weekly Target</div>
+                        <div class="stat-value">$27,276.10</div>
+                        <div class="stat-sub">$5,420 remaining</div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Dream Life Goals -->
+        <div class="modules-section">
+            <div class="section-header">
+                <h2>Your Tools</h2>
+                <a href="#" class="view-all">View All →</a>
+            </div>
+            <div class="modules-grid">
+                <a href="#" class="module-card">
+                    <div class="module-icon">🎯</div>
+                    <h3>Dream Life Calculator</h3>
+                    <p>Recalculate or create new scenarios for your dream life number</p>
+                    <span class="module-status"><span>✓</span> Complete</span>
+                </a>
+                <a href="#" class="module-card">
+                    <div class="module-icon">📊</div>
+                    <h3>Financial Dashboard</h3>
+                    <p>View and customize your visual command center</p>
+                    <span class="module-status pending"><span>○</span> In Progress</span>
+                </a>
+                <a href="#" class="module-card">
+                    <div class="module-icon">🖼️</div>
+                    <h3>AI Prompt Generator</h3>
+                    <p>Create personalized vision board images</p>
+                    <span class="module-status pending"><span>○</span> Not Started</span>
+                </a>
+                <a href="#" class="module-card">
+                    <div class="module-icon">💰</div>
+                    <h3>Income Sources</h3>
+                    <p>Connect Stripe, PayPal, or add manual entries</p>
+                    <span class="module-status pending"><span>○</span> Setup Required</span>
+                </a>
+            </div>
+        </div>
+        
         <div class="goals-section">
             <div class="section-header">
                 <h2>Your Dream Life Goals</h2>
+                <a href="#" class="view-all">Edit Goals →</a>
             </div>
-            <div class="goals-grid" id="goalsGrid">
-                <!-- Goals loaded dynamically -->
+            <div class="goals-grid">
+                <div class="goal-card">
+                    <div class="goal-card-icon">🏖️</div>
+                    <h4>Oceanfront Home</h4>
+                    <div class="goal-card-amount">$25,000/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">🚗</div>
+                    <h4>Dream Vehicle</h4>
+                    <div class="goal-card-amount">$1,200/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">✈️</div>
+                    <h4>Travel</h4>
+                    <div class="goal-card-amount">$5,000/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">💪</div>
+                    <h4>Wellness</h4>
+                    <div class="goal-card-amount">$750/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">📈</div>
+                    <h4>Investments</h4>
+                    <div class="goal-card-amount">$2,000/mo</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-card-icon">👨‍🍳</div>
+                    <h4>Personal Chef</h4>
+                    <div class="goal-card-amount">$2,200/mo</div>
+                </div>
             </div>
         </div>
         
@@ -433,130 +524,35 @@
     </div>
     
     <script>
-        // Format currency
-        function format$(n) {
-            return '$' + (n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        }
-        
-        // Get income entries from localStorage
-        function getIncomeEntries() {
-            return JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
-        }
-        
-        // Calculate income for different time periods
-        function calculateIncome() {
-            const entries = getIncomeEntries();
-            const now = new Date();
+        // Load calculation from localStorage
+        function loadDashboardData() {
+            const calculation = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
             
-            // Get start of today
-            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            // Get start of week (Monday)
-            const dayOfWeek = now.getDay();
-            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            const startOfWeek = new Date(now.setDate(diff));
-            startOfWeek.setHours(0, 0, 0, 0);
-            now.setDate(now.getDate() + dayOfWeek - (dayOfWeek === 0 ? -6 : 1)); // Reset
-            
-            // Get start of month
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            
-            // Get start of year
-            const startOfYear = new Date(now.getFullYear(), 0, 1);
-            
-            // Calculate totals
-            let daily = 0, weekly = 0, monthly = 0, annual = 0;
-            
-            entries.forEach(entry => {
-                const entryDate = new Date(entry.date);
-                const amount = parseFloat(entry.amount) || 0;
+            if (calculation.daily) {
+                // Update daily target
+                document.querySelector('.stat-value.highlight').textContent = '$' + calculation.daily.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 
-                if (entryDate >= startOfToday) daily += amount;
-                if (entryDate >= startOfWeek) weekly += amount;
-                if (entryDate >= startOfMonth) monthly += amount;
-                if (entryDate >= startOfYear) annual += amount;
-            });
-            
-            return { daily, weekly, monthly, annual };
-        }
-        
-        // Load and display data
-        function loadData() {
-            // Get targets from calculator
-            const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
-            const targets = {
-                daily: calc.daily || 0,
-                weekly: calc.weekly || 0,
-                monthly: calc.monthly || 0,
-                annual: calc.yearly || 0
-            };
-            
-            // Display targets
-            document.getElementById('dailyTarget').textContent = format$(targets.daily);
-            document.getElementById('weeklyTarget').textContent = format$(targets.weekly);
-            document.getElementById('monthlyTarget').textContent = format$(targets.monthly);
-            document.getElementById('annualTarget').textContent = format$(targets.annual);
-            
-            // Calculate and display income
-            const income = calculateIncome();
-            
-            document.getElementById('dailyIncome').textContent = format$(income.daily);
-            document.getElementById('weeklyIncome').textContent = format$(income.weekly);
-            document.getElementById('monthlyIncome').textContent = format$(income.monthly);
-            document.getElementById('annualIncome').textContent = format$(income.annual);
-            
-            // Calculate and display progress percentages
-            const dailyPct = targets.daily > 0 ? (income.daily / targets.daily) * 100 : 0;
-            const weeklyPct = targets.weekly > 0 ? (income.weekly / targets.weekly) * 100 : 0;
-            const monthlyPct = targets.monthly > 0 ? (income.monthly / targets.monthly) * 100 : 0;
-            const annualPct = targets.annual > 0 ? (income.annual / targets.annual) * 100 : 0;
-            
-            document.getElementById('dailyProgress').textContent = formatPercent(dailyPct, targets.daily);
-            document.getElementById('weeklyProgress').textContent = formatPercent(weeklyPct, targets.weekly);
-            document.getElementById('monthlyProgress').textContent = formatPercent(monthlyPct, targets.monthly);
-            document.getElementById('annualProgress').textContent = formatPercent(annualPct, targets.annual);
-            
-            // Update gauge
-            document.getElementById('gaugePercent').textContent = Math.round(dailyPct) + '%';
-            document.getElementById('gaugeLabel').textContent = format$(income.daily) + ' / ' + format$(targets.daily);
-            
-            // Update gauge background
-            const degrees = Math.min(dailyPct, 100) * 3.6;
-            document.getElementById('gaugeBg').style.background = 
-                `conic-gradient(from 0deg, var(--purple) 0deg, var(--gold) ${degrees}deg, rgba(255,255,255,0.1) ${degrees}deg)`;
-            
-            // Load goals
-            loadGoals(calc);
-        }
-        
-        function formatPercent(pct, target) {
-            if (target === 0) return 'No target set';
-            const rounded = pct.toFixed(1);
-            if (pct >= 100) {
-                return `${rounded}% of target ✓`;
-            }
-            return `${rounded}% of target`;
-        }
-        
-        function loadGoals(calc) {
-            const goalsGrid = document.getElementById('goalsGrid');
-            
-            // First try to load saved goals from dashboard
-            const savedGoals = JSON.parse(localStorage.getItem('destinylens_goals') || '[]');
-            
-            if (savedGoals.length > 0) {
-                goalsGrid.innerHTML = savedGoals.map(g => `
-                    <div class="goal-card">
-                        <div class="goal-card-icon">${g.icon}</div>
-                        <h4>${g.title}</h4>
-                        <div class="goal-card-amount">${format$(g.amount)}/mo</div>
-                    </div>
-                `).join('');
-                return;
+                // Update other stats
+                const statValues = document.querySelectorAll('.stat-value');
+                if (statValues[2]) statValues[2].textContent = '$' + calculation.monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (statValues[3]) statValues[3].textContent = '$' + calculation.weekly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                // Get today's income from localStorage (synced with dashboard)
+                const todayIncome = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
+                const progress = Math.min((todayIncome / calculation.daily) * 100, 100);
+                document.querySelector('.gauge-percent').textContent = Math.round(progress) + '%';
+                document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / $' + calculation.daily.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                
+                // Update gauge background
+                const degrees = (progress / 100) * 360;
+                document.querySelector('.gauge-bg').style.background = `conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B ${degrees}deg, rgba(255,255,255,0.1) ${degrees}deg)`;
             }
             
-            // Fallback to calculator answers
-            if (calc.answers) {
+            // Load goal cards from calculation answers
+            if (calculation.answers) {
+                const goalsGrid = document.querySelector('.goals-grid');
+                const answers = calculation.answers;
+                
                 const goalData = [
                     { icon: '🏖️', title: 'Dream Home', key: 'home' },
                     { icon: '🚗', title: 'Dream Vehicle', key: 'vehicle' },
@@ -568,29 +564,28 @@
                     { icon: '📈', title: 'Investments', key: 'retirement' }
                 ];
                 
-                const goalsHTML = goalData
-                    .filter(goal => calc.answers[goal.key]?.amount > 0)
-                    .map(goal => `
-                        <div class="goal-card">
-                            <div class="goal-card-icon">${goal.icon}</div>
-                            <h4>${goal.title}</h4>
-                            <div class="goal-card-amount">$${calc.answers[goal.key].amount.toLocaleString()}/mo</div>
-                        </div>
-                    `).join('');
+                let goalsHTML = '';
+                goalData.forEach(goal => {
+                    const answer = answers[goal.key];
+                    if (answer && answer.amount > 0) {
+                        goalsHTML += `
+                            <div class="goal-card">
+                                <div class="goal-card-icon">${goal.icon}</div>
+                                <h4>${goal.title}</h4>
+                                <div class="goal-card-amount">$${answer.amount.toLocaleString()}/mo</div>
+                            </div>
+                        `;
+                    }
+                });
                 
                 if (goalsHTML) {
                     goalsGrid.innerHTML = goalsHTML;
-                } else {
-                    goalsGrid.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">Complete the calculator to see your goals</p>';
                 }
             }
         }
         
-        // Load on page load
-        document.addEventListener('DOMContentLoaded', loadData);
-        
-        // Refresh every 30 seconds to catch updates from dashboard
-        setInterval(loadData, 30000);
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
     </script>
 </body>
 </html>
