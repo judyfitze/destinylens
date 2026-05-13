@@ -976,6 +976,42 @@
             img.src = dataUrl;
         }
         
+        // Upload image to Supabase Storage
+        async function uploadImageToStorage(dataUrl, fileName, folder) {
+            try {
+                // Convert base64 to blob
+                const response = await fetch(dataUrl);
+                const blob = await response.blob();
+                
+                const { user } = await getCurrentUser();
+                if (!user) throw new Error('Not authenticated');
+                
+                const filePath = `${user.id}/${folder}/${Date.now()}_${fileName}`;
+                
+                // Upload to Supabase Storage
+                const { data, error } = await supabaseClient
+                    .storage
+                    .from('dashboard-images')
+                    .upload(filePath, blob, {
+                        contentType: 'image/jpeg',
+                        upsert: true
+                    });
+                
+                if (error) throw error;
+                
+                // Get public URL
+                const { data: { publicUrl } } = supabaseClient
+                    .storage
+                    .from('dashboard-images')
+                    .getPublicUrl(filePath);
+                
+                return publicUrl;
+            } catch (err) {
+                console.error('Error uploading image:', err);
+                throw err;
+            }
+        }
+        
         // Background functions
         function handleBgFile(event) {
             console.log('Background file selected:', event.target.files);
@@ -1000,39 +1036,43 @@
                 return;
             }
             
-            // Update UI immediately
-            document.getElementById('bgImage').src = tempBgImage;
-            localStorage.setItem('destinylens_background', tempBgImage);
-            
-            // Save to Supabase
             const { user } = await getCurrentUser();
-            if (user) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('dashboard_settings')
-                        .upsert({
-                            user_id: user.id,
-                            background_image_url: tempBgImage,
-                            updated_at: new Date().toISOString()
-                        }, {
-                            onConflict: 'user_id'
-                        });
-                    
-                    if (error) {
-                        console.error('Error saving background:', error);
-                    } else {
-                        console.log('Background saved to Supabase');
-                    }
-                } catch (err) {
-                    console.error('Error saving background:', err);
-                }
+            if (!user) {
+                alert('Not authenticated');
+                return;
             }
             
-            closeModal('bgModal');
-            tempBgImage = null;
-            document.getElementById('bgPreview').style.display = 'none';
-            document.getElementById('bgUploadArea').classList.remove('has-image');
-            document.getElementById('bgFile').value = '';
+            try {
+                // Upload to Supabase Storage first
+                const publicUrl = await uploadImageToStorage(tempBgImage, 'background.jpg', 'backgrounds');
+                
+                // Update UI with the public URL
+                document.getElementById('bgImage').src = publicUrl;
+                localStorage.setItem('destinylens_background', publicUrl);
+                
+                // Save URL to database
+                const { error } = await supabaseClient
+                    .from('dashboard_settings')
+                    .upsert({
+                        user_id: user.id,
+                        background_image_url: publicUrl,
+                        updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'user_id'
+                    });
+                
+                if (error) throw error;
+                
+                console.log('Background saved successfully');
+                closeModal('bgModal');
+                tempBgImage = null;
+                document.getElementById('bgPreview').style.display = 'none';
+                document.getElementById('bgUploadArea').classList.remove('has-image');
+                document.getElementById('bgFile').value = '';
+            } catch (err) {
+                console.error('Error saving background:', err);
+                alert('Error saving background. Please try again.');
+            }
         }
         
         // Goal file handling
@@ -1089,15 +1129,21 @@
             
             const dashboardId = settings?.id || null;
             
-            const goal = {
-                icon: selectedIcon,
-                title: title,
-                amount: amount,
-                image: tempGoalImage || 'dashboard-preview.jpg'
-            };
-            
-            // Save to Supabase
             try {
+                let imageUrl = tempGoalImage;
+                
+                // If there's a new image (base64), upload to storage
+                if (tempGoalImage && tempGoalImage.startsWith('data:')) {
+                    imageUrl = await uploadImageToStorage(tempGoalImage, 'goal.jpg', 'goals');
+                }
+                
+                const goal = {
+                    icon: selectedIcon,
+                    title: title,
+                    amount: amount,
+                    image: imageUrl || 'dashboard-preview.jpg'
+                };
+                
                 if (goalEditIndex !== null && goals[goalEditIndex].id) {
                     // Update existing
                     const { error } = await supabaseClient

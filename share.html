@@ -408,9 +408,14 @@
         }
         
         function renderDashboard(settings, calc, goals) {
-            // Set background
+            // Set background with fallback
+            const bgImage = document.getElementById('bgImage');
             if (settings.background_image_url) {
-                document.getElementById('bgImage').src = settings.background_image_url;
+                bgImage.src = settings.background_image_url;
+                bgImage.onerror = function() {
+                    console.log('Background image failed to load, using fallback');
+                    bgImage.src = 'dashboard-preview.jpg';
+                };
             }
             
             const daily = calc?.daily_total || 0;
@@ -474,9 +479,9 @@
                             <span class="goals-heading">🎯 My Dream Life Goals</span>
                         </div>
                         <div class="goals-grid">
-                            ${goals.map(g => `
+                            ${goals.map((g, idx) => `
                                 <div class="goal-card">
-                                    <img src="${g.image_url || 'dashboard-preview.jpg'}" alt="">
+                                    <img id="goal-img-${idx}" src="${g.image_url || 'dashboard-preview.jpg'}" alt="${g.title}" onerror="this.src='dashboard-preview.jpg'">
                                     <div class="goal-overlay">
                                         <div class="goal-emoji">${g.icon || '🎯'}</div>
                                         <div class="goal-name">${g.title}</div>
