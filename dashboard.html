@@ -70,7 +70,7 @@
         .main { 
             position: relative; 
             z-index: 10; 
-            padding: 100px 40px 40px; 
+            padding: 90px 30px 20px; 
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -80,20 +80,20 @@
         .metrics { 
             display: flex; 
             justify-content: flex-end; 
-            gap: 16px; 
-            margin-bottom: 40px; 
+            gap: 12px; 
+            margin-bottom: 20px; 
         }
         .metric-card { 
             background: rgba(10, 10, 18, 0.8); 
             backdrop-filter: blur(20px); 
             border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 16px; 
-            padding: 20px 28px; 
-            min-width: 140px; 
+            border-radius: 12px; 
+            padding: 12px 20px; 
+            min-width: 120px; 
             text-align: center; 
         }
-        .metric-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
-        .metric-value { font-size: 1.4rem; font-weight: 800; }
+        .metric-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
+        .metric-value { font-size: 1.2rem; font-weight: 800; }
         .metric-value.highlight { 
             background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
             -webkit-background-clip: text; 
@@ -103,46 +103,47 @@
         /* Dashboard Grid */
         .dashboard-grid {
             display: flex;
-            gap: 40px;
+            gap: 30px;
             flex: 1;
             align-items: flex-start;
+            margin-bottom: 20px;
         }
         
         /* Left Panel */
         .left-panel { 
-            width: 360px; 
+            width: 320px; 
             background: rgba(10, 10, 18, 0.85); 
             backdrop-filter: blur(30px); 
             border: 1px solid rgba(169, 76, 240, 0.3); 
-            border-radius: 24px; 
-            padding: 32px; 
+            border-radius: 20px; 
+            padding: 24px; 
         }
         .panel-title { 
-            font-size: 1.2rem; 
+            font-size: 1.1rem; 
             font-weight: 800; 
-            margin-bottom: 4px; 
+            margin-bottom: 2px; 
             background: linear-gradient(135deg, #fff 0%, var(--gold) 100%); 
             -webkit-background-clip: text; 
             -webkit-text-fill-color: transparent; 
         }
         .panel-subtitle { 
-            font-size: 0.8rem; 
+            font-size: 0.75rem; 
             color: rgba(255,255,255,0.5); 
             text-transform: uppercase; 
             letter-spacing: 0.1em; 
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
         .daily-target { 
             text-align: center; 
-            padding: 20px; 
+            padding: 14px; 
             background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%); 
-            border-radius: 16px; 
+            border-radius: 14px; 
             border: 1px solid rgba(169, 76, 240, 0.3); 
-            margin-bottom: 24px; 
+            margin-bottom: 16px; 
         }
-        .daily-target-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
+        .daily-target-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
         .daily-target-amount { 
-            font-size: 2.2rem; 
+            font-size: 1.8rem; 
             font-weight: 900; 
             background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
             -webkit-background-clip: text; 
@@ -150,44 +151,44 @@
         }
         
         /* Gauge */
-        .gauge-container { position: relative; width: 200px; height: 200px; margin: 0 auto 24px; }
+        .gauge-container { position: relative; width: 160px; height: 160px; margin: 0 auto 16px; }
         .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 18; }
-        .gauge-progress { fill: none; stroke: url(#gaugeGradient); stroke-width: 18; stroke-linecap: round; stroke-dasharray: 628; stroke-dashoffset: 628; transition: stroke-dashoffset 1s ease; }
+        .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 16; }
+        .gauge-progress { fill: none; stroke: url(#gaugeGradient); stroke-width: 16; stroke-linecap: round; stroke-dasharray: 502; stroke-dashoffset: 502; transition: stroke-dashoffset 1s ease; }
         .gauge-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
         .gauge-percent { 
-            font-size: 2.5rem; 
+            font-size: 2rem; 
             font-weight: 900; 
             background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
             -webkit-background-clip: text; 
             -webkit-text-fill-color: transparent; 
         }
-        .gauge-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+        .gauge-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
         
         /* Income Section */
-        .income-section { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        .income-section { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; }
         .income-header { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 12px; 
+            margin-bottom: 8px; 
         }
-        .income-title { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.7); }
+        .income-title { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.7); }
         .add-income-btn { 
-            padding: 6px 12px; 
+            padding: 5px 10px; 
             background: var(--purple); 
             border: none; 
             border-radius: 4px; 
             color: #fff; 
-            font-size: 0.75rem; 
+            font-size: 0.7rem; 
             font-weight: 600; 
             cursor: pointer; 
         }
         .income-row { 
             display: flex; 
             justify-content: space-between; 
-            padding: 8px 0; 
-            font-size: 0.9rem; 
+            padding: 6px 0; 
+            font-size: 0.85rem; 
         }
         .income-label { color: rgba(255,255,255,0.6); }
         .income-value { font-weight: 700; }
@@ -195,32 +196,32 @@
         /* Goals Section - ALWAYS VISIBLE */
         .goals-section {
             margin-top: auto;
-            padding-top: 40px;
+            padding-top: 20px;
         }
         .goals-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             background: rgba(10, 10, 18, 0.9);
-            padding: 16px 24px;
+            padding: 12px 20px;
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.1);
         }
         .goals-title { 
-            font-size: 1rem; 
+            font-size: 0.95rem; 
             font-weight: 700; 
             color: #fff;
             text-transform: uppercase;
             letter-spacing: 0.1em;
         }
         .add-goal-btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
             border: none;
             border-radius: 8px;
             color: #fff;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(169, 76, 240, 0.4);
@@ -231,14 +232,14 @@
         }
         .goals-container {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             justify-content: center;
             flex-wrap: wrap;
         }
         .goal-card {
-            width: 280px;
-            height: 160px;
-            border-radius: 16px;
+            width: 240px;
+            height: 130px;
+            border-radius: 14px;
             overflow: hidden;
             position: relative;
             background: #1a1a2e;
@@ -254,12 +255,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 16px;
+            padding: 12px;
             background: linear-gradient(transparent, rgba(0,0,0,0.9));
         }
-        .goal-icon { font-size: 1.5rem; margin-bottom: 4px; }
-        .goal-name { font-weight: 700; font-size: 1rem; }
-        .goal-amount { color: var(--gold); font-weight: 600; }
+        .goal-icon { font-size: 1.3rem; margin-bottom: 2px; }
+        .goal-name { font-weight: 700; font-size: 0.95rem; }
+        .goal-amount { color: var(--gold); font-weight: 600; font-size: 0.85rem; }
         .goal-menu {
             position: absolute;
             top: 10px;
@@ -628,9 +629,9 @@
             const manual = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
             document.getElementById('manualIncome').textContent = formatCurrency(manual);
             
-            // Update gauge
+            // Update gauge (radius 80, circumference = 2 * PI * 80 = 502)
             const pct = dailyTarget > 0 ? (manual / dailyTarget) * 100 : 0;
-            const offset = 628 - (Math.min(pct, 100) / 100) * 628;
+            const offset = 502 - (Math.min(pct, 100) / 100) * 502;
             document.getElementById('gaugeProgress').style.strokeDashoffset = offset;
             document.getElementById('gaugePercent').textContent = Math.round(pct) + '%';
         }
