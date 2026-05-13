@@ -703,8 +703,8 @@
                 console.log('Settings:', settings, 'Error:', settingsError);
                 
                 if (settingsError || !settings) {
-                    console.log('No dashboard settings found, using fallback');
-                    loadFromLocalStorage();
+                    console.log('No dashboard settings found');
+                    showNoDataMessage();
                     return;
                 }
                 
@@ -781,48 +781,29 @@
                 
             } catch (err) {
                 console.error('Error loading dashboard:', err);
-                loadFromLocalStorage();
+                showErrorMessage('Error loading dashboard data');
             }
         }
         
-        function loadFromLocalStorage() {
-            const bg = localStorage.getItem('destinylens_background');
-            if (bg) document.getElementById('bgImage').src = bg;
-            
-            const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
-            if (calc.daily) {
-                dailyTarget = calc.daily;
-                document.getElementById('dailyTarget').textContent = format$(calc.daily);
-                document.getElementById('weeklyTarget').textContent = format$(calc.weekly);
-                document.getElementById('monthlyTarget').textContent = format$(calc.monthly);
-                document.getElementById('yearlyTarget').textContent = format$(calc.yearly);
-                
-                const saved = JSON.parse(localStorage.getItem('destinylens_goals') || '[]');
-                if (saved.length) {
-                    goals = saved;
-                } else if (calc.answers) {
-                    const map = [
-                        {k: 'home', i: '🏖️', t: 'Dream Home'},
-                        {k: 'vehicle', i: '🚗', t: 'Dream Vehicle'},
-                        {k: 'travel', i: '✈️', t: 'Travel'},
-                        {k: 'food', i: '🍽️', t: 'Food & Dining'}
-                    ];
-                    goals = map.map(g => ({
-                        icon: g.i, title: g.t,
-                        amount: calc.answers[g.k]?.amount || 0,
-                        image: 'dashboard-preview.jpg'
-                    })).filter(g => g.amount > 0).slice(0, 4);
-                }
-                renderGoals();
-                updateIncome();
-            }
-            
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.goal-menu-btn') && !e.target.closest('.goal-dropdown')) {
-                    closeAllDropdowns();
-                }
-            });
+        function showNoDataMessage() {
+            document.querySelector('.main').innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:40px;">
+                    <div style="font-size:3rem;margin-bottom:20px;">📊</div>
+                    <h2 style="margin-bottom:12px;">No Dashboard Data</h2>
+                    <p style="color:rgba(255,255,255,0.6);margin-bottom:24px;">Complete your Dream Life calculation to see your dashboard.</p>
+                    <a href="/calculator.html" style="padding:14px 28px;background:linear-gradient(135deg,var(--purple) 0%,var(--gold) 100%);color:#fff;text-decoration:none;border-radius:10px;font-weight:700;">Calculate Your Dream Life</a>
+                </div>
+            `;
+        }
+        
+        function showErrorMessage(msg) {
+            document.querySelector('.main').innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:40px;">
+                    <div style="font-size:3rem;margin-bottom:20px;">⚠️</div>
+                    <h2 style="margin-bottom:12px;">${msg}</h2>
+                    <p style="color:rgba(255,255,255,0.6);">Please refresh the page or try again later.</p>
+                </div>
+            `;
         }
         
         async function updateIncome() {
