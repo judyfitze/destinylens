@@ -217,6 +217,8 @@
         const shareSlug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
         
         async function loadSharedDashboard() {
+            console.log('Loading share for slug:', shareSlug);
+            
             try {
                 // Get dashboard settings by share slug
                 const { data: settings, error } = await supabaseClient
@@ -226,7 +228,16 @@
                     .eq('public_share_enabled', true)
                     .single();
                 
-                if (error || !settings) {
+                console.log('Query result:', { settings, error });
+                
+                if (error) {
+                    console.error('Supabase error:', error);
+                    showNotFound();
+                    return;
+                }
+                
+                if (!settings) {
+                    console.log('No settings found for slug:', shareSlug);
                     showNotFound();
                     return;
                 }

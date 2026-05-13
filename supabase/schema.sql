@@ -97,6 +97,7 @@ CREATE TABLE dashboard_settings (
     password_protected BOOLEAN DEFAULT false,
     show_source_breakdown_publicly BOOLEAN DEFAULT false,
     show_income_numbers_publicly BOOLEAN DEFAULT true,
+    show_goal_cards_publicly BOOLEAN DEFAULT true,
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
