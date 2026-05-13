@@ -50,11 +50,12 @@
         /* Nav - Compact */
         .nav {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             padding: 12px 20px;
             background: linear-gradient(180deg, rgba(10,10,18,0.95) 0%, transparent 100%);
             flex-shrink: 0;
+            position: relative;
         }
         .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .logo-icon {
@@ -542,7 +543,7 @@
     <!-- App -->
     <div class="app">
         <!-- Nav -->
-        <nav class="nav" style="position: relative;">
+        <nav class="nav">
             <a href="/" class="logo">
                 <div class="logo-icon">DL</div>
                 <div class="logo-text">
@@ -550,20 +551,18 @@
                     <div class="logo-subtitle">Your Dream Life In Focus</div>
                 </div>
             </a>
-            <div style="display: flex; align-items: center;">
-                <div class="hamburger" onclick="toggleNavMenu()">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-                <div class="nav-menu" id="navMenu">
-                    <a href="/dashboard.html">📊 Dashboard</a>
-                    <a href="/members.html">👤 Members</a>
-                    <a href="/calculator.html">🧮 Calculator</a>
-                    <button onclick="openModal('bgModal'); toggleNavMenu();">🖼️ Background</button>
-                    <a href="/settings.html">⚙️ Settings</a>
-                    <a href="/account.html">👤 Account</a>
-                </div>
+            <div class="hamburger" onclick="toggleNavMenu()" style="position: absolute; right: 20px;">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="/dashboard.html">📊 Dashboard</a>
+                <a href="/members.html">👤 Members</a>
+                <a href="/calculator.html">🧮 Calculator</a>
+                <button onclick="openModal('bgModal'); toggleNavMenu();">🖼️ Background</button>
+                <a href="/settings.html">⚙️ Settings</a>
+                <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
             </div>
                 <button class="nav-btn" onclick="location.href='/members.html'">👤 Account</button>
             </div>

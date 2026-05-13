@@ -429,7 +429,7 @@
     </style>
 </head>
 <body>
-    <nav style="position: relative;">
+    <nav style="position: relative; justify-content: center;">
         <a href="/" class="logo-mark">
             <div class="logo-icon">DL</div>
             <div class="logo-text">
@@ -437,7 +437,7 @@
                 <span class="logo-bottom">Your Dream Life In Focus</span>
             </div>
         </a>
-        <div class="hamburger" onclick="toggleNavMenu()">
+        <div class="hamburger" onclick="toggleNavMenu()" style="position: absolute; right: 40px;">
             <span></span>
             <span></span>
             <span></span>
@@ -447,8 +447,7 @@
             <a href="/members.html">👤 Members</a>
             <a href="/calculator.html">🧮 Calculator</a>
             <a href="/settings.html">⚙️ Settings</a>
-            <a href="/account.html">👤 Account</a>
-            <a href="/auth.html">🚪 Logout</a>
+            <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
         </div>
     </nav>
     
