@@ -440,7 +440,18 @@
                     }
                 }
                 
-                renderDashboard(settings, calculation, goals);
+                // Get today's actual income
+                const today = new Date().toISOString().split('T')[0];
+                const { data: incomeData } = await supabaseClient
+                    .from('manual_income_entries')
+                    .select('amount')
+                    .eq('user_id', settings.user_id)
+                    .eq('entry_date', today)
+                    .eq('include_in_dashboard', true);
+                
+                const todayIncome = incomeData?.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0) || 0;
+                
+                renderDashboard(settings, calculation, goals, todayIncome);
                 
             } catch (err) {
                 console.error('Error loading dashboard:', err);
@@ -448,7 +459,7 @@
             }
         }
         
-        function renderDashboard(settings, calc, goals) {
+        function renderDashboard(settings, calc, goals, todayIncome = 0) {
             // Set background with fallback
             const bgImage = document.getElementById('bgImage');
             if (settings.background_image_url) {
@@ -462,6 +473,9 @@
             const weekly = calc?.weekly_total || 0;
             const monthly = calc?.monthly_total || 0;
             const yearly = calc?.yearly_total || 0;
+            
+            // Calculate actual progress
+            const progress = daily > 0 ? Math.min(100, (todayIncome / daily) * 100) : 0;
             
             let html = `
                 <!-- Top Metrics -->
@@ -534,9 +548,8 @@
             
             document.getElementById('mainContent').innerHTML = html;
             
-            // Animate gauge
+            // Animate gauge with actual progress
             setTimeout(() => {
-                const progress = Math.min(100, Math.random() * 30 + 10);
                 const offset = 377 - (377 * progress / 100);
                 const gauge = document.getElementById('gaugeProgress');
                 if (gauge) gauge.style.strokeDashoffset = offset;

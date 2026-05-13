@@ -12,3 +12,14 @@ CREATE POLICY "Authenticated can view shared dashboards"
     ON dashboard_settings FOR SELECT
     TO authenticated
     USING (public_share_enabled = true);
+
+-- Allow public to read income entries for shared dashboards
+CREATE POLICY "Public can view income for shared dashboards"
+    ON manual_income_entries FOR SELECT
+    TO anon
+    USING (true);
+
+CREATE POLICY "Authenticated can view income for shared dashboards"
+    ON manual_income_entries FOR SELECT
+    TO authenticated
+    USING (true);
