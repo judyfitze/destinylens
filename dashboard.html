@@ -1199,10 +1199,15 @@
                 localStorage.setItem('destinylens_income_entries', JSON.stringify(entries));
                 
                 updateIncome();
-            closeModal('incomeModal');
-            
-            document.getElementById('incomeSource').value = '';
-            document.getElementById('incomeAmount').value = '';
+                closeModal('incomeModal');
+                
+                document.getElementById('incomeSource').value = '';
+                document.getElementById('incomeAmount').value = '';
+                
+            } catch (err) {
+                console.error('Error saving income:', err);
+                alert('Error saving income. Please try again.');
+            }
         }
     </script>
 </body>
