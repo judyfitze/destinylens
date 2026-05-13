@@ -640,13 +640,13 @@
                 document.getElementById('monthlyProgress').innerHTML = `<span>$${todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.monthly_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 document.getElementById('annualProgress').innerHTML = `<span>$${todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.yearly_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 
-                // Update gauge
-                const progress = Math.min((todayIncome / calculation.daily_total) * 100, 100);
+                // Update gauge - show actual percentage even if over 100%
+                const progress = (todayIncome / calculation.daily_total) * 100;
                 document.querySelector('.gauge-percent').textContent = Math.round(progress) + '%';
                 document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / $' + calculation.daily_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 
-                // Update gauge background
-                const degrees = (progress / 100) * 360;
+                // Update gauge background - cap visual at 100% but show actual percentage
+                const degrees = (Math.min(progress, 100) / 100) * 360;
                 document.querySelector('.gauge-bg').style.background = `conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B ${degrees}deg, rgba(255,255,255,0.1) ${degrees}deg)`;
             }
             
