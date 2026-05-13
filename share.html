@@ -26,11 +26,7 @@
         }
         .bg-layer img { width: 100%; height: 100%; object-fit: cover; }
         .bg-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(10,10,18,0.75) 0%, rgba(10,10,18,0.5) 50%, rgba(10,10,18,0.85) 100%);
-            z-index: 1;
+            display: none;
         }
         
         /* App Container - Full Screen */
@@ -330,10 +326,9 @@
         </defs>
     </svg>
     
-    <!-- Background -->
+    <!-- Background Image - No Overlay -->
     <div class="bg-layer">
         <img id="bgImage" src="dashboard-preview.jpg" alt="">
-        <div class="bg-overlay"></div>
     </div>
     
     <!-- App -->
