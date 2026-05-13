@@ -276,6 +276,78 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- Income Connections (Payment Provider Connections)
+CREATE TABLE income_connections (
+    connection_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    
+    -- Provider info
+    provider TEXT NOT NULL CHECK (provider IN ('stripe', 'paypal', 'square', 'shopify_payments', 'authorize_net', 'manual')),
+    connection_label TEXT,
+    external_account_id TEXT,
+    
+    -- Status
+    status TEXT DEFAULT 'pending' CHECK (status IN ('active', 'pending', 'disconnected', 'error', 'manual')),
+    
+    -- Secret storage references (not the actual secrets)
+    vault_secret_reference TEXT,
+    webhook_reference TEXT,
+    
+    -- Sync tracking
+    last_synced_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Income Progress Events (Payment events from all sources)
+CREATE TABLE income_progress_events (
+    income_event_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    connection_id UUID REFERENCES income_connections(connection_id) ON DELETE SET NULL,
+    
+    -- Provider and external reference
+    provider TEXT NOT NULL CHECK (provider IN ('stripe', 'paypal', 'square', 'shopify_payments', 'authorize_net', 'manual')),
+    external_event_id TEXT,
+    
+    -- Amount info
+    amount DECIMAL(12,2) NOT NULL,
+    currency TEXT DEFAULT 'USD',
+    
+    -- Status - only 'received' counts toward progress
+    status TEXT DEFAULT 'received' CHECK (status IN ('received', 'pending', 'refunded', 'failed', 'cancelled', 'disputed')),
+    
+    -- Timing
+    received_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    -- Deduplication constraint
+    UNIQUE(provider, connection_id, external_event_id)
+);
+
+-- Enable RLS on new tables
+ALTER TABLE income_connections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE income_progress_events ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for income_connections
+CREATE POLICY "Users can only access their own income connections"
+    ON income_connections FOR ALL
+    USING (auth.uid() = user_id);
+
+-- RLS Policies for income_progress_events
+CREATE POLICY "Users can only access their own income events"
+    ON income_progress_events FOR ALL
+    USING (auth.uid() = user_id);
+
+-- Indexes for income tables
+CREATE INDEX idx_income_connections_user ON income_connections(user_id, status);
+CREATE INDEX idx_income_connections_provider ON income_connections(provider, external_account_id);
+CREATE INDEX idx_income_events_user_received ON income_progress_events(user_id, received_at, status);
+CREATE INDEX idx_income_events_connection ON income_progress_events(connection_id, received_at);
+
+-- Trigger for updated_at on income_connections
+CREATE TRIGGER update_income_connections_updated_at BEFORE UPDATE ON income_connections
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Indexes for performance
 CREATE INDEX idx_calculations_user_id ON dream_life_calculations(user_id);
 CREATE INDEX idx_calculations_active ON dream_life_calculations(user_id, is_active);

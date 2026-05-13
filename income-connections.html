@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Connections — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        
+        body {
+            background: #0a0a12;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        nav {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+        
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 900;
+        }
+        
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-top { font-size: 1rem; font-weight: 800; text-transform: uppercase; }
+        .logo-bottom { font-size: 0.65rem; color: var(--gold); text-transform: uppercase; }
+        
+        /* Hamburger Menu */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 10px;
+            position: absolute;
+            right: 40px;
+        }
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .nav-menu {
+            position: absolute;
+            top: 80px;
+            right: 40px;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 180px;
+            display: none;
+            z-index: 1000;
+        }
+        .nav-menu.active { display: block; }
+        .nav-menu a, .nav-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .nav-menu a:hover, .nav-menu button:hover { background: rgba(255,255,255,0.1); }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 40px;
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .connect-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .connect-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .connect-card:hover {
+            border-color: var(--purple);
+            background: rgba(169, 76, 240, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .connect-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .connect-name {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        
+        .connect-desc {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+        
+        .connections-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .connection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+        }
+        
+        .connection-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .connection-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .connection-details h4 {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .connection-details p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .status-pending {
+            background: rgba(246, 194, 107, 0.2);
+            color: var(--gold);
+        }
+        
+        .status-disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .connection-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        
+        .btn-small:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .btn-disconnect {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .btn-disconnect:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .modal-overlay.active { display: flex; }
+        
+        .modal-box {
+            background: #0a0a12;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .modal-subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        
+        .manual-income-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .amount-input {
+            position: relative;
+        }
+        
+        .amount-input::before {
+            content: '$';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 1rem;
+        }
+        
+        .amount-input input {
+            padding-left: 36px;
+        }
+        
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .connect-grid { grid-template-columns: 1fr; }
+            .manual-income-form { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+        <div class="hamburger" onclick="toggleNavMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/members.html">👤 Members</a>
+            <a href="/calculator.html">🧮 Calculator</a>
+            <a href="/income-connections.html">💰 Income Connections</a>
+            <a href="/settings.html">⚙️ Settings</a>
+            <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Income Connections</h1>
+        <p class="subtitle">Connect your payment sources to automatically track income toward your Dream Life goals</p>
+        
+        <!-- Connected Sources -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔗 Your Connected Sources</span>
+                <span id="connectionCount" style="font-size: 0.9rem; color: rgba(255,255,255,0.5);">0 connections</span>
+            </div>
+            <div class="connections-list" id="connectionsList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">💰</div>
+                    <p>No income sources connected yet</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add New Connection -->
+        <div class="section">
+            <div class="section-title">➕ Connect a Payment Source</div>
+            <div class="connect-grid">
+                <div class="connect-card" onclick="startConnection('stripe')">
+                    <div class="connect-icon">💳</div>
+                    <div class="connect-name">Stripe</div>
+                    <div class="connect-desc">Connect Stripe account</div>
+                </div>
+                <div class="connect-card" onclick="startConnection('paypal')">
+                    <div class="connect-icon">🅿️</div>
+                    <div class="connect-name">PayPal</div>
+                    <div class="connect-desc">Connect PayPal account</div>
+                </div>
+                <div class="connect-card" onclick="startConnection('square')">
+                    <div class="connect-icon">🔲</div>
+                    <div class="connect-name">Square</div>
+                    <div class="connect-desc">Connect Square account</div>
+                </div>
+                <div class="connect-card" onclick="startConnection('shopify_payments')">
+                    <div class="connect-icon">🛒</div>
+                    <div class="connect-name">Shopify Payments</div>
+                    <div class="connect-desc">Connect Shopify store</div>
+                </div>
+                <div class="connect-card" onclick="startConnection('authorize_net')">
+                    <div class="connect-icon">🔐</div>
+                    <div class="connect-name">Authorize.net</div>
+                    <div class="connect-desc">Connect Authorize.net</div>
+                </div>
+                <div class="connect-card" onclick="openManualModal()">
+                    <div class="connect-icon">✏️</div>
+                    <div class="connect-name">Manual Entry</div>
+                    <div class="connect-desc">Add income manually</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Connection Modal -->
+    <div class="modal-overlay" id="connectionModal">
+        <div class="modal-box">
+            <div class="modal-title" id="modalTitle">Connect Stripe</div>
+            <div class="modal-subtitle" id="modalSubtitle">Enter a label for this connection</div>
+            <div class="form-group">
+                <label>Connection Label</label>
+                <input type="text" id="connectionLabel" placeholder="e.g., My Business Stripe">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('connectionModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmConnection()">Connect</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Manual Income Modal -->
+    <div class="modal-overlay" id="manualModal">
+        <div class="modal-box">
+            <div class="modal-title">Add Manual Income</div>
+            <div class="modal-subtitle">Record income from any source</div>
+            <div class="manual-income-form">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <div class="amount-input">
+                        <input type="number" id="manualAmount" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="manualDate">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Source/Note (optional)</label>
+                <input type="text" id="manualNote" placeholder="e.g., Client payment, Consulting fee">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('manualModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveManualIncome()">Add Income</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentProvider = null;
+        let connections = [];
+        
+        const providerIcons = {
+            stripe: '💳',
+            paypal: '🅿️',
+            square: '🔲',
+            shopify_payments: '🛒',
+            authorize_net: '🔐',
+            manual: '✏️'
+        };
+        
+        const providerNames = {
+            stripe: 'Stripe',
+            paypal: 'PayPal',
+            square: 'Square',
+            shopify_payments: 'Shopify Payments',
+            authorize_net: 'Authorize.net',
+            manual: 'Manual Entry'
+        };
+        
+        // Load connections on page load
+        document.addEventListener('DOMContentLoaded', loadConnections);
+        
+        async function loadConnections() {
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            const { data, error } = await supabaseClient
+                .from('income_connections')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error loading connections:', error);
+                return;
+            }
+            
+            connections = data || [];
+            renderConnections();
+        }
+        
+        function renderConnections() {
+            const container = document.getElementById('connectionsList');
+            const countEl = document.getElementById('connectionCount');
+            
+            countEl.textContent = `${connections.length} connection${connections.length !== 1 ? 's' : ''}`;
+            
+            if (connections.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💰</div>
+                        <p>No income sources connected yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = connections.map(conn => `
+                <div class="connection-item">
+                    <div class="connection-info">
+                        <div class="connection-icon">${providerIcons[conn.provider] || '💰'}</div>
+                        <div class="connection-details">
+                            <h4>${conn.connection_label || providerNames[conn.provider]}</h4>
+                            <p>${providerNames[conn.provider]} • Connected ${new Date(conn.created_at).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="status-badge status-${conn.status}">${conn.status}</span>
+                        <div class="connection-actions">
+                            <button class="btn-small" onclick="editConnection('${conn.connection_id}')">Rename</button>
+                            <button class="btn-small btn-disconnect" onclick="disconnectConnection('${conn.connection_id}')">Disconnect</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function startConnection(provider) {
+            currentProvider = provider;
+            document.getElementById('modalTitle').textContent = `Connect ${providerNames[provider]}`;
+            document.getElementById('modalSubtitle').textContent = `Enter a label to identify this ${providerNames[provider]} connection`;
+            document.getElementById('connectionLabel').value = '';
+            openModal('connectionModal');
+        }
+        
+        async function confirmConnection() {
+            const label = document.getElementById('connectionLabel').value.trim();
+            if (!label) {
+                alert('Please enter a connection label');
+                return;
+            }
+            
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            // For now, create a pending connection
+            // In production, this would redirect to OAuth flow
+            const { data, error } = await supabaseClient
+                .from('income_connections')
+                .insert({
+                    user_id: user.id,
+                    provider: currentProvider,
+                    connection_label: label,
+                    status: 'pending'
+                })
+                .select()
+                .single();
+            
+            if (error) {
+                console.error('Error creating connection:', error);
+                alert('Error creating connection. Please try again.');
+                return;
+            }
+            
+            closeModal('connectionModal');
+            
+            // Show message about OAuth coming soon
+            alert(`${providerNames[currentProvider]} connection created! OAuth integration coming soon. For now, you can add manual income entries.`);
+            
+            loadConnections();
+        }
+        
+        async function disconnectConnection(connectionId) {
+            if (!confirm('Are you sure you want to disconnect this income source?')) return;
+            
+            const { error } = await supabaseClient
+                .from('income_connections')
+                .update({ status: 'disconnected' })
+                .eq('connection_id', connectionId);
+            
+            if (error) {
+                console.error('Error disconnecting:', error);
+                return;
+            }
+            
+            loadConnections();
+        }
+        
+        async function editConnection(connectionId) {
+            const conn = connections.find(c => c.connection_id === connectionId);
+            if (!conn) return;
+            
+            const newLabel = prompt('Enter new label:', conn.connection_label);
+            if (newLabel === null || newLabel.trim() === '') return;
+            
+            const { error } = await supabaseClient
+                .from('income_connections')
+                .update({ connection_label: newLabel.trim() })
+                .eq('connection_id', connectionId);
+            
+            if (error) {
+                console.error('Error updating label:', error);
+                return;
+            }
+            
+            loadConnections();
+        }
+        
+        function openManualModal() {
+            document.getElementById('manualAmount').value = '';
+            document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('manualNote').value = '';
+            openModal('manualModal');
+        }
+        
+        async function saveManualIncome() {
+            const amount = parseFloat(document.getElementById('manualAmount').value);
+            const date = document.getElementById('manualDate').value;
+            const note = document.getElementById('manualNote').value.trim();
+            
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+            
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            // Create manual connection if doesn't exist
+            const { data: manualConn } = await supabaseClient
+                .from('income_connections')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('provider', 'manual')
+                .eq('status', 'active')
+                .single();
+            
+            let connectionId = manualConn?.connection_id;
+            
+            if (!connectionId) {
+                const { data: newConn } = await supabaseClient
+                    .from('income_connections')
+                    .insert({
+                        user_id: user.id,
+                        provider: 'manual',
+                        connection_label: 'Manual Entries',
+                        status: 'active'
+                    })
+                    .select()
+                    .single();
+                connectionId = newConn?.connection_id;
+            }
+            
+            // Save the income event
+            const { error } = await supabaseClient
+                .from('income_progress_events')
+                .insert({
+                    user_id: user.id,
+                    connection_id: connectionId,
+                    provider: 'manual',
+                    amount: amount,
+                    currency: 'USD',
+                    status: 'received',
+                    received_at: new Date(date).toISOString()
+                });
+            
+            if (error) {
+                console.error('Error saving income:', error);
+                alert('Error saving income. Please try again.');
+                return;
+            }
+            
+            closeModal('manualModal');
+            alert('Income added successfully!');
+            loadConnections();
+        }
+        
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        function toggleNavMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
