@@ -739,14 +739,6 @@
                 </div>
             `).join('');
             
-            if (goals.length < 4) {
-                html += `
-                    <div class="goal-card add-card" onclick="openAddGoalModal()">
-                        <div class="add-plus">+</div>
-                        <div class="add-text">Add Goal</div>
-                    </div>
-                `;
-            }
             grid.innerHTML = html;
         }
         
@@ -768,6 +760,13 @@
         
         // Goal functions
         function openAddGoalModal() {
+            console.log('Opening add goal modal. Current goals:', goals.length, goals);
+            
+            if (goals.length >= 4) {
+                alert('Maximum 4 goals reached. Delete one first.');
+                return;
+            }
+            
             goalEditIndex = null;
             tempGoalImage = null;
             selectedIcon = '🏖️';
