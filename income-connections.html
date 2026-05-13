@@ -633,7 +633,7 @@
             
             if (error) {
                 console.error('Error creating connection:', error);
-                alert('Error creating connection. Please try again.');
+                alert('Error: ' + error.message + '\n\nDetails: ' + (error.details || 'No additional details'));
                 return;
             }
             
