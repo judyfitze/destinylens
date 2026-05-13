@@ -934,11 +934,22 @@
         
         // Modal functions
         function openModal(id) {
-            document.getElementById(id).classList.add('active');
+            console.log('Opening modal:', id);
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.add('active');
+                console.log('Modal opened successfully');
+            } else {
+                console.error('Modal not found:', id);
+            }
         }
         
         function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
+            console.log('Closing modal:', id);
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('active');
+            }
         }
         
         // Image resize helper
@@ -966,6 +977,7 @@
         
         // Background functions
         function handleBgFile(event) {
+            console.log('Background file selected:', event.target.files);
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -981,22 +993,50 @@
             }
         }
         
-        function saveBackground() {
-            if (tempBgImage) {
-                document.getElementById('bgImage').src = tempBgImage;
-                localStorage.setItem('destinylens_background', tempBgImage);
-                closeModal('bgModal');
-                tempBgImage = null;
-                document.getElementById('bgPreview').style.display = 'none';
-                document.getElementById('bgUploadArea').classList.remove('has-image');
-                document.getElementById('bgFile').value = '';
-            } else {
+        async function saveBackground() {
+            if (!tempBgImage) {
                 alert('Please select an image first');
+                return;
             }
+            
+            // Update UI immediately
+            document.getElementById('bgImage').src = tempBgImage;
+            localStorage.setItem('destinylens_background', tempBgImage);
+            
+            // Save to Supabase
+            const { user } = await getCurrentUser();
+            if (user) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('dashboard_settings')
+                        .upsert({
+                            user_id: user.id,
+                            background_image_url: tempBgImage,
+                            updated_at: new Date().toISOString()
+                        }, {
+                            onConflict: 'user_id'
+                        });
+                    
+                    if (error) {
+                        console.error('Error saving background:', error);
+                    } else {
+                        console.log('Background saved to Supabase');
+                    }
+                } catch (err) {
+                    console.error('Error saving background:', err);
+                }
+            }
+            
+            closeModal('bgModal');
+            tempBgImage = null;
+            document.getElementById('bgPreview').style.display = 'none';
+            document.getElementById('bgUploadArea').classList.remove('has-image');
+            document.getElementById('bgFile').value = '';
         }
         
         // Goal file handling
         function handleGoalFile(event) {
+            console.log('Goal file selected:', event.target.files);
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
