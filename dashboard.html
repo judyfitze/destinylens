@@ -6,157 +6,500 @@
     <title>My Dream Life Dashboard — DestinyLens</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --purple: #A94CF0; --gold: #F6C26B; --glass-bg: rgba(10, 10, 18, 0.8); }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a12; color: #fff; overflow: hidden; height: 100vh; width: 100vw; }
-        .dashboard { position: relative; width: 100%; height: 100%; }
-        .bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .bg-layer img { width: 100%; height: 100%; object-fit: cover; }
-        .bg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(10,10,18,0.6) 0%, rgba(10,10,18,0.4) 40%, rgba(10,10,18,0.7) 100%); z-index: 2; }
-        .nav { position: fixed; top: 0; left: 0; right: 0; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; background: linear-gradient(180deg, rgba(10,10,18,0.9) 0%, transparent 100%); }
+        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #0a0a12; 
+            color: #fff; 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Background */
+        .bg-container { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 0; 
+        }
+        .bg-container img { width: 100%; height: 100%; object-fit: cover; }
+        .bg-overlay { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(135deg, rgba(10,10,18,0.7) 0%, rgba(10,10,18,0.5) 50%, rgba(10,10,18,0.8) 100%); 
+            z-index: 1; 
+        }
+        
+        /* Nav */
+        .nav { 
+            position: fixed; 
+            top: 0; left: 0; right: 0; 
+            padding: 20px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            z-index: 100; 
+            background: linear-gradient(180deg, rgba(10,10,18,0.95) 0%, transparent 100%); 
+        }
         .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 1.1rem; }
+        .logo-icon { 
+            width: 42px; height: 42px; 
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
+            border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 900; color: #fff; font-size: 1.1rem; 
+        }
         .logo-title { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #fff; }
         .logo-subtitle { font-size: 0.65rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
-        .nav-btn { padding: 10px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-left: 10px; }
-        .nav-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--purple); }
-        .content { position: relative; z-index: 10; width: 100%; height: 100%; padding: 100px 40px 40px; display: flex; flex-direction: column; }
-        .top-section { display: flex; justify-content: flex-end; gap: 16px; margin-bottom: auto; padding-top: 20px; }
-        .metric-card { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px 28px; min-width: 140px; text-align: center; }
+        .nav-btn { 
+            padding: 10px 20px; 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            border-radius: 8px; 
+            color: #fff; 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-left: 10px; 
+        }
+        
+        /* Main Content */
+        .main { 
+            position: relative; 
+            z-index: 10; 
+            padding: 100px 40px 40px; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Top Metrics */
+        .metrics { 
+            display: flex; 
+            justify-content: flex-end; 
+            gap: 16px; 
+            margin-bottom: 40px; 
+        }
+        .metric-card { 
+            background: rgba(10, 10, 18, 0.8); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 16px; 
+            padding: 20px 28px; 
+            min-width: 140px; 
+            text-align: center; 
+        }
         .metric-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
         .metric-value { font-size: 1.4rem; font-weight: 800; }
-        .metric-value.highlight { background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .middle-section { display: flex; align-items: center; flex: 1; padding-bottom: 40px; }
-        .progress-panel { width: 340px; background: var(--glass-bg); backdrop-filter: blur(30px); border: 1px solid rgba(169, 76, 240, 0.25); border-radius: 24px; padding: 32px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
-        .panel-header { margin-bottom: 24px; }
-        .panel-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; background: linear-gradient(135deg, #fff 0%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .panel-subtitle { font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
-        .daily-target { text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(169, 76, 240, 0.15) 0%, rgba(246, 194, 107, 0.08) 100%); border-radius: 16px; border: 1px solid rgba(169, 76, 240, 0.2); margin-bottom: 28px; }
+        .metric-value.highlight { 
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: flex;
+            gap: 40px;
+            flex: 1;
+            align-items: flex-start;
+        }
+        
+        /* Left Panel */
+        .left-panel { 
+            width: 360px; 
+            background: rgba(10, 10, 18, 0.85); 
+            backdrop-filter: blur(30px); 
+            border: 1px solid rgba(169, 76, 240, 0.3); 
+            border-radius: 24px; 
+            padding: 32px; 
+        }
+        .panel-title { 
+            font-size: 1.2rem; 
+            font-weight: 800; 
+            margin-bottom: 4px; 
+            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .panel-subtitle { 
+            font-size: 0.8rem; 
+            color: rgba(255,255,255,0.5); 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em; 
+            margin-bottom: 24px;
+        }
+        .daily-target { 
+            text-align: center; 
+            padding: 20px; 
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%); 
+            border-radius: 16px; 
+            border: 1px solid rgba(169, 76, 240, 0.3); 
+            margin-bottom: 24px; 
+        }
         .daily-target-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
-        .daily-target-amount { font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .gauge-container { position: relative; width: 220px; height: 220px; margin: 0 auto 28px; }
+        .daily-target-amount { 
+            font-size: 2.2rem; 
+            font-weight: 900; 
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        
+        /* Gauge */
+        .gauge-container { position: relative; width: 200px; height: 200px; margin: 0 auto 24px; }
         .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
         .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 18; }
-        .gauge-progress { fill: none; stroke: url(#gaugeGradient); stroke-width: 18; stroke-linecap: round; stroke-dasharray: 691; stroke-dashoffset: 691; transition: stroke-dashoffset 1s ease; }
+        .gauge-progress { fill: none; stroke: url(#gaugeGradient); stroke-width: 18; stroke-linecap: round; stroke-dasharray: 628; stroke-dashoffset: 628; transition: stroke-dashoffset 1s ease; }
         .gauge-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-        .gauge-percent { font-size: 3rem; font-weight: 900; background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
-        .gauge-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
-        .gauge-amounts { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 8px; }
-        .income-sources { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
-        .income-sources-title { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.7); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .income-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; font-size: 0.9rem; }
-        .income-item-name { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.7); }
-        .income-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .income-dot.manual { background: var(--purple); }
-        .income-dot.connected { background: var(--gold); }
-        .income-amount { font-weight: 700; }
-        .add-btn-small { padding: 4px 10px; background: rgba(169, 76, 240, 0.3); border: 1px solid var(--purple); border-radius: 4px; color: #fff; font-size: 0.7rem; font-weight: 600; cursor: pointer; }
-        .add-btn-small:hover { background: var(--purple); }
-        .bottom-section { padding-top: 20px; }
-        .goals-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 8px; }
-        .goals-title { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.1em; }
-        .goals-btn { padding: 10px 20px; background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); border: none; border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(169, 76, 240, 0.3); }
-        .goals-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(169, 76, 240, 0.4); }
-        .goals-row { display: flex; gap: 20px; justify-content: center; min-height: 160px; }
-        .goal-card { position: relative; width: 280px; height: 160px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; background: #1a1a2e; }
-        .goal-card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
-        .goal-card-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-        .goal-card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(10,10,18,0.3) 0%, rgba(10,10,18,0.85) 100%); display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; }
-        .goal-card-menu { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; background: rgba(10,10,18,0.6); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; font-size: 1.2rem; color: rgba(255,255,255,0.8); z-index: 10; }
-        .goal-card:hover .goal-card-menu { opacity: 1; }
-        .goal-card-icon { font-size: 1.4rem; margin-bottom: 6px; }
-        .goal-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
-        .goal-card-amount { font-size: 0.85rem; color: var(--gold); font-weight: 600; }
-        .goal-card-add { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; cursor: pointer; }
-        .goal-card-add:hover { background: rgba(255,255,255,0.1); border-color: var(--purple); }
-        .goal-card-add-icon { font-size: 2.5rem; color: var(--purple); font-weight: 300; }
-        .goal-card-add-text { font-size: 0.9rem; color: rgba(255,255,255,0.7); font-weight: 600; }
-        .dropdown-menu { display: none; position: absolute; top: 48px; right: 12px; background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 0; min-width: 160px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-        .dropdown-menu.active { display: block; }
-        .dropdown-item { padding: 10px 16px; font-size: 0.85rem; color: rgba(255,255,255,0.8); cursor: pointer; }
-        .dropdown-item:hover { background: rgba(169, 76, 240, 0.15); color: #fff; }
-        .dropdown-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 8px 0; }
-        .dropdown-item.danger { color: #ef4444; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
+        .gauge-percent { 
+            font-size: 2.5rem; 
+            font-weight: 900; 
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .gauge-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+        
+        /* Income Section */
+        .income-section { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        .income-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 12px; 
+        }
+        .income-title { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.7); }
+        .add-income-btn { 
+            padding: 6px 12px; 
+            background: var(--purple); 
+            border: none; 
+            border-radius: 4px; 
+            color: #fff; 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+        }
+        .income-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            font-size: 0.9rem; 
+        }
+        .income-label { color: rgba(255,255,255,0.6); }
+        .income-value { font-weight: 700; }
+        
+        /* Goals Section - ALWAYS VISIBLE */
+        .goals-section {
+            margin-top: auto;
+            padding-top: 40px;
+        }
+        .goals-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(10, 10, 18, 0.9);
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .goals-title { 
+            font-size: 1rem; 
+            font-weight: 700; 
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .add-goal-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(169, 76, 240, 0.4);
+        }
+        .add-goal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(169, 76, 240, 0.5);
+        }
+        .goals-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .goal-card {
+            width: 280px;
+            height: 160px;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .goal-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .goal-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        }
+        .goal-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .goal-name { font-weight: 700; font-size: 1rem; }
+        .goal-amount { color: var(--gold); font-weight: 600; }
+        .goal-menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .goal-card:hover .goal-menu { opacity: 1; }
+        
+        /* Add Goal Card */
+        .add-goal-card {
+            border: 2px dashed rgba(255,255,255,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(255,255,255,0.05);
+        }
+        .add-goal-card:hover {
+            border-color: var(--purple);
+            background: rgba(169, 76, 240, 0.1);
+        }
+        .add-goal-plus {
+            font-size: 3rem;
+            color: var(--purple);
+            font-weight: 300;
+            line-height: 1;
+        }
+        .add-goal-text {
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: #1a1a2e; border-radius: 20px; padding: 32px; width: 90%; max-width: 480px; border: 1px solid var(--purple); max-height: 90vh; overflow-y: auto; }
-        .modal-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 24px; }
-        .upload-area { border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 20px; }
-        .upload-area:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.05); }
-        .upload-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; margin-bottom: 20px; display: none; }
-        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-        .btn { flex: 1; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; font-family: inherit; }
-        .btn-primary { background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff; }
-        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
-        .btn-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .modal-box {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 32px;
+            width: 90%;
+            max-width: 450px;
+            border: 2px solid var(--purple);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; }
         .form-group { margin-bottom: 20px; }
         .form-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.7); }
-        .form-input { width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 1rem; font-family: inherit; }
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+        }
         .form-input:focus { outline: none; border-color: var(--purple); }
-        .icon-selector { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-        .icon-option { width: 44px; height: 44px; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; }
-        .icon-option:hover, .icon-option.selected { border-color: var(--purple); background: rgba(169, 76, 240, 0.15); }
-        #fileInput, #goalFileInput { display: none; }
+        .upload-box {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .upload-box:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.05); }
+        .preview-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .icon-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .icon-btn {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .icon-btn:hover, .icon-btn.selected { border-color: var(--purple); background: rgba(169, 76, 240, 0.2); }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
     </style>
 </head>
 <body>
-    <svg width="0" height="0" style="position: absolute;"><defs><linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#A94CF0"/><stop offset="100%" style="stop-color:#F6C26B"/></linearGradient></defs></svg>
+    <svg width="0" height="0"><defs><linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#A94CF0"/><stop offset="100%" style="stop-color:#F6C26B"/></linearGradient></defs></svg>
     
-    <div class="dashboard">
-        <div class="bg-layer"><img id="bgImage" src="dashboard-preview.jpg" alt="Dream Life"><div class="bg-overlay"></div></div>
-        
-        <nav class="nav">
-            <a href="/" class="logo"><div class="logo-icon">DL</div><div><div class="logo-title">DestinyLens</div><div class="logo-subtitle">Your Dream Life In Focus</div></div></a>
+    <!-- Background -->
+    <div class="bg-container">
+        <img id="bgImage" src="dashboard-preview.jpg" alt="Dream Life">
+        <div class="bg-overlay"></div>
+    </div>
+    
+    <!-- Nav -->
+    <nav class="nav">
+        <a href="/" class="logo">
+            <div class="logo-icon">DL</div>
             <div>
-                <button class="nav-btn" onclick="toggleEdit()">✏️ Edit</button>
-                <button class="nav-btn" onclick="openBgModal()">🖼️ Background</button>
-                <button class="nav-btn" onclick="location.href='/members.html'">👤 Account</button>
+                <div class="logo-title">DestinyLens</div>
+                <div class="logo-subtitle">Your Dream Life In Focus</div>
             </div>
-        </nav>
+        </a>
+        <div>
+            <button class="nav-btn" onclick="openBgModal()">🖼️ Background</button>
+            <button class="nav-btn" onclick="location.href='/members.html'">👤 Account</button>
+        </div>
+    </nav>
+    
+    <!-- Main -->
+    <div class="main">
+        <!-- Top Metrics -->
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-label">Weekly Target</div>
+                <div class="metric-value" id="weeklyTarget">$0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Monthly Target</div>
+                <div class="metric-value highlight" id="monthlyTarget">$0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Yearly Target</div>
+                <div class="metric-value" id="yearlyTarget">$0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Journey</div>
+                <div class="metric-value" id="dayCounter">Day 1</div>
+            </div>
+        </div>
         
-        <div class="content">
-            <div class="top-section">
-                <div class="metric-card"><div class="metric-label">Weekly Target</div><div class="metric-value" id="weeklyTarget">$0</div></div>
-                <div class="metric-card"><div class="metric-label">Monthly Target</div><div class="metric-value highlight" id="monthlyTarget">$0</div></div>
-                <div class="metric-card"><div class="metric-label">Yearly Target</div><div class="metric-value" id="yearlyTarget">$0</div></div>
-                <div class="metric-card"><div class="metric-label">Journey</div><div class="metric-value" id="dayCounter">Day 1</div></div>
-            </div>
-            
-            <div class="middle-section">
-                <div class="progress-panel">
-                    <div class="panel-header"><div class="panel-title">Dream Life Dashboard</div><div class="panel-subtitle">Financial Command Center</div></div>
-                    <div class="daily-target"><div class="daily-target-label">Daily Income Target</div><div class="daily-target-amount" id="dailyTarget">$0.00</div></div>
-                    <div class="gauge-container">
-                        <svg class="gauge-svg" viewBox="0 0 240 240"><circle class="gauge-bg" cx="120" cy="120" r="110"></circle><circle class="gauge-progress" id="gaugeProgress" cx="120" cy="120" r="110"></circle></svg>
-                        <div class="gauge-center"><div class="gauge-percent" id="gaugePercent">0%</div><div class="gauge-label">Today's Progress</div><div class="gauge-amounts" id="gaugeAmounts">$0 / $0</div></div>
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="panel-title">Dream Life Dashboard</div>
+                <div class="panel-subtitle">Financial Command Center</div>
+                
+                <div class="daily-target">
+                    <div class="daily-target-label">Daily Income Target</div>
+                    <div class="daily-target-amount" id="dailyTarget">$0.00</div>
+                </div>
+                
+                <div class="gauge-container">
+                    <svg class="gauge-svg" viewBox="0 0 220 220">
+                        <circle class="gauge-bg" cx="110" cy="110" r="100"></circle>
+                        <circle class="gauge-progress" id="gaugeProgress" cx="110" cy="110" r="100"></circle>
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="gauge-percent" id="gaugePercent">0%</div>
+                        <div class="gauge-label">Today's Progress</div>
                     </div>
-                    <div class="income-sources">
-                        <div class="income-sources-title">Today's Income <button class="add-btn-small" onclick="openIncomeModal()">+ Add</button></div>
-                        <div class="income-item"><div class="income-item-name"><span class="income-dot manual"></span>Manual Entries</div><div class="income-amount" id="manualIncome">$0.00</div></div>
-                        <div class="income-item"><div class="income-item-name"><span class="income-dot connected"></span>Connected</div><div class="income-amount" id="connectedIncome">$0.00</div></div>
+                </div>
+                
+                <div class="income-section">
+                    <div class="income-header">
+                        <span class="income-title">Today's Income</span>
+                        <button class="add-income-btn" onclick="openIncomeModal()">+ Add</button>
+                    </div>
+                    <div class="income-row">
+                        <span class="income-label">Manual Entries</span>
+                        <span class="income-value" id="manualIncome">$0.00</span>
+                    </div>
+                    <div class="income-row">
+                        <span class="income-label">Connected</span>
+                        <span class="income-value" id="connectedIncome">$0.00</span>
                     </div>
                 </div>
             </div>
-            
-            <div class="bottom-section">
-                <div class="goals-header">
-                    <div class="goals-title">My Dream Life Goals</div>
-                    <button class="goals-btn" onclick="openGoalModal()">+ ADD GOAL</button>
-                </div>
-                <div class="goals-row" id="goalsRow"></div>
+        </div>
+        
+        <!-- Goals Section - ALWAYS VISIBLE AT BOTTOM -->
+        <div class="goals-section">
+            <div class="goals-header">
+                <span class="goals-title">🎯 My Dream Life Goals</span>
+                <button class="add-goal-btn" onclick="openGoalModal()">+ ADD GOAL</button>
+            </div>
+            <div class="goals-container" id="goalsContainer">
+                <!-- Goals rendered here -->
             </div>
         </div>
     </div>
     
     <!-- Background Modal -->
     <div class="modal-overlay" id="bgModal">
-        <div class="modal-content">
+        <div class="modal-box">
             <div class="modal-title">Change Background</div>
-            <img id="bgPreview" class="upload-preview" alt="Preview">
-            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                <div style="font-size: 3rem; margin-bottom: 12px;">📤</div>
-                <div>Click to upload new background</div>
+            <img id="bgPreview" class="preview-img" alt="">
+            <div class="upload-box" onclick="document.getElementById('bgFile').click()">
+                <div style="font-size: 2.5rem; margin-bottom: 8px;">📤</div>
+                <div>Click to upload image</div>
             </div>
-            <input type="file" id="fileInput" accept="image/*" onchange="handleBgSelect(event)">
+            <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="handleBgFile(event)">
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('bgModal')">Cancel</button>
                 <button class="btn btn-primary" onclick="saveBackground()">Save Background</button>
@@ -164,31 +507,41 @@
         </div>
     </div>
     
-    <!-- Add Goal Modal -->
+    <!-- Goal Modal -->
     <div class="modal-overlay" id="goalModal">
-        <div class="modal-content">
+        <div class="modal-box">
             <div class="modal-title">Add New Goal</div>
-            <img id="goalPreview" class="upload-preview" alt="Preview">
-            <div class="upload-area" onclick="document.getElementById('goalFileInput').click()">
-                <div style="font-size: 2.5rem; margin-bottom: 8px;">🖼️</div>
+            <img id="goalPreview" class="preview-img" alt="">
+            <div class="upload-box" onclick="document.getElementById('goalFile').click()">
+                <div style="font-size: 2rem; margin-bottom: 8px;">🖼️</div>
                 <div>Click to upload goal image</div>
             </div>
-            <input type="file" id="goalFileInput" accept="image/*" onchange="handleGoalSelect(event)">
+            <input type="file" id="goalFile" accept="image/*" style="display:none" onchange="handleGoalFile(event)">
+            
             <div class="form-group">
                 <label class="form-label">Choose Icon</label>
-                <div class="icon-selector" id="iconSelector">
-                    <div class="icon-option selected" data-icon="🏖️">🏖️</div>
-                    <div class="icon-option" data-icon="🚗">🚗</div>
-                    <div class="icon-option" data-icon="✈️">✈️</div>
-                    <div class="icon-option" data-icon="🍽️">🍽️</div>
-                    <div class="icon-option" data-icon="💪">💪</div>
-                    <div class="icon-option" data-icon="👨‍🍳">👨‍🍳</div>
-                    <div class="icon-option" data-icon="🎓">🎓</div>
-                    <div class="icon-option" data-icon="📈">📈</div>
+                <div class="icon-row">
+                    <div class="icon-btn selected" onclick="selectIcon(this, '🏖️')">🏖️</div>
+                    <div class="icon-btn" onclick="selectIcon(this, '🚗')">🚗</div>
+                    <div class="icon-btn" onclick="selectIcon(this, '✈️')">✈️</div>
+                    <div class="icon-btn" onclick="selectIcon(this, '🍽️')">🍽️</div>
+                    <div class="icon-btn" onclick="selectIcon(this, '💪')">💪</div>
+                    <div class="icon-btn" onclick="selectIcon(this, '👨‍🍳')">👨‍🍳</div>
+                    <div class="icon-btn" onclick="selectIcon(this, '🎓')">🎓</div>
+                    <div class="icon-btn" onclick="selectIcon(this, '📈')">📈</div>
                 </div>
             </div>
-            <div class="form-group"><label class="form-label">Goal Title</label><input type="text" class="form-input" id="goalTitle" placeholder="e.g., Oceanfront Home"></div>
-            <div class="form-group"><label class="form-label">Monthly Amount</label><input type="number" class="form-input" id="goalAmount" placeholder="0.00" step="0.01"></div>
+            
+            <div class="form-group">
+                <label class="form-label">Goal Title</label>
+                <input type="text" class="form-input" id="goalTitle" placeholder="e.g., Oceanfront Home">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Monthly Amount ($)</label>
+                <input type="number" class="form-input" id="goalAmount" placeholder="0.00" step="0.01">
+            </div>
+            
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('goalModal')">Cancel</button>
                 <button class="btn btn-primary" onclick="saveGoal()">Save Goal</button>
@@ -196,24 +549,12 @@
         </div>
     </div>
     
-    <!-- Confirm Modal -->
-    <div class="modal-overlay" id="confirmModal">
-        <div class="modal-content">
-            <div class="modal-title">Remove Goal?</div>
-            <div style="color: rgba(255,255,255,0.7); margin-bottom: 24px;">Remove this goal from your dashboard?</div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmRemove()">Remove Goal</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Add Income Modal -->
+    <!-- Income Modal -->
     <div class="modal-overlay" id="incomeModal">
-        <div class="modal-content">
+        <div class="modal-box">
             <div class="modal-title">Add Today's Income</div>
             <div class="form-group">
-                <label class="form-label">Income Source</label>
+                <label class="form-label">Source</label>
                 <input type="text" class="form-input" id="incomeSource" placeholder="e.g., Client Payment">
             </div>
             <div class="form-group">
@@ -228,32 +569,31 @@
     </div>
 
     <script>
-        // State
-        let isEditMode = false, goalToRemove = null, selectedIcon = '🏖️', tempBgImage = null, tempGoalImage = null;
         let goals = [];
+        let selectedIcon = '🏖️';
+        let tempBgImage = null;
+        let tempGoalImage = null;
+        let goalEditIndex = null;
         let dailyTarget = 0;
         
         function formatCurrency(num) {
-            return '$' + (num || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return '$' + (num || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            loadSavedBackground();
-            loadDashboardData();
-            setupIconSelector();
+            loadData();
         });
         
-        function loadSavedBackground() {
-            const saved = localStorage.getItem('destinylens_background');
-            if (saved) {
-                document.getElementById('bgImage').src = saved;
+        function loadData() {
+            // Load background
+            const savedBg = localStorage.getItem('destinylens_background');
+            if (savedBg) {
+                document.getElementById('bgImage').src = savedBg;
             }
-        }
-        
-        function loadDashboardData() {
-            const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
             
+            // Load calculation
+            const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
             if (calc.daily) {
                 dailyTarget = calc.daily;
                 document.getElementById('dailyTarget').textContent = formatCurrency(calc.daily);
@@ -267,107 +607,91 @@
                     goals = savedGoals;
                 } else if (calc.answers) {
                     const map = [
-                        { key: 'home', icon: '🏖️', title: 'Dream Home' },
-                        { key: 'vehicle', icon: '🚗', title: 'Dream Vehicle' },
-                        { key: 'travel', icon: '✈️', title: 'Travel' },
-                        { key: 'food', icon: '🍽️', title: 'Food & Dining' }
+                        {key: 'home', icon: '🏖️', title: 'Dream Home'},
+                        {key: 'vehicle', icon: '🚗', title: 'Dream Vehicle'},
+                        {key: 'travel', icon: '✈️', title: 'Travel'},
+                        {key: 'food', icon: '🍽️', title: 'Food & Dining'}
                     ];
                     goals = map.map(g => ({
-                        icon: g.icon, title: g.title,
+                        icon: g.icon,
+                        title: g.title,
                         amount: calc.answers[g.key]?.amount || 0,
                         image: 'dashboard-preview.jpg'
                     })).filter(g => g.amount > 0).slice(0, 4);
                 }
                 renderGoals();
-                updateIncomeDisplay();
+                updateIncome();
             }
         }
         
-        function updateIncomeDisplay() {
+        function updateIncome() {
             const manual = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
             document.getElementById('manualIncome').textContent = formatCurrency(manual);
             
             // Update gauge
             const pct = dailyTarget > 0 ? (manual / dailyTarget) * 100 : 0;
-            const offset = 691 - (Math.min(pct, 100) / 100) * 691;
+            const offset = 628 - (Math.min(pct, 100) / 100) * 628;
             document.getElementById('gaugeProgress').style.strokeDashoffset = offset;
             document.getElementById('gaugePercent').textContent = Math.round(pct) + '%';
-            document.getElementById('gaugeAmounts').textContent = formatCurrency(manual) + ' / ' + formatCurrency(dailyTarget);
         }
         
         function renderGoals() {
-            const row = document.getElementById('goalsRow');
+            const container = document.getElementById('goalsContainer');
             let html = '';
             
-            // Render existing goals
+            // Existing goals
             goals.forEach((g, i) => {
                 html += `
                     <div class="goal-card">
-                        <img class="goal-card-image" src="${g.image}" alt="${g.title}">
-                        <div class="goal-card-overlay">
-                            <div class="goal-card-icon">${g.icon}</div>
-                            <div class="goal-card-title">${g.title}</div>
-                            <div class="goal-card-amount">${formatCurrency(g.amount)}/mo</div>
+                        <img src="${g.image}" alt="${g.title}">
+                        <div class="goal-overlay">
+                            <div class="goal-icon">${g.icon}</div>
+                            <div class="goal-name">${g.title}</div>
+                            <div class="goal-amount">${formatCurrency(g.amount)}/mo</div>
                         </div>
-                        <div class="goal-card-menu" onclick="event.stopPropagation(); toggleMenu(${i})">⋮</div>
-                        <div class="dropdown-menu" id="menu-${i}">
-                            <div class="dropdown-item" onclick="editGoal(${i})">✏️ Edit</div>
-                            <div class="dropdown-item" onclick="changeGoalImage(${i})">🖼️ Change Image</div>
-                            <div class="dropdown-divider"></div>
-                            <div class="dropdown-item danger" onclick="askRemoveGoal(${i})">🗑️ Remove</div>
-                        </div>
+                        <div class="goal-menu" onclick="event.stopPropagation(); showGoalOptions(${i})">⋮</div>
                     </div>
                 `;
             });
             
-            // Add "Add Goal" card if less than 4 goals
+            // Add Goal card
             if (goals.length < 4) {
                 html += `
-                    <div class="goal-card goal-card-add" onclick="openGoalModal()">
-                        <div class="goal-card-add-icon">+</div>
-                        <div class="goal-card-add-text">Add Goal</div>
+                    <div class="goal-card add-goal-card" onclick="openGoalModal()">
+                        <div class="add-goal-plus">+</div>
+                        <div class="add-goal-text">Add Goal</div>
                     </div>
                 `;
             }
             
-            row.innerHTML = html;
+            container.innerHTML = html;
         }
-        
-        function toggleMenu(i) {
-            const menu = document.getElementById('menu-' + i);
-            const isOpen = menu.classList.contains('active');
-            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
-            if (!isOpen) menu.classList.add('active');
-        }
-        
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.goal-card-menu')) {
-                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
-            }
-        });
         
         // Modal functions
-        function openBgModal() { 
-            document.getElementById('bgModal').classList.add('active'); 
+        function openBgModal() {
+            document.getElementById('bgModal').classList.add('active');
         }
-        function openGoalModal() { 
-            goalToRemove = null;
+        
+        function openGoalModal() {
+            goalEditIndex = null;
             tempGoalImage = null;
             document.getElementById('goalTitle').value = '';
             document.getElementById('goalAmount').value = '';
             document.getElementById('goalPreview').style.display = 'none';
             document.querySelector('.modal-title').textContent = 'Add New Goal';
-            document.getElementById('goalModal').classList.add('active'); 
+            document.getElementById('goalModal').classList.add('active');
         }
+        
         function openIncomeModal() {
             document.getElementById('incomeModal').classList.add('active');
         }
-        function closeModal(id) { 
-            document.getElementById(id).classList.remove('active'); 
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
         }
         
-        // Background functions
-        function handleBgSelect(e) {
+        // Background
+        function handleBgFile(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -387,14 +711,11 @@
                 closeModal('bgModal');
                 tempBgImage = null;
                 document.getElementById('bgPreview').style.display = 'none';
-                document.getElementById('fileInput').value = '';
-            } else {
-                alert('Please select an image first');
             }
         }
         
-        // Goal functions
-        function handleGoalSelect(e) {
+        // Goal
+        function handleGoalFile(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -407,14 +728,10 @@
             }
         }
         
-        function setupIconSelector() {
-            document.querySelectorAll('.icon-option').forEach(opt => {
-                opt.addEventListener('click', function() {
-                    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedIcon = this.getAttribute('data-icon');
-                });
-            });
+        function selectIcon(el, icon) {
+            document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedIcon = icon;
         }
         
         function saveGoal() {
@@ -430,19 +747,19 @@
                 return;
             }
             
-            const newGoal = {
+            const goal = {
                 icon: selectedIcon,
                 title: title,
                 amount: amount,
                 image: tempGoalImage || 'dashboard-preview.jpg'
             };
             
-            if (goalToRemove !== null) {
-                goals[goalToRemove] = newGoal;
+            if (goalEditIndex !== null) {
+                goals[goalEditIndex] = goal;
             } else if (goals.length < 4) {
-                goals.push(newGoal);
+                goals.push(goal);
             } else {
-                alert('Maximum 4 goals. Remove one first.');
+                alert('Maximum 4 goals reached');
                 return;
             }
             
@@ -450,86 +767,65 @@
             renderGoals();
             closeModal('goalModal');
             
-            // Reset form
+            // Reset
             document.getElementById('goalTitle').value = '';
             document.getElementById('goalAmount').value = '';
             document.getElementById('goalPreview').style.display = 'none';
             tempGoalImage = null;
-            goalToRemove = null;
+            goalEditIndex = null;
         }
         
-        function editGoal(i) {
-            const g = goals[i];
-            goalToRemove = i;
-            document.getElementById('goalTitle').value = g.title;
-            document.getElementById('goalAmount').value = g.amount;
-            selectedIcon = g.icon;
-            tempGoalImage = g.image;
-            
-            document.querySelectorAll('.icon-option').forEach(o => {
-                o.classList.toggle('selected', o.getAttribute('data-icon') === g.icon);
-            });
-            
-            if (g.image && g.image !== 'dashboard-preview.jpg') {
-                document.getElementById('goalPreview').src = g.image;
-                document.getElementById('goalPreview').style.display = 'block';
-            }
-            
-            document.querySelector('.modal-title').textContent = 'Edit Goal';
-            document.getElementById('goalModal').classList.add('active');
-        }
-        
-        function changeGoalImage(i) {
-            goalToRemove = i;
-            document.getElementById('goalFileInput').click();
-        }
-        
-        function askRemoveGoal(i) {
-            goalToRemove = i;
-            document.getElementById('confirmModal').classList.add('active');
-        }
-        
-        function confirmRemove() {
-            if (goalToRemove !== null) {
-                goals.splice(goalToRemove, 1);
-                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
-                renderGoals();
-                goalToRemove = null;
-            }
-            closeModal('confirmModal');
-        }
-        
-        function toggleEdit() {
-            isEditMode = !isEditMode;
-        }
-        
-        // Income functions
+        // Income
         function saveIncome() {
             const source = document.getElementById('incomeSource').value.trim();
             const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
             
-            if (!source) {
-                alert('Please enter an income source');
-                return;
-            }
-            if (amount <= 0) {
-                alert('Please enter a valid amount');
+            if (!source || amount <= 0) {
+                alert('Please enter source and amount');
                 return;
             }
             
-            const currentTotal = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
-            const newTotal = currentTotal + amount;
-            localStorage.setItem('destinylens_today_manual', newTotal.toString());
+            const current = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
+            localStorage.setItem('destinylens_today_manual', (current + amount).toString());
             
             const entries = JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
-            entries.push({ source: source, amount: amount, date: new Date().toISOString() });
+            entries.push({source, amount, date: new Date().toISOString()});
             localStorage.setItem('destinylens_income_entries', JSON.stringify(entries));
             
-            updateIncomeDisplay();
+            updateIncome();
+            closeModal('incomeModal');
             
             document.getElementById('incomeSource').value = '';
             document.getElementById('incomeAmount').value = '';
-            closeModal('incomeModal');
+        }
+        
+        function showGoalOptions(i) {
+            // Simple edit/remove for now
+            const action = prompt('Type "edit" or "remove":');
+            if (action === 'remove') {
+                goals.splice(i, 1);
+                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                renderGoals();
+            } else if (action === 'edit') {
+                const g = goals[i];
+                goalEditIndex = i;
+                document.getElementById('goalTitle').value = g.title;
+                document.getElementById('goalAmount').value = g.amount;
+                selectedIcon = g.icon;
+                tempGoalImage = g.image;
+                
+                document.querySelectorAll('.icon-btn').forEach(b => {
+                    b.classList.toggle('selected', b.textContent === g.icon);
+                });
+                
+                if (g.image !== 'dashboard-preview.jpg') {
+                    document.getElementById('goalPreview').src = g.image;
+                    document.getElementById('goalPreview').style.display = 'block';
+                }
+                
+                document.querySelector('.modal-title').textContent = 'Edit Goal';
+                document.getElementById('goalModal').classList.add('active');
+            }
         }
     </script>
 </body>
