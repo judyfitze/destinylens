@@ -722,15 +722,14 @@
                 
                 // Fallback to latest calculation
                 if (!calc) {
-                    const { data: latestCalc } = await supabaseClient
+                    const { data: latestCalcs, error: latestError } = await supabaseClient
                         .from('dream_life_calculations')
                         .select('*')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false })
-                        .limit(1)
-                        .single();
-                    calc = latestCalc;
-                    console.log('Latest calc:', calc);
+                        .limit(1);
+                    calc = latestCalcs?.[0] || null;
+                    console.log('Latest calc:', calc, 'Error:', latestError);
                 }
                 
                 // Load background
