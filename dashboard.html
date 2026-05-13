@@ -691,17 +691,46 @@
         
         async function loadDashboardData(userId) {
             try {
-                // Load dashboard settings with calculation
+                console.log('Loading dashboard for user:', userId);
+                
+                // Load dashboard settings
                 const { data: settings, error: settingsError } = await supabaseClient
                     .from('dashboard_settings')
-                    .select('*, dream_life_calculations(*)')
+                    .select('*')
                     .eq('user_id', userId)
                     .single();
+                
+                console.log('Settings:', settings, 'Error:', settingsError);
                 
                 if (settingsError || !settings) {
                     console.log('No dashboard settings found, using fallback');
                     loadFromLocalStorage();
                     return;
+                }
+                
+                // Load calculation separately
+                let calc = null;
+                if (settings.active_calculation_id) {
+                    const { data: calcData, error: calcError } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('*')
+                        .eq('id', settings.active_calculation_id)
+                        .single();
+                    calc = calcData;
+                    console.log('Calculation:', calc, 'Error:', calcError);
+                }
+                
+                // Fallback to latest calculation
+                if (!calc) {
+                    const { data: latestCalc } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+                    calc = latestCalc;
+                    console.log('Latest calc:', calc);
                 }
                 
                 // Load background
@@ -710,7 +739,6 @@
                 }
                 
                 // Load targets
-                const calc = settings.dream_life_calculations;
                 if (calc) {
                     dailyTarget = calc.daily_total || 0;
                     document.getElementById('dailyTarget').textContent = format$(calc.daily_total);
