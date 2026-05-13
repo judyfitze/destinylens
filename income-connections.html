@@ -618,9 +618,8 @@
             const { user } = await getCurrentUser();
             if (!user) return;
             
-            // For now, create a pending connection
-            // In production, this would redirect to OAuth flow
-            const { data, error } = await supabaseClient
+            // Create pending connection
+            const { data: connection, error } = await supabaseClient
                 .from('income_connections')
                 .insert({
                     user_id: user.id,
@@ -633,16 +632,49 @@
             
             if (error) {
                 console.error('Error creating connection:', error);
-                alert('Error: ' + error.message + '\n\nDetails: ' + (error.details || 'No additional details'));
+                alert('Error: ' + error.message);
                 return;
             }
             
             closeModal('connectionModal');
             
-            // Show message about OAuth coming soon
-            alert(`${providerNames[currentProvider]} connection created! OAuth integration coming soon. For now, you can add manual income entries.`);
-            
-            loadConnections();
+            // For Stripe, initiate OAuth flow
+            if (currentProvider === 'stripe') {
+                await initiateStripeOAuth(connection.connection_id, user.id);
+            } else {
+                alert(`${providerNames[currentProvider]} connection created! OAuth integration coming soon. For now, you can add manual income entries.`);
+                loadConnections();
+            }
+        }
+        
+        async function initiateStripeOAuth(connectionId, userId) {
+            try {
+                const { data, error } = await supabaseClient.functions.invoke('stripe-connect', {
+                    body: { connection_id: connectionId, user_id: userId }
+                });
+                
+                if (error) {
+                    console.error('OAuth error:', error);
+                    alert('Error initiating Stripe connection: ' + error.message);
+                    return;
+                }
+                
+                // Open OAuth popup
+                const popup = window.open(data.url, 'stripe-oauth', 'width=800,height=600');
+                
+                // Listen for message from popup
+                window.addEventListener('message', (event) => {
+                    if (event.data === 'stripe-connected') {
+                        popup?.close();
+                        alert('Stripe connected successfully!');
+                        loadConnections();
+                    }
+                }, { once: true });
+                
+            } catch (err) {
+                console.error('OAuth initiation error:', err);
+                alert('Error connecting to Stripe. Please try again.');
+            }
         }
         
         async function disconnectConnection(connectionId) {
