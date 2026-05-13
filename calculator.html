@@ -684,6 +684,9 @@
             };
             localStorage.setItem('destinylens_calculation', JSON.stringify(calculation));
             
+            // Save to Supabase and link to dashboard
+            saveCalculationToSupabase(calculation);
+            
             document.querySelectorAll('.question-container').forEach(c => c.classList.remove('active'));
             document.querySelector('.progress-bar').style.display = 'none';
             document.getElementById('stepIndicator').style.display = 'none';
@@ -711,6 +714,61 @@
             document.querySelector('.progress-bar').style.display = 'block';
             document.getElementById('stepIndicator').style.display = 'block';
             showStep(1);
+        }
+        
+        async function saveCalculationToSupabase(calculation) {
+            try {
+                const { user } = await getCurrentUser();
+                if (!user) return;
+                
+                // Save calculation
+                const { data: calcData, error: calcError } = await supabaseClient
+                    .from('dream_life_calculations')
+                    .insert({
+                        user_id: user.id,
+                        home_description: calculation.answers.home.description,
+                        home_monthly_amount: calculation.answers.home.amount,
+                        vehicle_description: calculation.answers.vehicle.description,
+                        vehicle_monthly_amount: calculation.answers.vehicle.amount,
+                        travel_description: calculation.answers.travel.description,
+                        travel_monthly_amount: calculation.answers.travel.amount,
+                        food_description: calculation.answers.food.description,
+                        food_monthly_amount: calculation.answers.food.amount,
+                        trainer_description: calculation.answers.trainer.description,
+                        trainer_monthly_amount: calculation.answers.trainer.amount,
+                        chef_description: calculation.answers.chef.description,
+                        chef_monthly_amount: calculation.answers.chef.amount,
+                        college_description: calculation.answers.college.description,
+                        college_monthly_amount: calculation.answers.college.amount,
+                        retirement_description: calculation.answers.retirement.description,
+                        retirement_monthly_amount: calculation.answers.retirement.amount,
+                        monthly_total: calculation.monthly,
+                        yearly_total: calculation.yearly,
+                        weekly_total: calculation.weekly,
+                        daily_total: calculation.daily,
+                        hourly_total: calculation.hourly,
+                        is_active: true
+                    })
+                    .select()
+                    .single();
+                
+                if (calcError) throw calcError;
+                
+                // Link to dashboard settings
+                await supabaseClient
+                    .from('dashboard_settings')
+                    .upsert({
+                        user_id: user.id,
+                        active_calculation_id: calcData.id,
+                        updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'user_id'
+                    });
+                
+                console.log('Calculation saved and linked to dashboard');
+            } catch (err) {
+                console.error('Error saving calculation:', err);
+            }
         }
         
         function saveVersion() {
