@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
     <title>My Dream Life Dashboard — DestinyLens</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
@@ -531,9 +533,9 @@
         </defs>
     </svg>
     
-    <!-- Background Image - No Overlay -->
-    <div class="bg-layer">
-        <img id="bgImage" src="dashboard-preview.jpg" alt="" style="display: block;">
+    <!-- Background Image - No Overlay v2 -->
+    <div class="bg-layer" id="bgLayer">
+        <img id="bgImage" src="" alt="" style="opacity: 0; transition: opacity 0.3s;">
     </div>
     
     <!-- App -->
@@ -800,9 +802,15 @@
                     console.log('Latest calc:', calc, 'Error:', latestError);
                 }
                 
-                // Load background
+                // Load background - fade in after load
                 if (settings.background_image_url) {
-                    document.getElementById('bgImage').src = settings.background_image_url;
+                    const bgImg = document.getElementById('bgImage');
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        bgImg.src = settings.background_image_url;
+                        bgImg.style.opacity = '1';
+                    };
+                    tempImg.src = settings.background_image_url;
                 }
                 
                 // Load targets
