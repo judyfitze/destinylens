@@ -67,20 +67,7 @@ async function logout() {
     window.location.href = '/';
 }
 
-// Add logout button to nav if user is logged in
-async function addLogoutButton() {
-    const { user } = await getCurrentUser();
-    if (user) {
-        const nav = document.querySelector('nav');
-        if (nav) {
-            const logoutBtn = document.createElement('button');
-            logoutBtn.className = 'nav-btn';
-            logoutBtn.textContent = 'Logout';
-            logoutBtn.onclick = logout;
-            nav.appendChild(logoutBtn);
-        }
-    }
-}
+// Logout button removed - now in hamburger menu
 
 // Run on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -107,6 +94,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     
-    // Add logout button to all pages
-    addLogoutButton();
+
 });
