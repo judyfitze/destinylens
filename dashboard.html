@@ -2,216 +2,255 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>My Dream Life Dashboard — DestinyLens</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --purple: #A94CF0; --gold: #F6C26B; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #0a0a12; 
-            color: #fff; 
-            min-height: 100vh;
-            overflow-x: hidden;
+        
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a12;
+            color: #fff;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
         }
         
-        /* Background */
-        .bg-container { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 0; 
+        /* Background Layer */
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
         }
-        .bg-container img { width: 100%; height: 100%; object-fit: cover; }
-        .bg-overlay { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: linear-gradient(135deg, rgba(10,10,18,0.7) 0%, rgba(10,10,18,0.5) 50%, rgba(10,10,18,0.8) 100%); 
-            z-index: 1; 
+        .bg-layer img { width: 100%; height: 100%; object-fit: cover; }
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(10,10,18,0.75) 0%, rgba(10,10,18,0.5) 50%, rgba(10,10,18,0.85) 100%);
+            z-index: 1;
         }
         
-        /* Nav */
-        .nav { 
-            position: fixed; 
-            top: 0; left: 0; right: 0; 
-            padding: 20px 40px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            z-index: 100; 
-            background: linear-gradient(180deg, rgba(10,10,18,0.95) 0%, transparent 100%); 
-        }
-        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .logo-icon { 
-            width: 42px; height: 42px; 
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
-            border-radius: 10px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-weight: 900; color: #fff; font-size: 1.1rem; 
-        }
-        .logo-title { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #fff; }
-        .logo-subtitle { font-size: 0.65rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
-        .nav-btn { 
-            padding: 10px 20px; 
-            background: rgba(255,255,255,0.1); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            border-radius: 8px; 
-            color: #fff; 
-            font-size: 0.85rem; 
-            font-weight: 600; 
-            cursor: pointer; 
-            margin-left: 10px; 
-        }
-        
-        /* Main Content */
-        .main { 
-            position: relative; 
-            z-index: 10; 
-            padding: 90px 30px 20px; 
-            min-height: 100vh;
+        /* App Container - Full Screen */
+        .app {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
         }
         
-        /* Top Metrics */
-        .metrics { 
-            display: flex; 
-            justify-content: flex-end; 
-            gap: 12px; 
-            margin-bottom: 20px; 
-        }
-        .metric-card { 
-            background: rgba(10, 10, 18, 0.8); 
-            backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 12px; 
-            padding: 12px 20px; 
-            min-width: 120px; 
-            text-align: center; 
-        }
-        .metric-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
-        .metric-value { font-size: 1.2rem; font-weight: 800; }
-        .metric-value.highlight { 
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-        }
-        
-        /* Dashboard Grid */
-        .dashboard-grid {
-            display: flex;
-            gap: 30px;
-            flex: 1;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-        
-        /* Left Panel */
-        .left-panel { 
-            width: 320px; 
-            background: rgba(10, 10, 18, 0.85); 
-            backdrop-filter: blur(30px); 
-            border: 1px solid rgba(169, 76, 240, 0.3); 
-            border-radius: 20px; 
-            padding: 24px; 
-        }
-        .panel-title { 
-            font-size: 1.1rem; 
-            font-weight: 800; 
-            margin-bottom: 2px; 
-            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-        }
-        .panel-subtitle { 
-            font-size: 0.75rem; 
-            color: rgba(255,255,255,0.5); 
-            text-transform: uppercase; 
-            letter-spacing: 0.1em; 
-            margin-bottom: 16px;
-        }
-        .daily-target { 
-            text-align: center; 
-            padding: 14px; 
-            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%); 
-            border-radius: 14px; 
-            border: 1px solid rgba(169, 76, 240, 0.3); 
-            margin-bottom: 16px; 
-        }
-        .daily-target-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
-        .daily-target-amount { 
-            font-size: 1.8rem; 
-            font-weight: 900; 
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-        }
-        
-        /* Gauge */
-        .gauge-container { position: relative; width: 160px; height: 160px; margin: 0 auto 16px; }
-        .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 16; }
-        .gauge-progress { fill: none; stroke: url(#gaugeGradient); stroke-width: 16; stroke-linecap: round; stroke-dasharray: 502; stroke-dashoffset: 502; transition: stroke-dashoffset 1s ease; }
-        .gauge-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-        .gauge-percent { 
-            font-size: 2rem; 
-            font-weight: 900; 
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-        }
-        .gauge-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
-        
-        /* Income Section */
-        .income-section { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; }
-        .income-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 8px; 
-        }
-        .income-title { font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.7); }
-        .add-income-btn { 
-            padding: 5px 10px; 
-            background: var(--purple); 
-            border: none; 
-            border-radius: 4px; 
-            color: #fff; 
-            font-size: 0.7rem; 
-            font-weight: 600; 
-            cursor: pointer; 
-        }
-        .income-row { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 6px 0; 
-            font-size: 0.85rem; 
-        }
-        .income-label { color: rgba(255,255,255,0.6); }
-        .income-value { font-weight: 700; }
-        
-        /* Goals Section - ALWAYS VISIBLE */
-        .goals-section {
-            margin-top: auto;
-            padding-top: 20px;
-        }
-        .goals-header {
+        /* Nav - Compact */
+        .nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
-            background: rgba(10, 10, 18, 0.9);
             padding: 12px 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(180deg, rgba(10,10,18,0.95) 0%, transparent 100%);
+            flex-shrink: 0;
         }
-        .goals-title { 
-            font-size: 0.95rem; 
-            font-weight: 700; 
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 0.9rem;
+        }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-title { font-size: 0.9rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+        .logo-subtitle { font-size: 0.6rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
+        .nav-btn {
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
             color: #fff;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        
+        /* Main Content - Flexible */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 20px 15px;
+            overflow: hidden;
+            gap: 15px;
+        }
+        
+        /* Top Metrics - Horizontal */
+        .metrics {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .metric-card {
+            background: rgba(10, 10, 18, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px 16px;
+            min-width: 100px;
+            text-align: center;
+        }
+        .metric-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+        .metric-value { font-size: 1.1rem; font-weight: 800; }
+        .metric-value.highlight {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Middle Section - Dashboard Panel */
+        .dashboard-panel {
+            display: flex;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+        
+        /* Left Panel - Compact */
+        .panel {
+            width: 300px;
+            background: rgba(10, 10, 18, 0.9);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(169, 76, 240, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-header { margin-bottom: 15px; }
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .panel-subtitle {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Daily Target */
+        .daily-target {
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(169, 76, 240, 0.3);
+            margin-bottom: 15px;
+        }
+        .daily-target-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; }
+        .daily-target-amount {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Gauge */
+        .gauge-wrap {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .gauge-box {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+        }
+        .gauge-svg {
+            width: 100%; height: 100%;
+            transform: rotate(-90deg);
+        }
+        .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 12; }
+        .gauge-progress {
+            fill: none;
+            stroke: url(#gaugeGradient);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
+            transition: stroke-dashoffset 1s ease;
+        }
+        .gauge-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .gauge-percent {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gauge-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); }
+        
+        /* Income Mini */
+        .income-mini {
+            flex: 1;
+        }
+        .income-mini-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .income-mini-title { font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.7); }
+        .add-btn {
+            padding: 4px 10px;
+            background: var(--purple);
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .income-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .income-row:last-child { border-bottom: none; }
+        .income-label { color: rgba(255,255,255,0.5); }
+        .income-val { font-weight: 700; }
+        
+        /* Goals Section - Bottom */
+        .goals-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .goals-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        .goals-heading {
+            font-size: 0.9rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
         }
@@ -221,88 +260,57 @@
             border: none;
             border-radius: 8px;
             color: #fff;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(169, 76, 240, 0.4);
         }
-        .add-goal-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(169, 76, 240, 0.5);
-        }
-        .goals-container {
+        
+        /* Goals Grid */
+        .goals-grid {
             display: flex;
-            gap: 16px;
-            justify-content: center;
+            gap: 15px;
             flex-wrap: wrap;
+            justify-content: center;
+            align-content: flex-start;
+            overflow-y: auto;
         }
         .goal-card {
-            width: 240px;
-            height: 130px;
-            border-radius: 14px;
+            width: calc(25% - 12px);
+            min-width: 180px;
+            max-width: 240px;
+            aspect-ratio: 16/10;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
             background: #1a1a2e;
             border: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
         }
-        .goal-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .goal-overlay {
+        .goal-card img { width: 100%; height: 100%; object-fit: cover; }
+        .goal-info {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 12px;
+            bottom: 0; left: 0; right: 0;
+            padding: 10px;
             background: linear-gradient(transparent, rgba(0,0,0,0.9));
         }
-        .goal-icon { font-size: 1.3rem; margin-bottom: 2px; }
-        .goal-name { font-weight: 700; font-size: 0.95rem; }
-        .goal-amount { color: var(--gold); font-weight: 600; font-size: 0.85rem; }
-        .goal-menu {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 30px;
-            height: 30px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .goal-card:hover .goal-menu { opacity: 1; }
+        .goal-emoji { font-size: 1.1rem; margin-bottom: 2px; }
+        .goal-name { font-weight: 700; font-size: 0.85rem; }
+        .goal-amt { color: var(--gold); font-weight: 600; font-size: 0.75rem; }
         
         /* Add Goal Card */
-        .add-goal-card {
-            border: 2px dashed rgba(255,255,255,0.3);
+        .add-card {
+            border: 2px dashed rgba(255,255,255,0.25);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
         }
-        .add-goal-card:hover {
-            border-color: var(--purple);
-            background: rgba(169, 76, 240, 0.1);
-        }
-        .add-goal-plus {
-            font-size: 3rem;
-            color: var(--purple);
-            font-weight: 300;
-            line-height: 1;
-        }
-        .add-goal-text {
-            color: rgba(255,255,255,0.7);
-            font-weight: 600;
-            margin-top: 8px;
-        }
+        .add-card:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.1); }
+        .add-plus { font-size: 2.5rem; color: var(--purple); font-weight: 300; line-height: 1; }
+        .add-text { color: rgba(255,255,255,0.6); font-weight: 600; font-size: 0.8rem; margin-top: 4px; }
         
         /* Modals */
         .modal-overlay {
@@ -314,179 +322,198 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         .modal-overlay.active { display: flex; }
         .modal-box {
             background: #1a1a2e;
-            border-radius: 20px;
-            padding: 32px;
-            width: 90%;
-            max-width: 450px;
-            border: 2px solid var(--purple);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
             max-height: 90vh;
             overflow-y: auto;
+            border: 2px solid var(--purple);
         }
-        .modal-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.7); }
+        .modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: rgba(255,255,255,0.7); }
         .form-input {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 14px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
+            border-radius: 8px;
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
         .form-input:focus { outline: none; border-color: var(--purple); }
-        .upload-box {
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 12px;
-            padding: 30px;
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 24px;
             text-align: center;
             cursor: pointer;
-            margin-bottom: 20px;
-        }
-        .upload-box:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.05); }
-        .preview-img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 10px;
             margin-bottom: 16px;
-            display: none;
         }
-        .icon-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .icon-btn {
-            width: 48px;
-            height: 48px;
+        .upload-area:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.05); }
+        .preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; display: none; }
+        .icon-pick { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .icon-opt {
+            width: 40px; height: 40px;
             background: rgba(255,255,255,0.05);
             border: 2px solid transparent;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
             cursor: pointer;
         }
-        .icon-btn:hover, .icon-btn.selected { border-color: var(--purple); background: rgba(169, 76, 240, 0.2); }
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
+        .icon-opt:hover, .icon-opt.selected { border-color: var(--purple); background: rgba(169, 76, 240, 0.15); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .btn {
             flex: 1;
-            padding: 14px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 8px;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             border: none;
         }
         .btn-primary { background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff; }
         .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .goal-card { width: calc(33.333% - 10px); min-width: 150px; }
+        }
+        
+        @media (max-width: 768px) {
+            .nav { padding: 10px 15px; }
+            .nav-btn { padding: 6px 10px; font-size: 0.7rem; margin-left: 5px; }
+            .main { padding: 0 15px 10px; gap: 10px; }
+            .metrics { gap: 8px; }
+            .metric-card { padding: 8px 12px; min-width: 80px; }
+            .metric-value { font-size: 0.95rem; }
+            .dashboard-panel { flex-direction: column; gap: 15px; }
+            .panel { width: 100%; padding: 15px; }
+            .gauge-wrap { justify-content: center; }
+            .goals-grid { gap: 10px; }
+            .goal-card { width: calc(50% - 5px); min-width: 140px; }
+            .add-goal-btn { padding: 8px 16px; font-size: 0.75rem; }
+        }
+        
+        @media (max-width: 480px) {
+            .goal-card { width: 100%; max-width: none; aspect-ratio: 2/1; }
+            .metrics { flex-wrap: wrap; justify-content: center; }
+            .metric-card { min-width: 70px; padding: 6px 10px; }
+        }
     </style>
 </head>
 <body>
-    <svg width="0" height="0"><defs><linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#A94CF0"/><stop offset="100%" style="stop-color:#F6C26B"/></linearGradient></defs></svg>
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#A94CF0"/>
+                <stop offset="100%" style="stop-color:#F6C26B"/>
+            </linearGradient>
+        </defs>
+    </svg>
     
     <!-- Background -->
-    <div class="bg-container">
-        <img id="bgImage" src="dashboard-preview.jpg" alt="Dream Life">
+    <div class="bg-layer">
+        <img id="bgImage" src="dashboard-preview.jpg" alt="">
         <div class="bg-overlay"></div>
     </div>
     
-    <!-- Nav -->
-    <nav class="nav">
-        <a href="/" class="logo">
-            <div class="logo-icon">DL</div>
+    <!-- App -->
+    <div class="app">
+        <!-- Nav -->
+        <nav class="nav">
+            <a href="/" class="logo">
+                <div class="logo-icon">DL</div>
+                <div class="logo-text">
+                    <div class="logo-title">DestinyLens</div>
+                    <div class="logo-subtitle">Your Dream Life In Focus</div>
+                </div>
+            </a>
             <div>
-                <div class="logo-title">DestinyLens</div>
-                <div class="logo-subtitle">Your Dream Life In Focus</div>
+                <button class="nav-btn" onclick="openModal('bgModal')">🖼️ Background</button>
+                <button class="nav-btn" onclick="location.href='/members.html'">👤 Account</button>
             </div>
-        </a>
-        <div>
-            <button class="nav-btn" onclick="openBgModal()">🖼️ Background</button>
-            <button class="nav-btn" onclick="location.href='/members.html'">👤 Account</button>
-        </div>
-    </nav>
-    
-    <!-- Main -->
-    <div class="main">
-        <!-- Top Metrics -->
-        <div class="metrics">
-            <div class="metric-card">
-                <div class="metric-label">Weekly Target</div>
-                <div class="metric-value" id="weeklyTarget">$0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Monthly Target</div>
-                <div class="metric-value highlight" id="monthlyTarget">$0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Yearly Target</div>
-                <div class="metric-value" id="yearlyTarget">$0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Journey</div>
-                <div class="metric-value" id="dayCounter">Day 1</div>
-            </div>
-        </div>
+        </nav>
         
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            <!-- Left Panel -->
-            <div class="left-panel">
-                <div class="panel-title">Dream Life Dashboard</div>
-                <div class="panel-subtitle">Financial Command Center</div>
-                
-                <div class="daily-target">
-                    <div class="daily-target-label">Daily Income Target</div>
-                    <div class="daily-target-amount" id="dailyTarget">$0.00</div>
+        <!-- Main -->
+        <div class="main">
+            <!-- Metrics -->
+            <div class="metrics">
+                <div class="metric-card">
+                    <div class="metric-label">Weekly</div>
+                    <div class="metric-value" id="weeklyTarget">$0</div>
                 </div>
-                
-                <div class="gauge-container">
-                    <svg class="gauge-svg" viewBox="0 0 220 220">
-                        <circle class="gauge-bg" cx="110" cy="110" r="100"></circle>
-                        <circle class="gauge-progress" id="gaugeProgress" cx="110" cy="110" r="100"></circle>
-                    </svg>
-                    <div class="gauge-center">
-                        <div class="gauge-percent" id="gaugePercent">0%</div>
-                        <div class="gauge-label">Today's Progress</div>
-                    </div>
+                <div class="metric-card">
+                    <div class="metric-label">Monthly</div>
+                    <div class="metric-value highlight" id="monthlyTarget">$0</div>
                 </div>
-                
-                <div class="income-section">
-                    <div class="income-header">
-                        <span class="income-title">Today's Income</span>
-                        <button class="add-income-btn" onclick="openIncomeModal()">+ Add</button>
+                <div class="metric-card">
+                    <div class="metric-label">Yearly</div>
+                    <div class="metric-value" id="yearlyTarget">$0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Journey</div>
+                    <div class="metric-value" id="dayCounter">Day 1</div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Panel -->
+            <div class="dashboard-panel">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Dream Life Dashboard</div>
+                        <div class="panel-subtitle">Financial Command Center</div>
                     </div>
-                    <div class="income-row">
-                        <span class="income-label">Manual Entries</span>
-                        <span class="income-value" id="manualIncome">$0.00</span>
+                    
+                    <div class="daily-target">
+                        <div class="daily-target-label">Daily Income Target</div>
+                        <div class="daily-target-amount" id="dailyTarget">$0.00</div>
                     </div>
-                    <div class="income-row">
-                        <span class="income-label">Connected</span>
-                        <span class="income-value" id="connectedIncome">$0.00</span>
+                    
+                    <div class="gauge-wrap">
+                        <div class="gauge-box">
+                            <svg class="gauge-svg" viewBox="0 0 140 140">
+                                <circle class="gauge-bg" cx="70" cy="70" r="60"></circle>
+                                <circle class="gauge-progress" id="gaugeProgress" cx="70" cy="70" r="60"></circle>
+                            </svg>
+                            <div class="gauge-center">
+                                <div class="gauge-percent" id="gaugePercent">0%</div>
+                                <div class="gauge-label">Progress</div>
+                            </div>
+                        </div>
+                        
+                        <div class="income-mini">
+                            <div class="income-mini-header">
+                                <span class="income-mini-title">Today's Income</span>
+                                <button class="add-btn" onclick="openModal('incomeModal')">+ Add</button>
+                            </div>
+                            <div class="income-row">
+                                <span class="income-label">Manual</span>
+                                <span class="income-val" id="manualIncome">$0.00</span>
+                            </div>
+                            <div class="income-row">
+                                <span class="income-label">Connected</span>
+                                <span class="income-val" id="connectedIncome">$0.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Goals Section - ALWAYS VISIBLE AT BOTTOM -->
-        <div class="goals-section">
-            <div class="goals-header">
-                <span class="goals-title">🎯 My Dream Life Goals</span>
-                <button class="add-goal-btn" onclick="openGoalModal()">+ ADD GOAL</button>
-            </div>
-            <div class="goals-container" id="goalsContainer">
-                <!-- Goals rendered here -->
+            
+            <!-- Goals Area -->
+            <div class="goals-area">
+                <div class="goals-bar">
+                    <span class="goals-heading">🎯 My Dream Life Goals</span>
+                    <button class="add-goal-btn" onclick="openModal('goalModal')">+ ADD GOAL</button>
+                </div>
+                <div class="goals-grid" id="goalsGrid"></div>
             </div>
         </div>
     </div>
@@ -496,14 +523,14 @@
         <div class="modal-box">
             <div class="modal-title">Change Background</div>
             <img id="bgPreview" class="preview-img" alt="">
-            <div class="upload-box" onclick="document.getElementById('bgFile').click()">
-                <div style="font-size: 2.5rem; margin-bottom: 8px;">📤</div>
-                <div>Click to upload image</div>
+            <div class="upload-area" onclick="document.getElementById('bgFile').click()">
+                <div style="font-size: 2rem; margin-bottom: 6px;">📤</div>
+                <div style="font-size: 0.85rem;">Click to upload</div>
             </div>
             <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="handleBgFile(event)">
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('bgModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="saveBackground()">Save Background</button>
+                <button class="btn btn-primary" onclick="saveBackground()">Save</button>
             </div>
         </div>
     </div>
@@ -513,23 +540,23 @@
         <div class="modal-box">
             <div class="modal-title">Add New Goal</div>
             <img id="goalPreview" class="preview-img" alt="">
-            <div class="upload-box" onclick="document.getElementById('goalFile').click()">
-                <div style="font-size: 2rem; margin-bottom: 8px;">🖼️</div>
-                <div>Click to upload goal image</div>
+            <div class="upload-area" onclick="document.getElementById('goalFile').click()">
+                <div style="font-size: 1.8rem; margin-bottom: 6px;">🖼️</div>
+                <div style="font-size: 0.85rem;">Upload goal image</div>
             </div>
             <input type="file" id="goalFile" accept="image/*" style="display:none" onchange="handleGoalFile(event)">
             
             <div class="form-group">
-                <label class="form-label">Choose Icon</label>
-                <div class="icon-row">
-                    <div class="icon-btn selected" onclick="selectIcon(this, '🏖️')">🏖️</div>
-                    <div class="icon-btn" onclick="selectIcon(this, '🚗')">🚗</div>
-                    <div class="icon-btn" onclick="selectIcon(this, '✈️')">✈️</div>
-                    <div class="icon-btn" onclick="selectIcon(this, '🍽️')">🍽️</div>
-                    <div class="icon-btn" onclick="selectIcon(this, '💪')">💪</div>
-                    <div class="icon-btn" onclick="selectIcon(this, '👨‍🍳')">👨‍🍳</div>
-                    <div class="icon-btn" onclick="selectIcon(this, '🎓')">🎓</div>
-                    <div class="icon-btn" onclick="selectIcon(this, '📈')">📈</div>
+                <label class="form-label">Icon</label>
+                <div class="icon-pick">
+                    <div class="icon-opt selected" onclick="selectIcon(this, '🏖️')">🏖️</div>
+                    <div class="icon-opt" onclick="selectIcon(this, '🚗')">🚗</div>
+                    <div class="icon-opt" onclick="selectIcon(this, '✈️')">✈️</div>
+                    <div class="icon-opt" onclick="selectIcon(this, '🍽️')">🍽️</div>
+                    <div class="icon-opt" onclick="selectIcon(this, '💪')">💪</div>
+                    <div class="icon-opt" onclick="selectIcon(this, '👨‍🍳')">👨‍🍳</div>
+                    <div class="icon-opt" onclick="selectIcon(this, '🎓')">🎓</div>
+                    <div class="icon-opt" onclick="selectIcon(this, '📈')">📈</div>
                 </div>
             </div>
             
@@ -570,53 +597,43 @@
     </div>
 
     <script>
-        let goals = [];
-        let selectedIcon = '🏖️';
-        let tempBgImage = null;
-        let tempGoalImage = null;
-        let goalEditIndex = null;
-        let dailyTarget = 0;
+        let goals = [], selectedIcon = '🏖️', tempBgImage = null, tempGoalImage = null;
+        let goalEditIndex = null, dailyTarget = 0;
         
-        function formatCurrency(num) {
-            return '$' + (num || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        function format$(n) {
+            return '$' + (n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
         
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-        });
+        document.addEventListener('DOMContentLoaded', init);
         
-        function loadData() {
+        function init() {
             // Load background
-            const savedBg = localStorage.getItem('destinylens_background');
-            if (savedBg) {
-                document.getElementById('bgImage').src = savedBg;
-            }
+            const bg = localStorage.getItem('destinylens_background');
+            if (bg) document.getElementById('bgImage').src = bg;
             
             // Load calculation
             const calc = JSON.parse(localStorage.getItem('destinylens_calculation') || '{}');
             if (calc.daily) {
                 dailyTarget = calc.daily;
-                document.getElementById('dailyTarget').textContent = formatCurrency(calc.daily);
-                document.getElementById('weeklyTarget').textContent = formatCurrency(calc.weekly);
-                document.getElementById('monthlyTarget').textContent = formatCurrency(calc.monthly);
-                document.getElementById('yearlyTarget').textContent = formatCurrency(calc.yearly);
+                document.getElementById('dailyTarget').textContent = format$(calc.daily);
+                document.getElementById('weeklyTarget').textContent = format$(calc.weekly);
+                document.getElementById('monthlyTarget').textContent = format$(calc.monthly);
+                document.getElementById('yearlyTarget').textContent = format$(calc.yearly);
                 
                 // Load goals
-                const savedGoals = JSON.parse(localStorage.getItem('destinylens_goals') || '[]');
-                if (savedGoals.length > 0) {
-                    goals = savedGoals;
+                const saved = JSON.parse(localStorage.getItem('destinylens_goals') || '[]');
+                if (saved.length) {
+                    goals = saved;
                 } else if (calc.answers) {
                     const map = [
-                        {key: 'home', icon: '🏖️', title: 'Dream Home'},
-                        {key: 'vehicle', icon: '🚗', title: 'Dream Vehicle'},
-                        {key: 'travel', icon: '✈️', title: 'Travel'},
-                        {key: 'food', icon: '🍽️', title: 'Food & Dining'}
+                        {k: 'home', i: '🏖️', t: 'Dream Home'},
+                        {k: 'vehicle', i: '🚗', t: 'Dream Vehicle'},
+                        {k: 'travel', i: '✈️', t: 'Travel'},
+                        {k: 'food', i: '🍽️', t: 'Food & Dining'}
                     ];
                     goals = map.map(g => ({
-                        icon: g.icon,
-                        title: g.title,
-                        amount: calc.answers[g.key]?.amount || 0,
+                        icon: g.i, title: g.t,
+                        amount: calc.answers[g.k]?.amount || 0,
                         image: 'dashboard-preview.jpg'
                     })).filter(g => g.amount > 0).slice(0, 4);
                 }
@@ -627,84 +644,77 @@
         
         function updateIncome() {
             const manual = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
-            document.getElementById('manualIncome').textContent = formatCurrency(manual);
+            document.getElementById('manualIncome').textContent = format$(manual);
             
-            // Update gauge (radius 80, circumference = 2 * PI * 80 = 502)
+            // Gauge (radius 60, circumference = 377)
             const pct = dailyTarget > 0 ? (manual / dailyTarget) * 100 : 0;
-            const offset = 502 - (Math.min(pct, 100) / 100) * 502;
-            document.getElementById('gaugeProgress').style.strokeDashoffset = offset;
+            document.getElementById('gaugeProgress').style.strokeDashoffset = 377 - (Math.min(pct, 100) / 100) * 377;
             document.getElementById('gaugePercent').textContent = Math.round(pct) + '%';
         }
         
         function renderGoals() {
-            const container = document.getElementById('goalsContainer');
-            let html = '';
-            
-            // Existing goals
-            goals.forEach((g, i) => {
-                html += `
-                    <div class="goal-card">
-                        <img src="${g.image}" alt="${g.title}">
-                        <div class="goal-overlay">
-                            <div class="goal-icon">${g.icon}</div>
-                            <div class="goal-name">${g.title}</div>
-                            <div class="goal-amount">${formatCurrency(g.amount)}/mo</div>
-                        </div>
-                        <div class="goal-menu" onclick="event.stopPropagation(); showGoalOptions(${i})">⋮</div>
+            const grid = document.getElementById('goalsGrid');
+            let html = goals.map((g, i) => `
+                <div class="goal-card" onclick="goalOptions(${i})">
+                    <img src="${g.image}" alt="${g.title}">
+                    <div class="goal-info">
+                        <div class="goal-emoji">${g.icon}</div>
+                        <div class="goal-name">${g.title}</div>
+                        <div class="goal-amt">${format$(g.amount)}/mo</div>
                     </div>
-                `;
-            });
+                </div>
+            `).join('');
             
-            // Add Goal card
             if (goals.length < 4) {
                 html += `
-                    <div class="goal-card add-goal-card" onclick="openGoalModal()">
-                        <div class="add-goal-plus">+</div>
-                        <div class="add-goal-text">Add Goal</div>
+                    <div class="goal-card add-card" onclick="openModal('goalModal')">
+                        <div class="add-plus">+</div>
+                        <div class="add-text">Add Goal</div>
                     </div>
                 `;
             }
-            
-            container.innerHTML = html;
+            grid.innerHTML = html;
         }
         
-        // Modal functions
-        function openBgModal() {
-            document.getElementById('bgModal').classList.add('active');
+        function goalOptions(i) {
+            const action = prompt('Type "edit" or "remove":');
+            if (action === 'remove') {
+                goals.splice(i, 1);
+                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                renderGoals();
+            } else if (action === 'edit') {
+                const g = goals[i];
+                goalEditIndex = i;
+                document.getElementById('goalTitle').value = g.title;
+                document.getElementById('goalAmount').value = g.amount;
+                selectedIcon = g.icon;
+                tempGoalImage = g.image;
+                document.querySelectorAll('.icon-opt').forEach(b => b.classList.toggle('selected', b.textContent === g.icon));
+                if (g.image !== 'dashboard-preview.jpg') {
+                    document.getElementById('goalPreview').src = g.image;
+                    document.getElementById('goalPreview').style.display = 'block';
+                }
+                openModal('goalModal');
+            }
         }
         
-        function openGoalModal() {
-            goalEditIndex = null;
-            tempGoalImage = null;
-            document.getElementById('goalTitle').value = '';
-            document.getElementById('goalAmount').value = '';
-            document.getElementById('goalPreview').style.display = 'none';
-            document.querySelector('.modal-title').textContent = 'Add New Goal';
-            document.getElementById('goalModal').classList.add('active');
-        }
-        
-        function openIncomeModal() {
-            document.getElementById('incomeModal').classList.add('active');
-        }
-        
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
+        // Modals
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         
         // Background
         function handleBgFile(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
+                const r = new FileReader();
+                r.onload = ev => {
                     tempBgImage = ev.target.result;
                     document.getElementById('bgPreview').src = ev.target.result;
                     document.getElementById('bgPreview').style.display = 'block';
                 };
-                reader.readAsDataURL(file);
+                r.readAsDataURL(file);
             }
         }
-        
         function saveBackground() {
             if (tempBgImage) {
                 document.getElementById('bgImage').src = tempBgImage;
@@ -719,56 +729,39 @@
         function handleGoalFile(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
+                const r = new FileReader();
+                r.onload = ev => {
                     tempGoalImage = ev.target.result;
                     document.getElementById('goalPreview').src = ev.target.result;
                     document.getElementById('goalPreview').style.display = 'block';
                 };
-                reader.readAsDataURL(file);
+                r.readAsDataURL(file);
             }
         }
-        
         function selectIcon(el, icon) {
-            document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.icon-opt').forEach(b => b.classList.remove('selected'));
             el.classList.add('selected');
             selectedIcon = icon;
         }
-        
         function saveGoal() {
             const title = document.getElementById('goalTitle').value.trim();
             const amount = parseFloat(document.getElementById('goalAmount').value) || 0;
-            
-            if (!title) {
-                alert('Please enter a goal title');
+            if (!title || amount <= 0) {
+                alert('Please enter title and amount');
                 return;
             }
-            if (amount <= 0) {
-                alert('Please enter a monthly amount');
-                return;
-            }
-            
-            const goal = {
-                icon: selectedIcon,
-                title: title,
-                amount: amount,
-                image: tempGoalImage || 'dashboard-preview.jpg'
-            };
-            
+            const goal = { icon: selectedIcon, title, amount, image: tempGoalImage || 'dashboard-preview.jpg' };
             if (goalEditIndex !== null) {
                 goals[goalEditIndex] = goal;
             } else if (goals.length < 4) {
                 goals.push(goal);
             } else {
-                alert('Maximum 4 goals reached');
+                alert('Maximum 4 goals');
                 return;
             }
-            
             localStorage.setItem('destinylens_goals', JSON.stringify(goals));
             renderGoals();
             closeModal('goalModal');
-            
-            // Reset
             document.getElementById('goalTitle').value = '';
             document.getElementById('goalAmount').value = '';
             document.getElementById('goalPreview').style.display = 'none';
@@ -780,53 +773,19 @@
         function saveIncome() {
             const source = document.getElementById('incomeSource').value.trim();
             const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
-            
             if (!source || amount <= 0) {
                 alert('Please enter source and amount');
                 return;
             }
-            
             const current = parseFloat(localStorage.getItem('destinylens_today_manual') || '0');
             localStorage.setItem('destinylens_today_manual', (current + amount).toString());
-            
             const entries = JSON.parse(localStorage.getItem('destinylens_income_entries') || '[]');
-            entries.push({source, amount, date: new Date().toISOString()});
+            entries.push({ source, amount, date: new Date().toISOString() });
             localStorage.setItem('destinylens_income_entries', JSON.stringify(entries));
-            
             updateIncome();
             closeModal('incomeModal');
-            
             document.getElementById('incomeSource').value = '';
             document.getElementById('incomeAmount').value = '';
-        }
-        
-        function showGoalOptions(i) {
-            // Simple edit/remove for now
-            const action = prompt('Type "edit" or "remove":');
-            if (action === 'remove') {
-                goals.splice(i, 1);
-                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
-                renderGoals();
-            } else if (action === 'edit') {
-                const g = goals[i];
-                goalEditIndex = i;
-                document.getElementById('goalTitle').value = g.title;
-                document.getElementById('goalAmount').value = g.amount;
-                selectedIcon = g.icon;
-                tempGoalImage = g.image;
-                
-                document.querySelectorAll('.icon-btn').forEach(b => {
-                    b.classList.toggle('selected', b.textContent === g.icon);
-                });
-                
-                if (g.image !== 'dashboard-preview.jpg') {
-                    document.getElementById('goalPreview').src = g.image;
-                    document.getElementById('goalPreview').style.display = 'block';
-                }
-                
-                document.querySelector('.modal-title').textContent = 'Edit Goal';
-                document.getElementById('goalModal').classList.add('active');
-            }
         }
     </script>
 </body>
