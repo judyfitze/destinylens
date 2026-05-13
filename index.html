@@ -63,6 +63,19 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
+        .login-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+        .login-btn:hover {
+            opacity: 0.9;
+        }
         
         /* Hero Section */
         .hero {
@@ -616,7 +629,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav>
+    <nav style="position: relative; justify-content: center;">
         <a href="/" class="logo-mark">
             <div class="logo-icon">DL</div>
             <div class="logo-text">
@@ -624,6 +637,7 @@
                 <span class="logo-bottom">Your Dream Life In Focus</span>
             </div>
         </a>
+        <a href="/auth.html" class="login-btn" style="position: absolute; right: 40px;">Login</a>
     </nav>
 
     <!-- Hero Section -->

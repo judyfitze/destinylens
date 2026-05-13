@@ -45,13 +45,60 @@
         .logo-top { font-size: 1rem; font-weight: 800; text-transform: uppercase; }
         .logo-bottom { font-size: 0.65rem; color: var(--gold); text-transform: uppercase; }
         
-        .nav-links { display: flex; gap: 24px; }
-        .nav-links a {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-weight: 600;
+        /* Hamburger Menu */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 10px;
         }
-        .nav-links a:hover { color: var(--gold); }
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .nav-menu {
+            position: absolute;
+            top: 80px;
+            right: 40px;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 180px;
+            display: none;
+            z-index: 1000;
+        }
+        .nav-menu.active {
+            display: block;
+        }
+        .nav-menu a, .nav-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .nav-menu a:hover, .nav-menu button:hover {
+            background: rgba(255,255,255,0.1);
+        }
         
         .container {
             max-width: 800px;
@@ -220,7 +267,7 @@
     </style>
 </head>
 <body>
-    <nav>
+    <nav style="position: relative; justify-content: center;">
         <a href="/" class="logo-mark">
             <div class="logo-icon">DL</div>
             <div class="logo-text">
@@ -228,10 +275,20 @@
                 <span class="logo-bottom">Your Dream Life In Focus</span>
             </div>
         </a>
-        <div class="nav-links">
-            <a href="/dashboard.html">Dashboard</a>
-            <a href="/members.html">Members</a>
-            <a href="/settings.html">Settings</a>
+        <div class="hamburger" onclick="toggleNavMenu()" style="position: absolute; right: 40px;">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/members.html">👤 Members</a>
+            <a href="/calculator.html">🧮 Calculator</a>
+            <a href="/settings.html">⚙️ Settings</a>
+            <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+        </div>
+                <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+            </div>
         </div>
     </nav>
     
@@ -427,6 +484,17 @@
         }
         
         document.addEventListener('DOMContentLoaded', loadSettings);
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+        
+        function toggleNavMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
     </script>
 </body>
 </html>
