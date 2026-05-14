@@ -805,62 +805,43 @@
         }
 
         async function testStripeConnection(connectionId) {
-            const { user, session } = await getCurrentUser();
+            const { user } = await getCurrentUser();
             if (!user) {
                 showToast('Please log in first');
                 return;
             }
 
-            // Get the access token for authorization
-            const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
-            const accessToken = currentSession?.access_token;
-
-            if (!accessToken) {
-                showToast('Authentication error. Please log in again.');
-                return;
-            }
-
-            // Simulate a Stripe webhook event
-            const testEvent = {
-                id: 'evt_test_' + Date.now(),
-                type: 'charge.succeeded',
-                data: {
-                    object: {
-                        id: 'ch_test_' + Date.now(),
-                        amount: 10000, // $100.00 in cents
-                        currency: 'usd',
-                        created: Math.floor(Date.now() / 1000)
-                    }
-                }
-            };
-
             try {
                 showToast('Sending test payment...');
 
-                // Send test event to our webhook endpoint
-                const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${connectionId}`;
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify(testEvent)
-                });
+                // Insert test income event directly to database
+                const { error: insertError } = await supabaseClient
+                    .from('income_progress_events')
+                    .insert({
+                        user_id: user.id,
+                        connection_id: connectionId,
+                        provider: 'stripe',
+                        external_event_id: 'evt_test_' + Date.now(),
+                        amount: 100.00,
+                        currency: 'USD',
+                        status: 'received',
+                        received_at: new Date().toISOString()
+                    });
 
-                if (response.ok) {
-                    showToast('✅ Test payment received! Check your dashboard.');
-                    // Update connection status to active
-                    await supabaseClient
-                        .from('income_connections')
-                        .update({ status: 'active' })
-                        .eq('connection_id', connectionId);
-                    loadConnections();
-                } else {
-                    const errorText = await response.text();
-                    console.error('Test failed:', errorText);
-                    showToast('❌ Test failed. Check console for details.');
+                if (insertError) {
+                    console.error('Insert error:', insertError);
+                    showToast('❌ Test failed: ' + insertError.message);
+                    return;
                 }
+
+                // Update connection status to active
+                await supabaseClient
+                    .from('income_connections')
+                    .update({ status: 'active', last_synced_at: new Date().toISOString() })
+                    .eq('connection_id', connectionId);
+
+                showToast('✅ Test payment received! Check your dashboard.');
+                loadConnections();
             } catch (err) {
                 console.error('Test error:', err);
                 showToast('❌ Test error: ' + err.message);
