@@ -545,11 +545,28 @@
         };
         
         // Load connections on page load
-        document.addEventListener('DOMContentLoaded', loadConnections);
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, checking supabase...');
+            if (typeof supabaseClient === 'undefined') {
+                console.error('Supabase client not loaded');
+                document.getElementById('connectionsList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Error loading page. Please refresh.</p>
+                    </div>
+                `;
+                return;
+            }
+            loadConnections();
+        });
         
         async function loadConnections() {
+            console.log('Loading connections...');
             const { user } = await getCurrentUser();
-            if (!user) return;
+            if (!user) {
+                console.log('No user found');
+                return;
+            }
             
             const { data, error } = await supabaseClient
                 .from('income_connections')
