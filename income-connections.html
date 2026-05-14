@@ -522,6 +522,65 @@
         </div>
     </div>
     
+    <!-- Stripe Instructions Modal -->
+    <div class="modal-overlay" id="stripeInstructionsModal">
+        <div class="modal-box" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-title">🎉 Stripe Connection Created!</div>
+            <div class="modal-subtitle">Complete the setup by adding a webhook in Stripe</div>
+            
+            <div style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%); border: 1px solid rgba(169, 76, 240, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0;">
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 8px;">Your Webhook URL (click to copy):</div>
+                <code id="stripeWebhookUrl" onclick="copyWebhookUrl()" style="display: block; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.85rem; word-break: break-all; cursor: pointer; border: 1px dashed rgba(169, 76, 240, 0.5);"></code>
+            </div>
+            
+            <div style="margin: 24px 0;">
+                <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--gold);">Step-by-Step Instructions:</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: var(--purple);">Step 1: In DestinyLens</div>
+                    <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.6;">
+                        <li>Go to <strong>Income Connections</strong></li>
+                        <li>Click <strong>"Connect Stripe"</strong></li>
+                        <li>Enter a label (e.g., "My Business")</li>
+                        <li>Click <strong>Connect</strong></li>
+                        <li>Copy the webhook URL above ☝️</li>
+                    </ol>
+                </div>
+                
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 8px; color: var(--purple);">Step 2: In Stripe Dashboard</div>
+                    <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.6;">
+                        <li>Go to <a href="https://dashboard.stripe.com" target="_blank" style="color: var(--gold);">dashboard.stripe.com</a></li>
+                        <li>Click <strong>Developers</strong> → <strong>Webhooks</strong></li>
+                        <li>Click <strong>"Add destination"</strong> (top right)</li>
+                        <li>Select event type: <strong>Checkout</strong> → <strong>Checkout session completed</strong></li>
+                        <li>Click <strong>Next</strong></li>
+                        <li>Select <strong>"Webhook Endpoint"</strong></li>
+                        <li>Click <strong>Continue</strong></li>
+                        <li>Configure Destination:
+                            <ul style="margin-top: 8px; padding-left: 20px;">
+                                <li>Name: (e.g., "DestinyLens")</li>
+                                <li>Paste your <strong>webhook URL</strong></li>
+                            </ul>
+                        </li>
+                        <li>Click <strong>Create destination</strong></li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 16px; text-align: center;">
+                <div style="font-size: 1.2rem; margin-bottom: 8px;">✨</div>
+                <div style="font-weight: 600; color: #22c55e;">Done!</div>
+                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 4px;">Your Stripe payments will now automatically appear in DestinyLens</div>
+            </div>
+            
+            <div class="modal-actions" style="margin-top: 24px;">
+                <button class="btn btn-secondary" onclick="closeModal('stripeInstructionsModal')">Close</button>
+                <button class="btn btn-primary" onclick="copyWebhookUrl()">📋 Copy Webhook URL</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Manual Income Modal -->
     <div class="modal-overlay" id="manualModal">
         <div class="modal-box">
@@ -719,31 +778,22 @@
         function showStripeWebhookInstructions(connectionId) {
             const webhookUrl = `${window.location.origin}/api/stripe-webhook?connection_id=${connectionId}`;
             
-            const instructions = `
-Stripe Connection Created!
-
-To complete the setup, you need to create a webhook in your Stripe Dashboard:
-
-1. Go to your Stripe Dashboard
-2. Click "Developers" → "Webhooks"
-3. Click "Add endpoint"
-4. Paste this URL:
-   ${webhookUrl}
-5. Select these events:
-   - charge.succeeded
-   - payment_intent.succeeded
-6. Click "Add endpoint"
-
-Once created, your Stripe payments will automatically appear in your DestinyLens dashboard!
-
-Your webhook URL has been copied to your clipboard.
-            `;
+            // Store for the modal
+            window.currentWebhookUrl = webhookUrl;
+            window.currentConnectionId = connectionId;
             
-            // Copy to clipboard
-            navigator.clipboard.writeText(webhookUrl).then(() => {
-                alert(instructions);
-                loadConnections();
-            });
+            // Show the instructions modal
+            document.getElementById('stripeWebhookUrl').textContent = webhookUrl;
+            openModal('stripeInstructionsModal');
+            loadConnections();
+        }
+        
+        function copyWebhookUrl() {
+            if (window.currentWebhookUrl) {
+                navigator.clipboard.writeText(window.currentWebhookUrl).then(() => {
+                    showToast('Webhook URL copied to clipboard!');
+                });
+            }
         }
         
         async function disconnectConnection(connectionId) {
