@@ -97,11 +97,22 @@ serve(async (req) => {
 
     console.log('Income event saved:', event.id, amount, currency)
 
-    // Update last_synced_at
+    // Update connection status and last_synced_at
+    // pending -> connected (first webhook received)
+    // connected -> active (first payment processed)
+    const newStatus = connection.status === 'pending' ? 'connected' : 
+                      connection.status === 'connected' ? 'active' : 
+                      connection.status;
+    
     await supabaseClient
       .from('income_connections')
-      .update({ last_synced_at: new Date().toISOString() })
+      .update({ 
+        status: newStatus,
+        last_synced_at: new Date().toISOString() 
+      })
       .eq('connection_id', connectionId)
+
+    console.log('Connection status updated to:', newStatus)
 
     return new Response('Success', { status: 200 })
 

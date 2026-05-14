@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DestinyLens - Webhook Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 40px 20px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 2rem; margin-bottom: 10px; text-align: center; }
+    .subtitle { text-align: center; color: #a0a0a0; margin-bottom: 40px; }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 500; }
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 1rem;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+    .btn {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(99,102,241,0.4);
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .result.success { background: rgba(34,197,94,0.1); border: 1px solid #22c55e; }
+    .result.error { background: rgba(239,68,68,0.1); border: 1px solid #ef4444; }
+    .result.pending { background: rgba(59,130,246,0.1); border: 1px solid #3b82f6; }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-badge.success { background: #22c55e; color: #000; }
+    .status-badge.error { background: #ef4444; color: #fff; }
+    .info-box {
+      background: rgba(59,130,246,0.1);
+      border: 1px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .info-box h3 { margin-bottom: 8px; color: #60a5fa; }
+    .info-box p { color: #a0a0a0; font-size: 0.9rem; }
+    .test-options { display: grid; gap: 12px; }
+    .test-option {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .test-option:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: #6366f1;
+    }
+    .test-option.selected {
+      background: rgba(99,102,241,0.2);
+      border-color: #6366f1;
+    }
+    .test-option h4 { margin-bottom: 4px; }
+    .test-option p { font-size: 0.85rem; color: #a0a0a0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔔 Webhook Connection Test</h1>
+    <p class="subtitle">Verify your Stripe webhook is working without waiting for real payments</p>
+
+    <div class="info-box">
+      <h3>ℹ️ How This Works</h3>
+      <p>This tool sends a simulated Stripe webhook event to your endpoint. It creates a fake payment event that your webhook handler will process and save to your database. No real Stripe secret key needed.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom: 20px;">1. Select Test Type</h3>
+      <div class="test-options">
+        <div class="test-option selected" onclick="selectTest('direct')">
+          <h4>🎯 Direct Webhook Test</h4>
+          <p>Test your Supabase Edge Function directly with a simulated Stripe event</p>
+        </div>
+        <div class="test-option" onclick="selectTest('dashboard')">
+          <h4>📊 Stripe Dashboard Test</h4>
+          <p>Get instructions for testing via Stripe Dashboard (requires login)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="direct-test">
+      <h3 style="margin-bottom: 20px;">2. Configure Test</h3>
+      
+      <div class="form-group">
+        <label>Webhook URL</label>
+        <input type="text" id="webhookUrl" placeholder="https://your-project.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=...">
+      </div>
+
+      <div class="form-group">
+        <label>Connection ID (from your income_connections table)</label>
+        <input type="text" id="connectionId" placeholder="conn_abc123...">
+      </div>
+
+      <div class="form-group">
+        <label>Test Amount ($)</label>
+        <input type="number" id="testAmount" value="47.00" step="0.01">
+      </div>
+
+      <button class="btn" onclick="runTest()" id="testBtn">🚀 Send Test Webhook</button>
+      
+      <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="card" id="dashboard-test" style="display: none;">
+      <h3 style="margin-bottom: 20px;">Stripe Dashboard Test Instructions</h3>
+      <ol style="line-height: 2; color: #d0d0d0;">
+        <li>Go to <a href="https://dashboard.stripe.com/test/webhooks" target="_blank" style="color: #6366f1;">Stripe Dashboard → Developers → Webhooks</a></li>
+        <li>Find your webhook endpoint for DestinyLens</li>
+        <li>Click "Send test event"</li>
+        <li>Select <code>charge.succeeded</code> or <code>payment_intent.succeeded</code></li>
+        <li>Click "Send test event"</li>
+        <li>Check your Supabase <code>income_progress_events</code> table for the test entry</li>
+      </ol>
+      <p style="margin-top: 20px; color: #a0a0a0;">This requires your webhook to be configured in Stripe Dashboard with your actual endpoint URL.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom: 15px;">3. Verify Results</h3>
+      <p style="color: #a0a0a0; margin-bottom: 15px;">After running the test, check your Supabase database:</p>
+      <code style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; display: block; color: #22c55e;">
+        SELECT * FROM income_progress_events<br>
+        WHERE provider = 'stripe'<br>
+        ORDER BY received_at DESC<br>
+        LIMIT 5;
+      </code>
+    </div>
+  </div>
+
+  <script>
+    let selectedTest = 'direct';
+
+    function selectTest(type) {
+      selectedTest = type;
+      document.querySelectorAll('.test-option').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+      
+      document.getElementById('direct-test').style.display = type === 'direct' ? 'block' : 'none';
+      document.getElementById('dashboard-test').style.display = type === 'dashboard' ? 'block' : 'none';
+    }
+
+    async function runTest() {
+      const btn = document.getElementById('testBtn');
+      const result = document.getElementById('result');
+      const webhookUrl = document.getElementById('webhookUrl').value;
+      const connectionId = document.getElementById('connectionId').value;
+      const amount = parseFloat(document.getElementById('testAmount').value);
+
+      if (!webhookUrl) {
+        showResult('error', 'Please enter your webhook URL');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      showResult('pending', 'Sending simulated webhook event...');
+
+      // Build the simulated Stripe event
+      const mockEvent = {
+        id: 'evt_test_' + Date.now(),
+        object: 'event',
+        api_version: '2023-10-16',
+        created: Math.floor(Date.now() / 1000),
+        type: 'charge.succeeded',
+        data: {
+          object: {
+            id: 'ch_test_' + Date.now(),
+            object: 'charge',
+            amount: Math.round(amount * 100),
+            currency: 'usd',
+            created: Math.floor(Date.now() / 1000),
+            status: 'succeeded',
+            description: 'DestinyLens Test Payment'
+          }
+        }
+      };
+
+      // Build URL with connection_id
+      const url = webhookUrl.includes('?') 
+        ? webhookUrl + '&connection_id=' + encodeURIComponent(connectionId)
+        : webhookUrl + '?connection_id=' + encodeURIComponent(connectionId);
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'stripe-signature': 't=' + Math.floor(Date.now()/1000) + ',v1=test_signature'
+          },
+          body: JSON.stringify(mockEvent)
+        });
+
+        const responseText = await response.text();
+        
+        if (response.ok) {
+          showResult('success', `✅ SUCCESS!\n\nStatus: ${response.status}\nResponse: ${responseText}\n\nTest event ID: ${mockEvent.id}\nAmount: $${amount.toFixed(2)}\n\n✅ Check your Supabase income_progress_events table for this entry!`);
+        } else {
+          showResult('error', `❌ FAILED\n\nStatus: ${response.status}\nResponse: ${responseText}\n\nEvent ID: ${mockEvent.id}`);
+        }
+      } catch (error) {
+        showResult('error', `❌ ERROR\n\n${error.message}\n\nMake sure your webhook URL is correct and accessible.`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 Send Test Webhook';
+      }
+    }
+
+    function showResult(type, message) {
+      const result = document.getElementById('result');
+      result.style.display = 'block';
+      result.className = 'result ' + type;
+      result.textContent = message;
+    }
+  </script>
+</body>
+</html>
