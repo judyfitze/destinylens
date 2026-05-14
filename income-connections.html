@@ -607,11 +607,27 @@
         }
         
         function startConnection(provider) {
-            currentProvider = provider;
-            document.getElementById('modalTitle').textContent = `Connect ${providerNames[provider]}`;
-            document.getElementById('modalSubtitle').textContent = `Enter a label to identify this ${providerNames[provider]} connection`;
-            document.getElementById('connectionLabel').value = '';
-            openModal('connectionModal');
+            try {
+                currentProvider = provider;
+                const modal = document.getElementById('connectionModal');
+                const title = document.getElementById('modalTitle');
+                const subtitle = document.getElementById('modalSubtitle');
+                const input = document.getElementById('connectionLabel');
+                
+                if (!modal || !title || !subtitle || !input) {
+                    console.error('Modal elements not found');
+                    alert('Error: Page not fully loaded. Please refresh.');
+                    return;
+                }
+                
+                title.textContent = `Connect ${providerNames[provider]}`;
+                subtitle.textContent = `Enter a label to identify this ${providerNames[provider]} connection`;
+                input.value = '';
+                modal.classList.add('active');
+            } catch (err) {
+                console.error('Error opening modal:', err);
+                alert('Error opening connection form. Please try again.');
+            }
         }
         
         async function confirmConnection() {
@@ -794,11 +810,13 @@ Your webhook URL has been copied to your clipboard.
         }
         
         function openModal(id) {
-            document.getElementById(id).classList.add('active');
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
         }
         
         function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active');
         }
         
         function toggleNavMenu() {
