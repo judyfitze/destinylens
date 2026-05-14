@@ -78,7 +78,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const protectedPaths = [
         { path: '/dashboard.html', entitlement: 'dream_life_dashboard' },
         { path: '/members.html', entitlement: null }, // Members area is always accessible if logged in
-        { path: '/calculator.html', entitlement: 'dream_life_calculator' }
+        { path: '/calculator.html', entitlement: 'dream_life_calculator' },
+        { path: '/income-connections.html', entitlement: null },
+        { path: '/settings.html', entitlement: null }
     ];
     
     const currentPath = window.location.pathname;
