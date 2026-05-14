@@ -805,9 +805,18 @@
         }
 
         async function testStripeConnection(connectionId) {
-            const { user } = await getCurrentUser();
+            const { user, session } = await getCurrentUser();
             if (!user) {
                 showToast('Please log in first');
+                return;
+            }
+
+            // Get the access token for authorization
+            const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
+            const accessToken = currentSession?.access_token;
+
+            if (!accessToken) {
+                showToast('Authentication error. Please log in again.');
                 return;
             }
 
@@ -833,7 +842,8 @@
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
                     },
                     body: JSON.stringify(testEvent)
                 });
