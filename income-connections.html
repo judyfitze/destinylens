@@ -688,6 +688,7 @@
             
             container.innerHTML = connections.map(conn => {
                 const isPendingStripe = conn.provider === 'stripe' && conn.status === 'pending';
+                const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${conn.connection_id}`;
                 
                 return `
                 <div class="connection-item">
@@ -775,7 +776,7 @@
         }
         
         function showStripeWebhookInstructions(connectionId) {
-            const webhookUrl = `${window.location.origin}/api/stripe-webhook?connection_id=${connectionId}`;
+            const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${connectionId}`;
             
             // Store for the modal
             window.currentWebhookUrl = webhookUrl;
@@ -828,7 +829,8 @@
                 showToast('Sending test payment...');
 
                 // Send test event to our webhook endpoint
-                const response = await fetch(`${window.location.origin}/api/stripe-webhook?connection_id=${connectionId}`, {
+                const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${connectionId}`;
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
