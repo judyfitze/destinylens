@@ -687,9 +687,7 @@
             }
             
             container.innerHTML = connections.map(conn => {
-                const webhookUrl = conn.provider === 'stripe' && conn.status === 'pending' 
-                    ? `${window.location.origin}/api/stripe-webhook?connection_id=${conn.connection_id}`
-                    : null;
+                const isPendingStripe = conn.provider === 'stripe' && conn.status === 'pending';
                 
                 return `
                 <div class="connection-item">
@@ -697,13 +695,14 @@
                         <div class="connection-icon">${providerIcons[conn.provider] || '💰'}</div>
                         <div class="connection-details">
                             <h4>${conn.connection_label || providerNames[conn.provider]}</h4>
-                            <p>${providerNames[conn.provider]} • Connected ${new Date(conn.created_at).toLocaleDateString()}</p>
-                            ${webhookUrl ? `<p style="font-size: 0.75rem; margin-top: 4px;">Webhook: <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; cursor: pointer;" onclick="copyToClipboard('${webhookUrl}', 'Webhook URL copied!')">${webhookUrl}</code> (click to copy)</p>` : ''}
+                            <p>${providerNames[conn.provider]} • Added ${new Date(conn.created_at).toLocaleDateString()}</p>
+                            ${isPendingStripe ? `<p style="font-size: 0.75rem; margin-top: 4px; color: var(--gold);">⚠️ Setup required - click "View Instructions"</p>` : ''}
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span class="status-badge status-${conn.status}">${conn.status}</span>
                         <div class="connection-actions">
+                            ${isPendingStripe ? `<button class="btn-small" style="background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff;" onclick="showStripeWebhookInstructions('${conn.connection_id}')">📖 View Instructions</button>` : ''}
                             <button class="btn-small" onclick="editConnection('${conn.connection_id}')">Rename</button>
                             <button class="btn-small btn-disconnect" onclick="disconnectConnection('${conn.connection_id}')">Disconnect</button>
                         </div>
@@ -784,8 +783,24 @@
             
             // Show the instructions modal
             document.getElementById('stripeWebhookUrl').textContent = webhookUrl;
+            document.getElementById('stripeWebhookUrl').setAttribute('data-url', webhookUrl);
             openModal('stripeInstructionsModal');
+            
+            // Auto-copy to clipboard
+            navigator.clipboard.writeText(webhookUrl).then(() => {
+                showToast('Webhook URL copied!');
+            });
+            
             loadConnections();
+        }
+        
+        function copyWebhookUrl() {
+            const url = document.getElementById('stripeWebhookUrl').getAttribute('data-url');
+            if (url) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('Webhook URL copied!');
+                });
+            }
         }
         
         function copyWebhookUrl() {
