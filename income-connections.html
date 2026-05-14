@@ -702,7 +702,7 @@
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span class="status-badge status-${conn.status}">${conn.status}</span>
                         <div class="connection-actions">
-                            ${isPendingStripe ? `<button class="btn-small" style="background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff;" onclick="showStripeWebhookInstructions('${conn.connection_id}')">📖 View Instructions</button>` : ''}
+                            ${isPendingStripe ? `<button class="btn-small" style="background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff;" onclick="showStripeWebhookInstructions('${conn.connection_id}')">📖 View Instructions</button><button class="btn-small" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;" onclick="testStripeConnection('${conn.connection_id}')">🧪 Test</button>` : ''}
                             <button class="btn-small" onclick="editConnection('${conn.connection_id}')">Rename</button>
                             <button class="btn-small btn-disconnect" onclick="disconnectConnection('${conn.connection_id}')">Disconnect</button>
                         </div>
@@ -800,6 +800,59 @@
                 navigator.clipboard.writeText(url).then(() => {
                     showToast('Webhook URL copied!');
                 });
+            }
+        }
+
+        async function testStripeConnection(connectionId) {
+            const { user } = await getCurrentUser();
+            if (!user) {
+                showToast('Please log in first');
+                return;
+            }
+
+            // Simulate a Stripe webhook event
+            const testEvent = {
+                id: 'evt_test_' + Date.now(),
+                type: 'charge.succeeded',
+                data: {
+                    object: {
+                        id: 'ch_test_' + Date.now(),
+                        amount: 10000, // $100.00 in cents
+                        currency: 'usd',
+                        created: Math.floor(Date.now() / 1000)
+                    }
+                }
+            };
+
+            try {
+                showToast('Sending test payment...');
+
+                // Send test event to our webhook endpoint
+                const response = await fetch(`${window.location.origin}/api/stripe-webhook?connection_id=${connectionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'stripe-signature': 'test_signature'
+                    },
+                    body: JSON.stringify(testEvent)
+                });
+
+                if (response.ok) {
+                    showToast('✅ Test payment received! Check your dashboard.');
+                    // Update connection status to active
+                    await supabaseClient
+                        .from('income_connections')
+                        .update({ status: 'active' })
+                        .eq('connection_id', connectionId);
+                    loadConnections();
+                } else {
+                    const errorText = await response.text();
+                    console.error('Test failed:', errorText);
+                    showToast('❌ Test failed. Check console for details.');
+                }
+            } catch (err) {
+                console.error('Test error:', err);
+                showToast('❌ Test error: ' + err.message);
             }
         }
         
