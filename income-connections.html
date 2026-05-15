@@ -793,7 +793,7 @@
                         <span class="status-badge status-${statusClass}">${statusText}</span>
                         <div class="connection-actions">
                             ${(isStripe || isPayPal || isSquare) ? `<button class="btn-small" style="background: rgba(169, 76, 240, 0.2); color: var(--purple);" onclick="reviewWebhookInstructions('${conn.connection_id}', '${conn.connection_label || providerNames[conn.provider]}', '${conn.provider}')">👁️ Review</button>` : ''}
-                            ${(isConnectedStripe || isActivePayPal || isActiveSquare) ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}', '${conn.provider}')">🧪 Test</button>` : ''}
+                            ${isConnectedStripe ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}', '${conn.provider}')">🧪 Test</button>` : ''}
                             <button class="btn-small" onclick="editConnection('${conn.connection_id}')">✏️</button>
                             <button class="btn-small btn-delete" onclick="deleteConnection('${conn.connection_id}')">🗑️</button>
                         </div>
