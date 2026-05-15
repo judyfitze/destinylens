@@ -493,11 +493,10 @@
                     <div class="connect-name">Stripe</div>
                     <div class="connect-desc">Connect Stripe account</div>
                 </div>
-                <div class="connect-card" style="opacity: 0.6; cursor: not-allowed; position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; background: var(--purple); color: #fff; font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700;">COMING SOON</div>
+                <div class="connect-card" onclick="startConnection('paypal')">
                     <div class="connect-icon">🅿️</div>
                     <div class="connect-name">PayPal</div>
-                    <div class="connect-desc">One-click connection coming soon</div>
+                    <div class="connect-desc">Connect PayPal account</div>
                 </div>
                 <div class="connect-card" onclick="startConnection('square')">
                     <div class="connect-icon">🔲</div>
@@ -692,7 +691,7 @@
         const providerIcons = {
             stripe: '💳',
             paypal: '🅿️',
-            square: '🔲',
+            square: '⬜',
             shopify_payments: '🛒',
             authorize_net: '🔐',
             manual: '✏️'
@@ -770,8 +769,13 @@
                 const isPayPal = conn.provider === 'paypal';
                 const isPendingPayPal = conn.provider === 'paypal' && conn.status === 'pending';
                 const isActivePayPal = conn.provider === 'paypal' && conn.status === 'active';
+                const isSquare = conn.provider === 'square';
+                const isPendingSquare = conn.provider === 'square' && conn.status === 'pending';
+                const isActiveSquare = conn.provider === 'square' && conn.status === 'active';
                 const webhookUrl = isPayPal
                     ? `https://destinylens.io/api/webhook/paypal?connection_id=${conn.connection_id}`
+                    : isSquare
+                    ? `https://destinylens.io/api/webhook/square?connection_id=${conn.connection_id}`
                     : `https://destinylens.io/api/webhook/stripe?connection_id=${conn.connection_id}`;
 
                 // Build status badge text
@@ -795,8 +799,8 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="status-badge status-${statusClass}">${statusText}</span>
                         <div class="connection-actions">
-                            ${(isStripe || isPayPal) ? `<button class="btn-small" style="background: rgba(169, 76, 240, 0.2); color: var(--purple);" onclick="reviewWebhookInstructions('${conn.connection_id}', '${conn.connection_label || providerNames[conn.provider]}', '${conn.provider}')">👁️ Review</button>` : ''}
-                            ${(isConnectedStripe || isActivePayPal) ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}', '${conn.provider}')">🧪 Test</button>` : ''}
+                            ${(isStripe || isPayPal || isSquare) ? `<button class="btn-small" style="background: rgba(169, 76, 240, 0.2); color: var(--purple);" onclick="reviewWebhookInstructions('${conn.connection_id}', '${conn.connection_label || providerNames[conn.provider]}', '${conn.provider}')">👁️ Review</button>` : ''}
+                            ${(isConnectedStripe || isActivePayPal || isActiveSquare) ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}', '${conn.provider}')">🧪 Test</button>` : ''}
                             <button class="btn-small" onclick="editConnection('${conn.connection_id}')">✏️</button>
                             <button class="btn-small btn-delete" onclick="deleteConnection('${conn.connection_id}')">🗑️</button>
                         </div>
@@ -859,11 +863,13 @@
 
             closeModal('connectionModal');
 
-            // For Stripe or PayPal, initiate OAuth flow
+            // For Stripe, PayPal, or Square, initiate OAuth flow
             if (currentProvider === 'stripe') {
                 initiateStripeOAuth(connection.connection_id, user.id);
             } else if (currentProvider === 'paypal') {
                 initiatePayPalOAuth(connection.connection_id, user.id);
+            } else if (currentProvider === 'square') {
+                initiateSquareOAuth(connection.connection_id, user.id);
             } else {
                 alert(`${providerNames[currentProvider]} connection created! Integration coming soon. For now, you can add manual income entries.`);
                 loadConnections();
@@ -944,8 +950,65 @@
                 const providerName = providerNames[connection.provider] || 'Account';
                 showToast(`✅ ${providerName} connected!`);
                 loadConnections();
+                return; // Stop polling once active
             } else {
                 pollConnectionStatus(connectionId, attempts + 1);
+            }
+        }
+
+        // Initiate Square OAuth flow
+        async function initiateSquareOAuth(connectionId, userId) {
+            showToast('Connecting to Square...');
+
+            try {
+                const response = await fetch('/api/square-connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        connection_id: connectionId,
+                        user_id: userId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to connect to Square');
+                }
+
+                // Open Square OAuth in popup
+                const popup = window.open(
+                    data.url,
+                    'squareOAuth',
+                    'width=600,height=700,scrollbars=yes'
+                );
+
+                if (!popup) {
+                    // Popup blocked - fallback to redirect
+                    window.location.href = data.url;
+                    return;
+                }
+
+                // Listen for OAuth completion message
+                window.addEventListener('message', function handleOAuthMessage(event) {
+                    if (event.data && event.data.type === 'square-connected') {
+                        window.removeEventListener('message', handleOAuthMessage);
+
+                        if (event.data.success) {
+                            showToast('✅ Square connected successfully!');
+                            loadConnections();
+                        } else {
+                            showToast('❌ Connection failed: ' + (event.data.error || 'Unknown error'));
+                        }
+                    }
+                });
+
+                // Also poll for connection status change (backup)
+                pollConnectionStatus(connectionId);
+
+            } catch (error) {
+                console.error('Square OAuth error:', error);
+                showToast('❌ ' + error.message);
             }
         }
 
@@ -1190,6 +1253,19 @@
                     'Paste your webhook URL above',
                     'Select event: <strong>Payment capture completed</strong>',
                     'Save and copy the Webhook ID'
+                ]
+            },
+            square: {
+                dashboardName: 'Square Developer Dashboard',
+                dashboardUrl: 'https://developer.squareup.com/apps',
+                steps: [
+                    'Go to <a href="https://developer.squareup.com/apps" target="_blank" style="color: var(--gold);">developer.squareup.com/apps</a>',
+                    'Select your application',
+                    'Go to <strong>Webhooks</strong> in the left sidebar',
+                    'Click <strong>"Add Webhook"</strong>',
+                    'Paste your webhook URL above',
+                    'Select events: <strong>payment.created</strong> and <strong>order.created</strong>',
+                    'Click <strong>Save</strong>'
                 ]
             }
         };
