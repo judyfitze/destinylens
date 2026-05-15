@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
-    <title>Income Connections — DestinyLens</title>
+    <title>Income Connections - DestinyLens</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/auth-guard.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --purple: #A94CF0; --gold: #F6C26B; }
-        
+
         body {
             background: #0a0a12;
             color: #fff;
@@ -20,7 +20,7 @@
             line-height: 1.6;
             min-height: 100vh;
         }
-        
+
         nav {
             padding: 20px 40px;
             display: flex;
@@ -29,14 +29,14 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
             position: relative;
         }
-        
+
         .logo-mark {
             display: flex;
             align-items: center;
             gap: 12px;
             text-decoration: none;
         }
-        
+
         .logo-icon {
             width: 44px; height: 44px;
             background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
@@ -44,11 +44,11 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.1rem; font-weight: 900;
         }
-        
+
         .logo-text { display: flex; flex-direction: column; }
         .logo-top { font-size: 1rem; font-weight: 800; text-transform: uppercase; }
         .logo-bottom { font-size: 0.65rem; color: var(--gold); text-transform: uppercase; }
-        
+
         /* Hamburger Menu */
         .hamburger {
             display: flex;
@@ -101,24 +101,24 @@
             border-radius: 8px;
         }
         .nav-menu a:hover, .nav-menu button:hover { background: rgba(255,255,255,0.1); }
-        
+
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 40px;
         }
-        
+
         h1 {
             font-size: 2rem;
             font-weight: 800;
             margin-bottom: 8px;
         }
-        
+
         .subtitle {
             color: rgba(255,255,255,0.6);
             margin-bottom: 40px;
         }
-        
+
         .section {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.08);
@@ -126,7 +126,7 @@
             padding: 32px;
             margin-bottom: 24px;
         }
-        
+
         .section-title {
             font-size: 1.2rem;
             font-weight: 700;
@@ -135,13 +135,13 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .connect-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
         }
-        
+
         .connect-card {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
@@ -151,35 +151,35 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .connect-card:hover {
             border-color: var(--purple);
             background: rgba(169, 76, 240, 0.1);
             transform: translateY(-2px);
         }
-        
+
         .connect-icon {
             font-size: 2.5rem;
             margin-bottom: 12px;
         }
-        
+
         .connect-name {
             font-weight: 700;
             font-size: 1rem;
         }
-        
+
         .connect-desc {
             font-size: 0.8rem;
             color: rgba(255,255,255,0.5);
             margin-top: 4px;
         }
-        
+
         .connections-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
-        
+
         .connection-item {
             display: flex;
             justify-content: space-between;
@@ -189,13 +189,13 @@
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 10px;
         }
-        
+
         .connection-info {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        
+
         .connection-icon {
             width: 36px;
             height: 36px;
@@ -206,18 +206,18 @@
             justify-content: center;
             font-size: 1.2rem;
         }
-        
+
         .connection-details h4 {
             font-weight: 700;
             margin-bottom: 2px;
             font-size: 0.95rem;
         }
-        
+
         .connection-details p {
             font-size: 0.75rem;
             color: rgba(255,255,255,0.5);
         }
-        
+
         .status-badge {
             padding: 4px 10px;
             border-radius: 20px;
@@ -225,32 +225,32 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-        
+
         .status-active {
             background: rgba(34, 197, 94, 0.2);
             color: #22c55e;
         }
-        
+
         .status-pending {
             background: rgba(246, 194, 107, 0.2);
             color: var(--gold);
         }
-        
+
         .status-connected {
             background: rgba(59, 130, 246, 0.2);
             color: #3b82f6;
         }
-        
+
         .status-disconnected {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
         }
-        
+
         .connection-actions {
             display: flex;
             gap: 6px;
         }
-        
+
         .btn-small {
             padding: 6px 12px;
             border-radius: 6px;
@@ -261,41 +261,41 @@
             background: rgba(255,255,255,0.1);
             color: #fff;
         }
-        
+
         .btn-small:hover {
             background: rgba(255,255,255,0.2);
         }
-        
+
         .btn-disconnect {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
         }
-        
+
         .btn-disconnect:hover {
             background: rgba(239, 68, 68, 0.3);
         }
-        
+
         .btn-delete {
             background: rgba(100, 100, 100, 0.2);
             color: #888;
         }
-        
+
         .btn-delete:hover {
             background: rgba(239, 68, 68, 0.3);
             color: #ef4444;
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 40px;
             color: rgba(255,255,255,0.5);
         }
-        
+
         .empty-state-icon {
             font-size: 3rem;
             margin-bottom: 16px;
         }
-        
+
         /* Modal */
         .modal-overlay {
             position: fixed;
@@ -306,9 +306,9 @@
             justify-content: center;
             z-index: 10000;
         }
-        
+
         .modal-overlay.active { display: flex; }
-        
+
         .modal-box {
             background: #0a0a12;
             border: 1px solid rgba(255,255,255,0.1);
@@ -317,23 +317,23 @@
             width: 90%;
             max-width: 500px;
         }
-        
+
         .modal-title {
             font-size: 1.3rem;
             font-weight: 700;
             margin-bottom: 8px;
         }
-        
+
         .modal-subtitle {
             color: rgba(255,255,255,0.6);
             margin-bottom: 24px;
             font-size: 0.9rem;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             font-size: 0.85rem;
@@ -341,7 +341,7 @@
             margin-bottom: 8px;
             color: rgba(255,255,255,0.7);
         }
-        
+
         .form-group input {
             width: 100%;
             padding: 12px 16px;
@@ -351,18 +351,18 @@
             color: #fff;
             font-size: 1rem;
         }
-        
+
         .form-group input:focus {
             outline: none;
             border-color: var(--purple);
         }
-        
+
         .modal-actions {
             display: flex;
             gap: 12px;
             margin-top: 24px;
         }
-        
+
         .btn {
             flex: 1;
             padding: 14px;
@@ -372,27 +372,27 @@
             cursor: pointer;
             border: none;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
             color: #fff;
         }
-        
+
         .btn-secondary {
             background: rgba(255,255,255,0.1);
             color: #fff;
         }
-        
+
         .manual-income-form {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
-        
+
         .amount-input {
             position: relative;
         }
-        
+
         .amount-input::before {
             content: '$';
             position: absolute;
@@ -402,11 +402,11 @@
             color: rgba(255,255,255,0.5);
             font-size: 1rem;
         }
-        
+
         .amount-input input {
             padding-left: 36px;
         }
-        
+
         /* Toast Notification */
         .toast {
             position: fixed;
@@ -465,11 +465,11 @@
             <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
         </div>
     </nav>
-    
+
     <div class="container">
         <h1>Income Connections</h1>
         <p class="subtitle">Connect your payment sources to automatically track income toward your Dream Life goals</p>
-        
+
         <!-- Connected Sources -->
         <div class="section">
             <div class="section-title">
@@ -483,7 +483,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Add New Connection -->
         <div class="section">
             <div class="section-title">➕ Connect a Payment Source</div>
@@ -521,7 +521,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Connection Modal -->
     <div class="modal-overlay" id="connectionModal">
         <div class="modal-box">
@@ -537,21 +537,21 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Stripe Instructions Modal -->
     <div class="modal-overlay" id="stripeInstructionsModal">
         <div class="modal-box" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-title">🎉 Stripe Connection Created!</div>
             <div class="modal-subtitle">Complete the setup by adding a webhook in Stripe</div>
-            
+
             <div style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%); border: 1px solid rgba(169, 76, 240, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 8px;">Your Webhook URL (click to copy):</div>
                 <code id="stripeWebhookUrl" onclick="copyWebhookUrl()" style="display: block; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; font-size: 0.85rem; word-break: break-all; cursor: pointer; border: 1px dashed rgba(169, 76, 240, 0.5);"></code>
             </div>
-            
+
             <div style="margin: 24px 0;">
                 <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--gold);">Step-by-Step Instructions:</h3>
-                
+
                 <div style="margin-bottom: 20px;">
                     <div style="font-weight: 600; margin-bottom: 8px; color: var(--purple);">Step 1: In DestinyLens</div>
                     <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.6;">
@@ -562,7 +562,7 @@
                         <li>Copy the webhook URL above ☝️</li>
                     </ol>
                 </div>
-                
+
                 <div>
                     <div style="font-weight: 600; margin-bottom: 8px; color: var(--purple);">Step 2: In Stripe Dashboard</div>
                     <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.6;">
@@ -583,65 +583,65 @@
                     </ol>
                 </div>
             </div>
-            
+
             <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 16px; text-align: center;">
                 <div style="font-size: 1.2rem; margin-bottom: 8px;">✨</div>
                 <div style="font-weight: 600; color: #22c55e;">Done!</div>
                 <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 4px;">Your Stripe payments will now automatically appear in DestinyLens</div>
             </div>
-            
+
             <div class="modal-actions" style="margin-top: 24px;">
                 <button class="btn btn-secondary" onclick="closeModal('stripeInstructionsModal')">Close</button>
                 <button class="btn btn-primary" onclick="copyWebhookUrl()">📋 Copy Webhook URL</button>
             </div>
         </div>
     </div>
-    
+
     <!-- Review Webhook Modal -->
     <div class="modal-overlay" id="reviewWebhookModal">
         <div class="modal-box" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-title">👁️ Review Webhook Setup</div>
             <div class="modal-subtitle" id="reviewConnectionLabel">Connection Name</div>
-            
+
             <div style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%); border: 1px solid rgba(169, 76, 240, 0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
                 <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 6px;">Your Webhook URL (click to copy):</div>
                 <code id="reviewWebhookUrl" onclick="copyReviewWebhookUrl()" style="display: block; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-size: 0.8rem; word-break: break-all; cursor: pointer; border: 1px dashed rgba(169, 76, 240, 0.5);"></code>
             </div>
-            
+
             <div style="margin: 16px 0;">
                 <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; color: var(--gold);">Setup Instructions:</h3>
-                
+
                 <div style="margin-bottom: 16px;">
                     <div style="font-weight: 600; margin-bottom: 6px; color: var(--purple); font-size: 0.85rem;">In Stripe Dashboard:</div>
                     <ol style="padding-left: 16px; color: rgba(255,255,255,0.8); font-size: 0.8rem; line-height: 1.6;">
                         <li>Go to <a href="https://dashboard.stripe.com/webhooks" target="_blank" style="color: var(--gold);">dashboard.stripe.com/webhooks</a></li>
                         <li>Click <strong>"+ Add endpoint"</strong></li>
                         <li>Paste your webhook URL above</li>
-                        <li>Check <strong>"Select all events"</strong> (or pick any events — we handle them all)</li>
+                        <li>Check <strong>"Select all events"</strong> (or pick any events - we handle them all)</li>
                         <li>Click <strong>Add endpoint</strong></li>
                     </ol>
                 </div>
             </div>
-            
+
             <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin: 16px 0;">
                 <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin: 0;">
                     💡 After adding the webhook in Stripe, your connection status will update automatically when the first webhook arrives.
                 </p>
             </div>
-            
+
             <div class="modal-actions" style="margin-top: 20px;">
                 <button class="btn btn-secondary" onclick="closeModal('reviewWebhookModal')">Close</button>
                 <button class="btn btn-primary" onclick="copyReviewWebhookUrl()">📋 Copy URL</button>
             </div>
         </div>
     </div>
-    
+
     <!-- Test Payment Modal -->
     <div class="modal-overlay" id="testPaymentModal">
         <div class="modal-box">
             <div class="modal-title">🧪 Test Your Stripe Connection</div>
             <div class="modal-subtitle">Verify webhooks are working</div>
-            
+
             <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <h4 style="color: #3b82f6; margin-bottom: 12px;">How to test:</h4>
                 <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.8;">
@@ -652,20 +652,20 @@
                     <li>Click "Verify Connection" below</li>
                 </ol>
             </div>
-            
+
             <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 16px; margin: 20px 0;">
                 <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0;">
                     💡 <strong>Tip:</strong> The webhook may take 10-30 seconds to arrive after the payment completes.
                 </p>
             </div>
-            
+
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('testPaymentModal')">Close</button>
                 <button class="btn btn-primary" onclick="verifyWebhookReceived()">✅ Verify Connection</button>
             </div>
         </div>
     </div>
-    
+
     <!-- Manual Income Modal -->
     <div class="modal-overlay" id="manualModal">
         <div class="modal-box">
@@ -693,11 +693,11 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         let currentProvider = null;
         let connections = [];
-        
+
         const providerIcons = {
             stripe: '💳',
             paypal: '🅿️',
@@ -706,7 +706,7 @@
             authorize_net: '🔐',
             manual: '✏️'
         };
-        
+
         const providerNames = {
             stripe: 'Stripe',
             paypal: 'PayPal',
@@ -715,7 +715,7 @@
             authorize_net: 'Authorize.net',
             manual: 'Manual Entry'
         };
-        
+
         // Load connections on page load
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded, checking supabase...');
@@ -731,7 +731,7 @@
             }
             loadConnections();
         });
-        
+
         async function loadConnections() {
             console.log('Loading connections...');
             const { user } = await getCurrentUser();
@@ -739,28 +739,28 @@
                 console.log('No user found');
                 return;
             }
-            
+
             const { data, error } = await supabaseClient
                 .from('income_connections')
                 .select('*')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
-            
+
             if (error) {
                 console.error('Error loading connections:', error);
                 return;
             }
-            
+
             connections = data || [];
             renderConnections();
         }
-        
+
         function renderConnections() {
             const container = document.getElementById('connectionsList');
             const countEl = document.getElementById('connectionCount');
-            
+
             countEl.textContent = `${connections.length} connection${connections.length !== 1 ? 's' : ''}`;
-            
+
             if (connections.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -770,14 +770,19 @@
                 `;
                 return;
             }
-            
+
             container.innerHTML = connections.map(conn => {
                 const isPendingStripe = conn.provider === 'stripe' && conn.status === 'pending';
                 const isConnectedStripe = conn.provider === 'stripe' && conn.status === 'connected';
                 const isActiveStripe = conn.provider === 'stripe' && conn.status === 'active';
                 const isStripe = conn.provider === 'stripe';
-                const webhookUrl = `https://destinylens.io/api/webhook/stripe?connection_id=${conn.connection_id}`;
-                
+                const isPayPal = conn.provider === 'paypal';
+                const isPendingPayPal = conn.provider === 'paypal' && conn.status === 'pending';
+                const isActivePayPal = conn.provider === 'paypal' && conn.status === 'active';
+                const webhookUrl = isPayPal
+                    ? `https://destinylens.io/api/webhook/paypal?connection_id=${conn.connection_id}`
+                    : `https://destinylens.io/api/webhook/stripe?connection_id=${conn.connection_id}`;
+
                 // Build status badge text
                 let statusText = conn.status;
                 let statusClass = conn.status;
@@ -786,7 +791,7 @@
                 } else if (conn.status === 'active') {
                     statusText = 'active';
                 }
-                
+
                 return `
                 <div class="connection-item">
                     <div class="connection-info">
@@ -799,8 +804,8 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="status-badge status-${statusClass}">${statusText}</span>
                         <div class="connection-actions">
-                            ${isStripe ? `<button class="btn-small" style="background: rgba(169, 76, 240, 0.2); color: var(--purple);" onclick="reviewWebhookInstructions('${conn.connection_id}', '${conn.connection_label || providerNames[conn.provider]}')">👁️ Review</button>` : ''}
-                            ${isConnectedStripe ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}')">🧪 Test</button>` : ''}
+                            ${(isStripe || isPayPal) ? `<button class="btn-small" style="background: rgba(169, 76, 240, 0.2); color: var(--purple);" onclick="reviewWebhookInstructions('${conn.connection_id}', '${conn.connection_label || providerNames[conn.provider]}', '${conn.provider}')">👁️ Review</button>` : ''}
+                            ${(isConnectedStripe || isActivePayPal) ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}', '${conn.provider}')">🧪 Test</button>` : ''}
                             <button class="btn-small" onclick="editConnection('${conn.connection_id}')">✏️</button>
                             <button class="btn-small btn-delete" onclick="deleteConnection('${conn.connection_id}')">🗑️</button>
                         </div>
@@ -808,7 +813,7 @@
                 </div>
             `}).join('');
         }
-        
+
         function startConnection(provider) {
             try {
                 currentProvider = provider;
@@ -816,13 +821,13 @@
                 const title = document.getElementById('modalTitle');
                 const subtitle = document.getElementById('modalSubtitle');
                 const input = document.getElementById('connectionLabel');
-                
+
                 if (!modal || !title || !subtitle || !input) {
                     console.error('Modal elements not found');
                     alert('Error: Page not fully loaded. Please refresh.');
                     return;
                 }
-                
+
                 title.textContent = `Connect ${providerNames[provider]}`;
                 subtitle.textContent = `Enter a label to identify this ${providerNames[provider]} connection`;
                 input.value = '';
@@ -832,17 +837,17 @@
                 alert('Error opening connection form. Please try again.');
             }
         }
-        
+
         async function confirmConnection() {
             const label = document.getElementById('connectionLabel').value.trim();
             if (!label) {
                 alert('Please enter a connection label');
                 return;
             }
-            
+
             const { user } = await getCurrentUser();
             if (!user) return;
-            
+
             // Create pending connection
             const { data: connection, error } = await supabaseClient
                 .from('income_connections')
@@ -854,62 +859,64 @@
                 })
                 .select()
                 .single();
-            
+
             if (error) {
                 console.error('Error creating connection:', error);
                 alert('Error: ' + error.message);
                 return;
             }
-            
+
             closeModal('connectionModal');
-            
-            // For Stripe, initiate OAuth flow
+
+            // For Stripe or PayPal, initiate OAuth flow
             if (currentProvider === 'stripe') {
                 initiateStripeOAuth(connection.connection_id, user.id);
+            } else if (currentProvider === 'paypal') {
+                initiatePayPalOAuth(connection.connection_id, user.id);
             } else {
                 alert(`${providerNames[currentProvider]} connection created! Integration coming soon. For now, you can add manual income entries.`);
                 loadConnections();
             }
         }
-        
+
         // Initiate Stripe OAuth flow
         async function initiateStripeOAuth(connectionId, userId) {
             showToast('Connecting to Stripe...');
-            
+
             try {
                 const response = await fetch('/api/stripe-connect', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        connection_id: connectionId, 
-                        user_id: userId 
+                    body: JSON.stringify({
+                        connection_id: connectionId,
+                        user_id: userId
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to connect to Stripe');
                 }
-                
+
                 // Open Stripe OAuth in popup
                 const popup = window.open(
                     data.url,
                     'stripeOAuth',
                     'width=600,height=700,scrollbars=yes'
                 );
-                
+
                 if (!popup) {
                     // Popup blocked - fallback to redirect
                     window.location.href = data.url;
                     return;
                 }
-                
+
                 // Listen for OAuth completion message
                 window.addEventListener('message', function handleOAuthMessage(event) {
                     if (event.data && event.data.type === 'stripe-connected') {
                         window.removeEventListener('message', handleOAuthMessage);
-                        
+
                         if (event.data.success) {
                             showToast('✅ Stripe connected successfully!');
                             loadConnections();
@@ -918,10 +925,10 @@
                         }
                     }
                 });
-                
+
                 // Also poll for connection status change (backup)
                 pollConnectionStatus(connectionId);
-                
+
             } catch (error) {
                 console.error('OAuth error:', error);
                 showToast('❌ ' + error.message);
@@ -929,38 +936,88 @@
                 showStripeWebhookInstructions(connectionId);
             }
         }
-        
+
         // Poll for connection status changes
         async function pollConnectionStatus(connectionId, attempts = 0) {
             if (attempts > 30) return; // Stop after 5 minutes (30 * 10 seconds)
-            
+
             await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
-            
+
             const { data: connection } = await supabaseClient
                 .from('income_connections')
-                .select('status')
+                .select('status, provider')
                 .eq('connection_id', connectionId)
                 .single();
-            
+
             if (connection && connection.status === 'active') {
-                showToast('✅ Stripe connected!');
+                const providerName = providerNames[connection.provider] || 'Account';
+                showToast(`✅ ${providerName} connected!`);
                 loadConnections();
             } else {
                 pollConnectionStatus(connectionId, attempts + 1);
             }
         }
+
+        // Initiate PayPal connection (webhook-based)
+        async function initiatePayPalOAuth(connectionId, userId) {
+            showPayPalWebhookInstructions(connectionId);
+        }
         
-        function showStripeWebhookInstructions(connectionId) {
-            const webhookUrl = `https://destinylens.io/api/webhook/stripe?connection_id=${connectionId}`;
+        function showPayPalWebhookInstructions(connectionId) {
+            const webhookUrl = `https://destinylens.io/api/webhook/paypal?connection_id=${connectionId}`;
             
             // Store for the modal
-            window.currentWebhookUrl = webhookUrl;
-            window.currentConnectionId = connectionId;
+            window.currentPayPalWebhookUrl = webhookUrl;
+            window.currentPayPalConnectionId = connectionId;
             
             // Show the instructions modal
-            document.getElementById('stripeWebhookUrl').textContent = webhookUrl;
-            document.getElementById('stripeWebhookUrl').setAttribute('data-url', webhookUrl);
-            openModal('stripeInstructionsModal');
+            const modalHtml = `
+                <div id="paypalInstructionsModal" class="modal active">
+                    <div class="modal-content" style="max-width: 600px;">
+                        <div class="modal-header">
+                            <h3>Connect Your PayPal Account</h3>
+                            <button class="modal-close" onclick="closeModal('paypalInstructionsModal')">&times;</button>
+                        </div>
+                        <div style="padding: 24px;">
+                            <p style="margin-bottom: 16px; color: rgba(255,255,255,0.8);">
+                                To track your PayPal income automatically, add this webhook URL to your PayPal account:
+                            </p>
+                            
+                            <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: 8px; margin-bottom: 20px; word-break: break-all; font-family: monospace; font-size: 0.85rem; color: var(--gold);" id="paypalWebhookUrl">${webhookUrl}</div>
+                            
+                            <button class="btn-primary" onclick="copyPayPalWebhookUrl()" style="margin-bottom: 24px;">📋 Copy Webhook URL</button>
+                            
+                            <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                                <h4 style="margin-bottom: 12px; color: var(--purple);">Steps:</h4>
+                                <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); line-height: 1.8;">
+                                    <li>Log in to your PayPal account at paypal.com</li>
+                                    <li>Go to Settings → Notifications → Webhooks</li>
+                                    <li>Click "Add Webhook"</li>
+                                    <li>Paste the webhook URL above</li>
+                                    <li>Select event: <strong>Payment capture completed</strong></li>
+                                    <li>Save and copy the Webhook ID</li>
+                                    <li>Return here and paste the Webhook ID below</li>
+                                </ol>
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.8);">PayPal Webhook ID:</label>
+                                <input type="text" id="paypalWebhookIdInput" placeholder="Paste Webhook ID here (e.g., 0J12345678901234)" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+                            </div>
+                            
+                            <button class="btn-primary" onclick="savePayPalWebhookId()" style="width: 100%;">✅ Save & Connect</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page if not exists
+            if (!document.getElementById('paypalInstructionsModal')) {
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            } else {
+                document.getElementById('paypalWebhookUrl').textContent = webhookUrl;
+                document.getElementById('paypalInstructionsModal').classList.add('active');
+            }
             
             // Auto-copy to clipboard
             navigator.clipboard.writeText(webhookUrl).then(() => {
@@ -970,6 +1027,64 @@
             loadConnections();
         }
         
+        function copyPayPalWebhookUrl() {
+            const url = window.currentPayPalWebhookUrl;
+            if (url) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('Webhook URL copied!');
+                });
+            }
+        }
+        
+        async function savePayPalWebhookId() {
+            const webhookId = document.getElementById('paypalWebhookIdInput').value.trim();
+            const connectionId = window.currentPayPalConnectionId;
+            
+            if (!webhookId) {
+                alert('Please enter the Webhook ID from PayPal');
+                return;
+            }
+            
+            // Update connection with webhook ID
+            const { error } = await supabaseClient
+                .from('income_connections')
+                .update({
+                    external_account_id: webhookId,
+                    status: 'connected',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('connection_id', connectionId);
+            
+            if (error) {
+                showToast('❌ Error saving: ' + error.message);
+                return;
+            }
+            
+            closeModal('paypalInstructionsModal');
+            showToast('✅ PayPal connected! Complete a test payment to verify.');
+            loadConnections();
+        }
+
+        function showStripeWebhookInstructions(connectionId) {
+            const webhookUrl = `https://destinylens.io/api/webhook/stripe?connection_id=${connectionId}`;
+
+            // Store for the modal
+            window.currentWebhookUrl = webhookUrl;
+            window.currentConnectionId = connectionId;
+
+            // Show the instructions modal
+            document.getElementById('stripeWebhookUrl').textContent = webhookUrl;
+            document.getElementById('stripeWebhookUrl').setAttribute('data-url', webhookUrl);
+            openModal('stripeInstructionsModal');
+
+            // Auto-copy to clipboard
+            navigator.clipboard.writeText(webhookUrl).then(() => {
+                showToast('Webhook URL copied!');
+            });
+
+            loadConnections();
+        }
+
         function copyWebhookUrl() {
             const url = document.getElementById('stripeWebhookUrl').getAttribute('data-url');
             if (url) {
@@ -979,20 +1094,22 @@
             }
         }
 
-        function showTestPaymentModal(connectionId) {
+        function showTestPaymentModal(connectionId, provider = 'stripe') {
             window.testConnectionId = connectionId;
+            window.testProvider = provider;
             openModal('testPaymentModal');
         }
 
         async function verifyWebhookReceived() {
             const connectionId = window.testConnectionId;
+            const provider = window.testProvider || 'stripe';
             if (!connectionId) return;
 
             showToast('Checking for webhook...');
 
             // Check if any events were received for this connection in last 5 minutes
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-            
+
             const { data: events, error } = await supabaseClient
                 .from('income_progress_events')
                 .select('*')
@@ -1012,15 +1129,17 @@
                     .from('income_connections')
                     .update({ status: 'active', last_synced_at: new Date().toISOString() })
                     .eq('connection_id', connectionId);
-                
-                showToast('✅ Webhook verified! Receiving payments.');
+
+                const providerName = provider === 'paypal' ? 'PayPal' : 'Stripe';
+                showToast(`✅ Webhook verified! Receiving ${providerName} payments.`);
                 closeModal('testPaymentModal');
                 loadConnections();
             } else {
-                showToast('⏳ No webhook received yet. Complete a payment in Stripe first.');
+                const providerName = provider === 'paypal' ? 'PayPal' : 'Stripe';
+                showToast(`⏳ No webhook received yet. Complete a payment in ${providerName} first.`);
             }
         }
-        
+
         function copyWebhookUrl() {
             if (window.currentWebhookUrl) {
                 navigator.clipboard.writeText(window.currentWebhookUrl).then(() => {
@@ -1028,7 +1147,7 @@
                 });
             }
         }
-        
+
         function copyReviewWebhookUrl() {
             const url = document.getElementById('reviewWebhookUrl').getAttribute('data-url');
             if (url) {
@@ -1037,82 +1156,85 @@
                 });
             }
         }
-        
+
         async function deleteConnection(connectionId) {
             if (!confirm('⚠️ PERMANENT DELETE: Are you sure you want to delete this connection? This cannot be undone.')) return;
-            
+
             const { error } = await supabaseClient
                 .from('income_connections')
                 .delete()
                 .eq('connection_id', connectionId);
-            
+
             if (error) {
                 console.error('Error deleting:', error);
                 showToast('❌ Error deleting connection');
                 return;
             }
-            
+
             showToast('✅ Connection deleted');
             loadConnections();
         }
-        
-        function reviewWebhookInstructions(connectionId, connectionLabel) {
-            const webhookUrl = `https://destinylens.io/api/webhook/stripe?connection_id=${connectionId}`;
-            
+
+        function reviewWebhookInstructions(connectionId, connectionLabel, provider = 'stripe') {
+            const webhookUrl = provider === 'paypal'
+                ? `https://destinylens.io/api/webhook/paypal?connection_id=${connectionId}`
+                : `https://destinylens.io/api/webhook/stripe?connection_id=${connectionId}`;
+
             window.currentWebhookUrl = webhookUrl;
             window.currentConnectionId = connectionId;
-            
+            window.currentProvider = provider;
+
             document.getElementById('reviewConnectionLabel').textContent = connectionLabel;
             document.getElementById('reviewWebhookUrl').textContent = webhookUrl;
             document.getElementById('reviewWebhookUrl').setAttribute('data-url', webhookUrl);
             openModal('reviewWebhookModal');
         }
-        
+
         async function editConnection(connectionId) {
             const conn = connections.find(c => c.connection_id === connectionId);
             if (!conn) return;
-            
+
             const newLabel = prompt('Enter new label:', conn.connection_label);
             if (newLabel === null || newLabel.trim() === '') return;
-            
+
             const { error } = await supabaseClient
                 .from('income_connections')
                 .update({ connection_label: newLabel.trim() })
                 .eq('connection_id', connectionId);
-            
+
             if (error) {
                 console.error('Error updating label:', error);
                 return;
             }
-            
+
             loadConnections();
         }
-        
+
         function openManualModal() {
             document.getElementById('manualAmount').value = '';
             document.getElementById('manualDate').value = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             document.getElementById('manualNote').value = '';
             openModal('manualModal');
         }
-        
+
         async function saveManualIncome() {
             const amount = parseFloat(document.getElementById('manualAmount').value);
             const date = document.getElementById('manualDate').value;
             const note = document.getElementById('manualNote').value.trim();
-            
+
             if (!amount || amount <= 0) {
                 alert('Please enter a valid amount');
                 return;
             }
-            
+
             if (!date) {
                 alert('Please select a date');
                 return;
             }
-            
+
             const { user } = await getCurrentUser();
             if (!user) return;
-            
+
             // Create manual connection if doesn't exist
             const { data: manualConn } = await supabaseClient
                 .from('income_connections')
@@ -1121,9 +1243,9 @@
                 .eq('provider', 'manual')
                 .eq('status', 'active')
                 .single();
-            
+
             let connectionId = manualConn?.connection_id;
-            
+
             if (!connectionId) {
                 const { data: newConn } = await supabaseClient
                     .from('income_connections')
@@ -1137,7 +1259,7 @@
                     .single();
                 connectionId = newConn?.connection_id;
             }
-            
+
             // Save the income event
             const { error } = await supabaseClient
                 .from('income_progress_events')
@@ -1150,18 +1272,18 @@
                     status: 'received',
                     received_at: new Date(date).toISOString()
                 });
-            
+
             if (error) {
                 console.error('Error saving income:', error);
                 alert('Error saving income. Please try again.');
                 return;
             }
-            
+
             closeModal('manualModal');
             alert('Income added successfully!');
             loadConnections();
         }
-        
+
         function openModal(id) {
             const el = document.getElementById(id);
             if (el) el.classList.add('active');
@@ -1188,16 +1310,16 @@
                 setTimeout(() => toast.remove(), 300);
             }, 2500);
         }
-        
+
         function closeModal(id) {
             const el = document.getElementById(id);
             if (el) el.classList.remove('active');
         }
-        
+
         function toggleNavMenu() {
             document.getElementById('navMenu').classList.toggle('active');
         }
-        
+
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
