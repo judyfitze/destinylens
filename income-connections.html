@@ -863,12 +863,90 @@
             
             closeModal('connectionModal');
             
-            // For Stripe, show webhook setup instructions
+            // For Stripe, initiate OAuth flow
             if (currentProvider === 'stripe') {
-                showStripeWebhookInstructions(connection.connection_id);
+                initiateStripeOAuth(connection.connection_id, user.id);
             } else {
                 alert(`${providerNames[currentProvider]} connection created! Integration coming soon. For now, you can add manual income entries.`);
                 loadConnections();
+            }
+        }
+        
+        // Initiate Stripe OAuth flow
+        async function initiateStripeOAuth(connectionId, userId) {
+            showToast('Connecting to Stripe...');
+            
+            try {
+                const response = await fetch('/api/stripe-connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        connection_id: connectionId, 
+                        user_id: userId 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to connect to Stripe');
+                }
+                
+                // Open Stripe OAuth in popup
+                const popup = window.open(
+                    data.url,
+                    'stripeOAuth',
+                    'width=600,height=700,scrollbars=yes'
+                );
+                
+                if (!popup) {
+                    // Popup blocked - fallback to redirect
+                    window.location.href = data.url;
+                    return;
+                }
+                
+                // Listen for OAuth completion message
+                window.addEventListener('message', function handleOAuthMessage(event) {
+                    if (event.data && event.data.type === 'stripe-connected') {
+                        window.removeEventListener('message', handleOAuthMessage);
+                        
+                        if (event.data.success) {
+                            showToast('✅ Stripe connected successfully!');
+                            loadConnections();
+                        } else {
+                            showToast('❌ Connection failed: ' + (event.data.error || 'Unknown error'));
+                        }
+                    }
+                });
+                
+                // Also poll for connection status change (backup)
+                pollConnectionStatus(connectionId);
+                
+            } catch (error) {
+                console.error('OAuth error:', error);
+                showToast('❌ ' + error.message);
+                // Fallback to manual webhook setup
+                showStripeWebhookInstructions(connectionId);
+            }
+        }
+        
+        // Poll for connection status changes
+        async function pollConnectionStatus(connectionId, attempts = 0) {
+            if (attempts > 30) return; // Stop after 5 minutes (30 * 10 seconds)
+            
+            await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+            
+            const { data: connection } = await supabaseClient
+                .from('income_connections')
+                .select('status')
+                .eq('connection_id', connectionId)
+                .single();
+            
+            if (connection && connection.status === 'active') {
+                showToast('✅ Stripe connected!');
+                loadConnections();
+            } else {
+                pollConnectionStatus(connectionId, attempts + 1);
             }
         }
         
