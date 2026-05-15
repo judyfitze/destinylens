@@ -19,6 +19,10 @@ serve(async (req) => {
     console.log('Request headers:', JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2))
     console.log('Request URL:', req.url)
     console.log('Request method:', req.method)
+    
+    // TEMP: Skip signature check to test if auth is the issue
+    // We'll verify the webhook properly once auth works
+    console.log('Skipping signature check for testing')
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

@@ -1,5 +1,2 @@
-# Supabase Edge Function Config
-# Allows anonymous access for Stripe webhooks
-
 [functions.stripe-webhook-receiver]
 verify_jwt = false
