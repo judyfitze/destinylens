@@ -60,6 +60,8 @@ serve(async (req) => {
     }
 
     // Find the connection
+    console.log('Looking for connection:', connectionId)
+    
     const { data: connection, error: connError } = await supabaseClient
       .from('income_connections')
       .select('*')
@@ -67,10 +69,17 @@ serve(async (req) => {
       .eq('provider', 'stripe')
       .single()
 
-    if (connError || !connection) {
+    if (connError) {
+      console.error('Connection query error:', connError)
+      return new Response('Connection query error: ' + connError.message, { status: 500 })
+    }
+    
+    if (!connection) {
       console.error('Connection not found:', connectionId)
       return new Response('Connection not found', { status: 404 })
     }
+    
+    console.log('Found connection:', connection.connection_id, 'User:', connection.user_id)
 
     // Check for duplicate
     const { data: existing } = await supabaseClient
@@ -87,6 +96,14 @@ serve(async (req) => {
     }
 
     // Insert income event
+    console.log('Inserting income event:', {
+      user_id: connection.user_id,
+      connection_id: connectionId,
+      amount: amount,
+      currency: currency,
+      event_id: event.id
+    })
+    
     const { error: insertError } = await supabaseClient
       .from('income_progress_events')
       .insert({
@@ -102,7 +119,7 @@ serve(async (req) => {
 
     if (insertError) {
       console.error('Insert error:', insertError)
-      return new Response('Database error', { status: 500 })
+      return new Response('Database error: ' + insertError.message, { status: 500 })
     }
 
     console.log('Income event saved:', event.id, amount, currency)
