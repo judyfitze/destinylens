@@ -184,43 +184,44 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
+            padding: 12px 16px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            border-radius: 10px;
         }
         
         .connection-info {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
         
         .connection-icon {
-            width: 48px;
-            height: 48px;
+            width: 36px;
+            height: 36px;
             background: rgba(255,255,255,0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
         
         .connection-details h4 {
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+            font-size: 0.95rem;
         }
         
         .connection-details p {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: rgba(255,255,255,0.5);
         }
         
         .status-badge {
-            padding: 6px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
         }
@@ -247,13 +248,13 @@
         
         .connection-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
         
         .btn-small {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 6px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
             border: none;
@@ -272,6 +273,16 @@
         
         .btn-disconnect:hover {
             background: rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-delete {
+            background: rgba(100, 100, 100, 0.2);
+            color: #888;
+        }
+        
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
         }
         
         .empty-state {
@@ -586,6 +597,45 @@
         </div>
     </div>
     
+    <!-- Review Webhook Modal -->
+    <div class="modal-overlay" id="reviewWebhookModal">
+        <div class="modal-box" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-title">👁️ Review Webhook Setup</div>
+            <div class="modal-subtitle" id="reviewConnectionLabel">Connection Name</div>
+            
+            <div style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%); border: 1px solid rgba(169, 76, 240, 0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 6px;">Your Webhook URL (click to copy):</div>
+                <code id="reviewWebhookUrl" onclick="copyReviewWebhookUrl()" style="display: block; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-size: 0.8rem; word-break: break-all; cursor: pointer; border: 1px dashed rgba(169, 76, 240, 0.5);"></code>
+            </div>
+            
+            <div style="margin: 16px 0;">
+                <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; color: var(--gold);">Setup Instructions:</h3>
+                
+                <div style="margin-bottom: 16px;">
+                    <div style="font-weight: 600; margin-bottom: 6px; color: var(--purple); font-size: 0.85rem;">In Stripe Dashboard:</div>
+                    <ol style="padding-left: 16px; color: rgba(255,255,255,0.8); font-size: 0.8rem; line-height: 1.6;">
+                        <li>Go to <a href="https://dashboard.stripe.com/webhooks" target="_blank" style="color: var(--gold);">dashboard.stripe.com/webhooks</a></li>
+                        <li>Click <strong>"Add endpoint"</strong></li>
+                        <li>Paste your webhook URL above</li>
+                        <li>Select events: <strong>charge.succeeded</strong> and <strong>payment_intent.succeeded</strong></li>
+                        <li>Click <strong>Add endpoint</strong></li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin: 16px 0;">
+                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin: 0;">
+                    💡 After adding the webhook in Stripe, your connection status will update automatically when the first webhook arrives.
+                </p>
+            </div>
+            
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeModal('reviewWebhookModal')">Close</button>
+                <button class="btn btn-primary" onclick="copyReviewWebhookUrl()">📋 Copy URL</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Test Payment Modal -->
     <div class="modal-overlay" id="testPaymentModal">
         <div class="modal-box">
@@ -725,15 +775,16 @@
                 const isPendingStripe = conn.provider === 'stripe' && conn.status === 'pending';
                 const isConnectedStripe = conn.provider === 'stripe' && conn.status === 'connected';
                 const isActiveStripe = conn.provider === 'stripe' && conn.status === 'active';
+                const isStripe = conn.provider === 'stripe';
                 const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${conn.connection_id}`;
                 
                 // Build status badge text
                 let statusText = conn.status;
                 let statusClass = conn.status;
                 if (conn.status === 'connected') {
-                    statusText = 'connected — waiting for payment';
+                    statusText = 'connected';
                 } else if (conn.status === 'active') {
-                    statusText = 'receiving payments';
+                    statusText = 'active';
                 }
                 
                 return `
@@ -742,19 +793,16 @@
                         <div class="connection-icon">${providerIcons[conn.provider] || '💰'}</div>
                         <div class="connection-details">
                             <h4>${conn.connection_label || providerNames[conn.provider]}</h4>
-                            <p>${providerNames[conn.provider]} • Added ${new Date(conn.created_at).toLocaleDateString()}</p>
-                            ${isPendingStripe ? `<p style="font-size: 0.75rem; margin-top: 4px; color: var(--gold);">⚠️ Setup required - add webhook in Stripe</p>` : ''}
-                            ${isConnectedStripe ? `<p style="font-size: 0.75rem; margin-top: 4px; color: #3b82f6;">⏳ Webhook configured — waiting for first payment</p>` : ''}
-                            ${isActiveStripe ? `<p style="font-size: 0.75rem; margin-top: 4px; color: #22c55e;">✅ Receiving payments automatically</p>` : ''}
+                            <p>${providerNames[conn.provider]} • ${new Date(conn.created_at).toLocaleDateString()}</p>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="status-badge status-${statusClass}">${statusText}</span>
                         <div class="connection-actions">
-                            ${isPendingStripe ? `<button class="btn-small" style="background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); color: #fff;" onclick="showStripeWebhookInstructions('${conn.connection_id}')">📖 View Instructions</button>` : ''}
+                            ${isStripe ? `<button class="btn-small" style="background: rgba(169, 76, 240, 0.2); color: var(--purple);" onclick="reviewWebhookInstructions('${conn.connection_id}', '${conn.connection_label || providerNames[conn.provider]}')">👁️ Review</button>` : ''}
                             ${isConnectedStripe ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}')">🧪 Test</button>` : ''}
-                            <button class="btn-small" onclick="editConnection('${conn.connection_id}')">Rename</button>
-                            <button class="btn-small btn-disconnect" onclick="disconnectConnection('${conn.connection_id}')">Disconnect</button>
+                            <button class="btn-small" onclick="editConnection('${conn.connection_id}')">✏️</button>
+                            <button class="btn-small btn-delete" onclick="deleteConnection('${conn.connection_id}')">🗑️</button>
                         </div>
                     </div>
                 </div>
@@ -903,20 +951,43 @@
             }
         }
         
-        async function disconnectConnection(connectionId) {
-            if (!confirm('Are you sure you want to disconnect this income source?')) return;
+        function copyReviewWebhookUrl() {
+            const url = document.getElementById('reviewWebhookUrl').getAttribute('data-url');
+            if (url) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('Webhook URL copied!');
+                });
+            }
+        }
+        
+        async function deleteConnection(connectionId) {
+            if (!confirm('⚠️ PERMANENT DELETE: Are you sure you want to delete this connection? This cannot be undone.')) return;
             
             const { error } = await supabaseClient
                 .from('income_connections')
-                .update({ status: 'disconnected' })
+                .delete()
                 .eq('connection_id', connectionId);
             
             if (error) {
-                console.error('Error disconnecting:', error);
+                console.error('Error deleting:', error);
+                showToast('❌ Error deleting connection');
                 return;
             }
             
+            showToast('✅ Connection deleted');
             loadConnections();
+        }
+        
+        function reviewWebhookInstructions(connectionId, connectionLabel) {
+            const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${connectionId}`;
+            
+            window.currentWebhookUrl = webhookUrl;
+            window.currentConnectionId = connectionId;
+            
+            document.getElementById('reviewConnectionLabel').textContent = connectionLabel;
+            document.getElementById('reviewWebhookUrl').textContent = webhookUrl;
+            document.getElementById('reviewWebhookUrl').setAttribute('data-url', webhookUrl);
+            openModal('reviewWebhookModal');
         }
         
         async function editConnection(connectionId) {
@@ -941,7 +1012,7 @@
         
         function openManualModal() {
             document.getElementById('manualAmount').value = '';
-            document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('manualDate').value = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             document.getElementById('manualNote').value = '';
             openModal('manualModal');
         }

@@ -916,8 +916,8 @@
             const { user } = await getCurrentUser();
             if (!user) return;
             
-            // Fetch today's actual income from Supabase
-            const today = new Date().toISOString().split('T')[0];
+            // Fetch today's actual income from Supabase (UTC-7 Pacific Time)
+            const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             const { data: incomeData, error } = await supabaseClient
                 .from('manual_income_entries')
                 .select('amount')
@@ -1359,7 +1359,7 @@
                         user_id: user.id,
                         amount: amount,
                         income_source_label: source,
-                        entry_date: new Date().toISOString().split('T')[0],
+                        entry_date: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }),
                         note: '',
                         include_in_dashboard: true
                     });

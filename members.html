@@ -587,7 +587,7 @@
             const { user } = await getCurrentUser();
             if (!user) return;
             
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             
             // Get calculation from Supabase
             const { data: settings } = await supabaseClient
