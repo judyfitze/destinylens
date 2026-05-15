@@ -31,23 +31,37 @@ serve(async (req) => {
     
     console.log('Received Stripe event:', event.type)
 
-    // Process successful payments from various Stripe event types
-    let amount: number
-    let currency: string
-    let created: number
+    // Process ANY payment-related Stripe event
+    let amount: number = 0
+    let currency: string = 'USD'
+    let created: number = Math.floor(Date.now() / 1000)
+    
+    console.log('Processing event type:', event.type)
+    console.log('Event data:', JSON.stringify(event.data.object, null, 2))
+    
+    // Try to extract amount from various event types
+    const obj = event.data.object
     
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object
-      amount = session.amount_total / 100 // Convert from cents
-      currency = session.currency.toUpperCase()
-      created = Math.floor(Date.now() / 1000) // Use current time if not available
-    } else if (event.type === 'charge.succeeded' || event.type === 'payment_intent.succeeded') {
-      const charge = event.data.object
-      amount = charge.amount / 100 // Convert from cents
-      currency = charge.currency.toUpperCase()
-      created = charge.created
+      amount = (obj.amount_total || obj.amount_subtotal || 0) / 100
+      currency = (obj.currency || 'usd').toUpperCase()
+    } else if (event.type === 'charge.succeeded') {
+      amount = (obj.amount || 0) / 100
+      currency = (obj.currency || 'usd').toUpperCase()
+      created = obj.created || created
+    } else if (event.type === 'payment_intent.succeeded') {
+      amount = (obj.amount || 0) / 100
+      currency = (obj.currency || 'usd').toUpperCase()
+      created = obj.created || created
     } else {
-      return new Response('Event type not processed', { status: 200 })
+      // Try to find amount in any field
+      amount = (obj.amount || obj.amount_total || obj.amount_subtotal || 0) / 100
+      currency = (obj.currency || 'usd').toUpperCase()
+    }
+    
+    if (amount <= 0) {
+      console.error('Could not extract amount from event:', event.type)
+      return new Response('No amount found in event', { status: 200 })
     }
     
     // Get connection ID from URL query parameter
