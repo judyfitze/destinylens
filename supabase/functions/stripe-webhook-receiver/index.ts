@@ -31,14 +31,24 @@ serve(async (req) => {
     
     console.log('Received Stripe event:', event.type)
 
-    // Only process successful payments
-    if (event.type !== 'charge.succeeded' && event.type !== 'payment_intent.succeeded') {
+    // Process successful payments from various Stripe event types
+    let amount: number
+    let currency: string
+    let created: number
+    
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object
+      amount = session.amount_total / 100 // Convert from cents
+      currency = session.currency.toUpperCase()
+      created = Math.floor(Date.now() / 1000) // Use current time if not available
+    } else if (event.type === 'charge.succeeded' || event.type === 'payment_intent.succeeded') {
+      const charge = event.data.object
+      amount = charge.amount / 100 // Convert from cents
+      currency = charge.currency.toUpperCase()
+      created = charge.created
+    } else {
       return new Response('Event type not processed', { status: 200 })
     }
-
-    const charge = event.data.object
-    const amount = charge.amount / 100 // Convert from cents
-    const currency = charge.currency.toUpperCase()
     
     // Get connection ID from URL query parameter
     const url = new URL(req.url)
@@ -87,7 +97,7 @@ serve(async (req) => {
         amount: amount,
         currency: currency,
         status: 'received',
-        received_at: new Date(charge.created * 1000).toISOString()
+        received_at: new Date(created * 1000).toISOString()
       })
 
     if (insertError) {
