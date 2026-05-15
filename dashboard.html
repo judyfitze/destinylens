@@ -932,16 +932,30 @@
             }
             
             // Fetch connected income (Stripe, PayPal, etc.)
-            const todayStart = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }) + 'T00:00:00';
-            const todayEnd = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }) + 'T23:59:59';
+            // Calculate today's start/end in UTC based on Pacific timezone
+            const now = new Date();
+            
+            // Get current Pacific time
+            const pacificNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+            const pacificYear = pacificNow.getFullYear();
+            const pacificMonth = pacificNow.getMonth();
+            const pacificDay = pacificNow.getDate();
+            
+            // Create UTC timestamps for start and end of Pacific day
+            // Pacific is UTC-7 (or UTC-8 during DST), so we add 7/8 hours
+            const pacificOffsetHours = 7; // PDT (UTC-7) - adjust to 8 for PST (UTC-8)
+            const utcStart = new Date(Date.UTC(pacificYear, pacificMonth, pacificDay, pacificOffsetHours, 0, 0)).toISOString();
+            const utcEnd = new Date(Date.UTC(pacificYear, pacificMonth, pacificDay, pacificOffsetHours + 23, 59, 59, 999)).toISOString();
+            
+            console.log('Querying income from:', utcStart, 'to:', utcEnd);
             
             const { data: connectedIncomeData, error: connectedError } = await supabaseClient
                 .from('income_progress_events')
                 .select('amount')
                 .eq('user_id', user.id)
                 .eq('status', 'received')
-                .gte('received_at', todayStart)
-                .lte('received_at', todayEnd);
+                .gte('received_at', utcStart)
+                .lte('received_at', utcEnd);
             
             if (connectedError) {
                 console.error('Error fetching connected income:', connectedError);
