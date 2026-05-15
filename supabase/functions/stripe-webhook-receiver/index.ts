@@ -14,11 +14,11 @@ serve(async (req) => {
 
   try {
     const payload = await req.text()
-    const signature = req.headers.get('stripe-signature')
-
-    if (!signature) {
-      return new Response('Missing signature', { status: 400 })
-    }
+    
+    // Log all headers for debugging
+    console.log('Request headers:', JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2))
+    console.log('Request URL:', req.url)
+    console.log('Request method:', req.method)
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
