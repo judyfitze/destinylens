@@ -488,6 +488,12 @@
         <div class="section">
             <div class="section-title">➕ Connect a Payment Source</div>
             <div class="connect-grid">
+                <div class="connect-card" onclick="openManualModal()" style="position: relative;">
+                    <div style="position: absolute; top: 8px; right: 8px; color: var(--gold); font-size: 1.2rem;">✓</div>
+                    <div class="connect-icon">✏️</div>
+                    <div class="connect-name">Manual Entry</div>
+                    <div class="connect-desc">Add income manually</div>
+                </div>
                 <div class="connect-card" onclick="startConnection('stripe')" style="position: relative;">
                     <div style="position: absolute; top: 8px; right: 8px; color: var(--gold); font-size: 1.2rem;">✓</div>
                     <div class="connect-icon">💳</div>
@@ -517,12 +523,6 @@
                     <div class="connect-icon">🔐</div>
                     <div class="connect-name">Authorize.net</div>
                     <div class="connect-desc">One-click connection coming soon</div>
-                </div>
-                <div class="connect-card" onclick="openManualModal()" style="position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; color: var(--gold); font-size: 1.2rem;">✓</div>
-                    <div class="connect-icon">✏️</div>
-                    <div class="connect-name">Manual Entry</div>
-                    <div class="connect-desc">Add income manually</div>
                 </div>
             </div>
         </div>
