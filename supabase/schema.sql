@@ -286,8 +286,8 @@ CREATE TABLE income_connections (
     connection_label TEXT,
     external_account_id TEXT,
     
-    -- Status
-    status TEXT DEFAULT 'pending' CHECK (status IN ('active', 'pending', 'disconnected', 'error', 'manual')),
+    -- Status: pending -> connected (webhook received) -> active (payment processed)
+    status TEXT DEFAULT 'pending' CHECK (status IN ('active', 'pending', 'connected', 'disconnected', 'error', 'manual')),
     
     -- Secret storage references (not the actual secrets)
     vault_secret_reference TEXT,
