@@ -918,19 +918,40 @@
             
             // Fetch today's actual income from Supabase (UTC-7 Pacific Time)
             const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
-            const { data: incomeData, error } = await supabaseClient
+            
+            // Fetch manual income entries
+            const { data: manualIncomeData, error: manualError } = await supabaseClient
                 .from('manual_income_entries')
                 .select('amount')
                 .eq('user_id', user.id)
                 .eq('entry_date', today)
                 .eq('include_in_dashboard', true);
             
-            if (error) {
-                console.error('Error fetching income:', error);
+            if (manualError) {
+                console.error('Error fetching manual income:', manualError);
             }
             
-            const todayIncome = incomeData?.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0) || 0;
-            document.getElementById('manualIncome').textContent = format$(todayIncome);
+            // Fetch connected income (Stripe, PayPal, etc.)
+            const todayStart = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }) + 'T00:00:00';
+            const todayEnd = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }) + 'T23:59:59';
+            
+            const { data: connectedIncomeData, error: connectedError } = await supabaseClient
+                .from('income_progress_events')
+                .select('amount')
+                .eq('user_id', user.id)
+                .eq('status', 'received')
+                .gte('received_at', todayStart)
+                .lte('received_at', todayEnd);
+            
+            if (connectedError) {
+                console.error('Error fetching connected income:', connectedError);
+            }
+            
+            const manualIncome = manualIncomeData?.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0) || 0;
+            const connectedIncome = connectedIncomeData?.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0) || 0;
+            const todayIncome = manualIncome + connectedIncome;
+            document.getElementById('manualIncome').textContent = format$(manualIncome);
+            document.getElementById('connectedIncome').textContent = format$(connectedIncome);
             
             // Gauge (radius 60, circumference = 377)
             const pct = dailyTarget > 0 ? (todayIncome / dailyTarget) * 100 : 0;
