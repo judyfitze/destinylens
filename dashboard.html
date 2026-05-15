@@ -932,21 +932,20 @@
             }
             
             // Fetch connected income (Stripe, PayPal, etc.)
-            // Calculate today's start/end in UTC based on Pacific timezone
+            // Get today's date range in Pacific timezone (UTC-7)
             const now = new Date();
             
-            // Get current Pacific time
-            const pacificNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
-            const pacificYear = pacificNow.getFullYear();
-            const pacificMonth = pacificNow.getMonth();
-            const pacificDay = pacificNow.getDate();
+            // Format as Pacific date string (YYYY-MM-DD)
+            const pacificDateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             
-            // Create UTC timestamps for start and end of Pacific day
-            // Pacific is UTC-7 (or UTC-8 during DST), so we add 7/8 hours
-            const pacificOffsetHours = 7; // PDT (UTC-7) - adjust to 8 for PST (UTC-8)
-            const utcStart = new Date(Date.UTC(pacificYear, pacificMonth, pacificDay, pacificOffsetHours, 0, 0)).toISOString();
-            const utcEnd = new Date(Date.UTC(pacificYear, pacificMonth, pacificDay, pacificOffsetHours + 23, 59, 59, 999)).toISOString();
+            // Create UTC start of Pacific day (midnight PDT = 7am UTC)
+            const pacificStart = new Date(pacificDateStr + 'T00:00:00-07:00');
+            const pacificEnd = new Date(pacificDateStr + 'T23:59:59.999-07:00');
             
+            const utcStart = pacificStart.toISOString();
+            const utcEnd = pacificEnd.toISOString();
+            
+            console.log('Pacific date:', pacificDateStr);
             console.log('Querying income from:', utcStart, 'to:', utcEnd);
             
             const { data: connectedIncomeData, error: connectedError } = await supabaseClient
