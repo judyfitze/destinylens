@@ -618,13 +618,32 @@
                 calculation = calc;
             }
             
-            // Get income for different time periods
-            const { data: allIncomeEntries } = await supabaseClient
+            // Get manual income entries
+            const { data: manualIncomeEntries } = await supabaseClient
                 .from('manual_income_entries')
                 .select('amount, entry_date')
                 .eq('user_id', user.id)
                 .eq('include_in_dashboard', true)
                 .order('entry_date', { ascending: false });
+            
+            // Get automated income from connected providers (Stripe, Square, etc.)
+            const { data: automatedIncomeEntries } = await supabaseClient
+                .from('income_progress_events')
+                .select('amount, received_at')
+                .eq('user_id', user.id)
+                .order('received_at', { ascending: false });
+            
+            // Combine both sources
+            const allIncomeEntries = [
+                ...(manualIncomeEntries || []).map(e => ({ 
+                    amount: e.amount, 
+                    entry_date: e.entry_date 
+                })),
+                ...(automatedIncomeEntries || []).map(e => ({ 
+                    amount: e.amount, 
+                    entry_date: e.received_at ? e.received_at.split('T')[0] : new Date().toISOString().split('T')[0]
+                }))
+            ];
             
             // Calculate cumulative amounts
             const todayIncome = allIncomeEntries
