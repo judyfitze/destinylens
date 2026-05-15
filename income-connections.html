@@ -610,30 +610,7 @@
 
             <div style="margin: 16px 0;" id="reviewInstructionsContainer">
                 <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; color: var(--gold);">Setup Instructions:</h3>
-
-                <div style="margin-bottom: 16px;" id="stripeInstructions" style="display: none;">
-                    <div style="font-weight: 600; margin-bottom: 6px; color: var(--purple); font-size: 0.85rem;">In Stripe Dashboard:</div>
-                    <ol style="padding-left: 16px; color: rgba(255,255,255,0.8); font-size: 0.8rem; line-height: 1.6;">
-                        <li>Go to <a href="https://dashboard.stripe.com/webhooks" target="_blank" style="color: var(--gold);">dashboard.stripe.com/webhooks</a></li>
-                        <li>Click <strong>"+ Add endpoint"</strong></li>
-                        <li>Paste your webhook URL above</li>
-                        <li>Check <strong>"Select all events"</strong> (or pick any events - we handle them all)</li>
-                        <li>Click <strong>Add endpoint</strong></li>
-                    </ol>
-                </div>
-
-                <div style="margin-bottom: 16px;" id="paypalInstructions" style="display: none;">
-                    <div style="font-weight: 600; margin-bottom: 6px; color: var(--purple); font-size: 0.85rem;">In PayPal Dashboard:</div>
-                    <ol style="padding-left: 16px; color: rgba(255,255,255,0.8); font-size: 0.8rem; line-height: 1.6;">
-                        <li>Go to <a href="https://developer.paypal.com/dashboard/" target="_blank" style="color: var(--gold);">developer.paypal.com/dashboard</a></li>
-                        <li>Select your app under "Apps & Credentials"</li>
-                        <li>Scroll to "Webhooks" section</li>
-                        <li>Click <strong>"Add Webhook"</strong></li>
-                        <li>Paste your webhook URL above</li>
-                        <li>Select event: <strong>Payment capture completed</strong></li>
-                        <li>Save and copy the Webhook ID</li>
-                    </ol>
-                </div>
+                <div id="reviewInstructionsContent"></div>
             </div>
 
             <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin: 16px 0;">
@@ -1188,10 +1165,36 @@
             loadConnections();
         }
 
+        // Provider-specific webhook instructions
+        const providerInstructions = {
+            stripe: {
+                dashboardName: 'Stripe Dashboard',
+                dashboardUrl: 'https://dashboard.stripe.com/webhooks',
+                steps: [
+                    'Go to <a href="https://dashboard.stripe.com/webhooks" target="_blank" style="color: var(--gold);">dashboard.stripe.com/webhooks</a>',
+                    'Click <strong>"+ Add endpoint"</strong>',
+                    'Paste your webhook URL above',
+                    'Check <strong>"Select all events"</strong> (or pick any events - we handle them all)',
+                    'Click <strong>Add endpoint</strong>'
+                ]
+            },
+            paypal: {
+                dashboardName: 'PayPal Developer Dashboard',
+                dashboardUrl: 'https://developer.paypal.com/dashboard/',
+                steps: [
+                    'Go to <a href="https://developer.paypal.com/dashboard/" target="_blank" style="color: var(--gold);">developer.paypal.com/dashboard</a>',
+                    'Select your app under "Apps & Credentials"',
+                    'Scroll to "Webhooks" section',
+                    'Click <strong>"Add Webhook"</strong>',
+                    'Paste your webhook URL above',
+                    'Select event: <strong>Payment capture completed</strong>',
+                    'Save and copy the Webhook ID'
+                ]
+            }
+        };
+
         function reviewWebhookInstructions(connectionId, connectionLabel, provider = 'stripe') {
-            const webhookUrl = provider === 'paypal'
-                ? `https://destinylens.io/api/webhook/paypal?connection_id=${connectionId}`
-                : `https://destinylens.io/api/webhook/stripe?connection_id=${connectionId}`;
+            const webhookUrl = `https://destinylens.io/api/webhook/${provider}?connection_id=${connectionId}`;
 
             window.currentWebhookUrl = webhookUrl;
             window.currentConnectionId = connectionId;
@@ -1201,12 +1204,20 @@
             document.getElementById('reviewWebhookUrl').textContent = webhookUrl;
             document.getElementById('reviewWebhookUrl').setAttribute('data-url', webhookUrl);
             
-            // Show correct instructions based on provider
-            const stripeInstructions = document.getElementById('stripeInstructions');
-            const paypalInstructions = document.getElementById('paypalInstructions');
+            // Generate instructions dynamically based on provider
+            const instructionsContainer = document.getElementById('reviewInstructionsContent');
+            const providerConfig = providerInstructions[provider] || providerInstructions.stripe;
             
-            if (stripeInstructions) stripeInstructions.style.display = provider === 'stripe' ? 'block' : 'none';
-            if (paypalInstructions) paypalInstructions.style.display = provider === 'paypal' ? 'block' : 'none';
+            const stepsHtml = providerConfig.steps.map(step => `<li>${step}</li>`).join('');
+            
+            instructionsContainer.innerHTML = `
+                <div style="margin-bottom: 16px;">
+                    <div style="font-weight: 600; margin-bottom: 6px; color: var(--purple); font-size: 0.85rem;">In ${providerConfig.dashboardName}:</div>
+                    <ol style="padding-left: 16px; color: rgba(255,255,255,0.8); font-size: 0.8rem; line-height: 1.6;">
+                        ${stepsHtml}
+                    </ol>
+                </div>
+            `;
             
             openModal('reviewWebhookModal');
         }
