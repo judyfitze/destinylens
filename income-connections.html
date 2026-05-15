@@ -776,7 +776,7 @@
                 const isConnectedStripe = conn.provider === 'stripe' && conn.status === 'connected';
                 const isActiveStripe = conn.provider === 'stripe' && conn.status === 'active';
                 const isStripe = conn.provider === 'stripe';
-                const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${conn.connection_id}`;
+                const webhookUrl = `https://destinylens.io/api/webhook/stripe?connection_id=${conn.connection_id}`;
                 
                 // Build status badge text
                 let statusText = conn.status;
@@ -873,7 +873,7 @@
         }
         
         function showStripeWebhookInstructions(connectionId) {
-            const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${connectionId}`;
+            const webhookUrl = `https://destinylens.io/api/webhook/stripe?connection_id=${connectionId}`;
             
             // Store for the modal
             window.currentWebhookUrl = webhookUrl;
@@ -979,7 +979,7 @@
         }
         
         function reviewWebhookInstructions(connectionId, connectionLabel) {
-            const webhookUrl = `https://nfyabrvkqgzuzxjetqbe.supabase.co/functions/v1/stripe-webhook-receiver?connection_id=${connectionId}`;
+            const webhookUrl = `https://destinylens.io/api/webhook/stripe?connection_id=${connectionId}`;
             
             window.currentWebhookUrl = webhookUrl;
             window.currentConnectionId = connectionId;
