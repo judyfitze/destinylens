@@ -629,18 +629,11 @@
     <!-- Test Payment Modal -->
     <div class="modal-overlay" id="testPaymentModal">
         <div class="modal-box">
-            <div class="modal-title">🧪 Test Your Stripe Connection</div>
+            <div class="modal-title" id="testModalTitle">🧪 Test Your Connection</div>
             <div class="modal-subtitle">Verify webhooks are working</div>
 
-            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0;">
-                <h4 style="color: #3b82f6; margin-bottom: 12px;">How to test:</h4>
-                <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.8;">
-                    <li>Go to your <a href="https://dashboard.stripe.com/test/payments" target="_blank" style="color: var(--gold);">Stripe Dashboard (Test Mode)</a></li>
-                    <li>Create a test payment for any amount</li>
-                    <li>Use test card: <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">4242 4242 4242 4242</code></li>
-                    <li>Complete the checkout</li>
-                    <li>Click "Verify Connection" below</li>
-                </ol>
+            <div id="testInstructionsContainer" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0;">
+                <!-- Instructions populated dynamically -->
             </div>
 
             <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 16px; margin: 20px 0;">
@@ -1148,9 +1141,63 @@
             }
         }
 
+        // Provider-specific test instructions
+        const providerTestInstructions = {
+            stripe: {
+                title: '🧪 Test Your Stripe Connection',
+                color: '#3b82f6',
+                steps: `
+                    <h4 style="color: #3b82f6; margin-bottom: 12px;">How to test:</h4>
+                    <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.8;">
+                        <li>Go to your <a href="https://dashboard.stripe.com/test/payments" target="_blank" style="color: var(--gold);">Stripe Dashboard (Test Mode)</a></li>
+                        <li>Create a test payment for any amount</li>
+                        <li>Use test card: <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">4242 4242 4242 4242</code></li>
+                        <li>Complete the checkout</li>
+                        <li>Click "Verify Connection" below</li>
+                    </ol>
+                `
+            },
+            square: {
+                title: '🧪 Test Your Square Connection',
+                color: '#00b23b',
+                steps: `
+                    <h4 style="color: #00b23b; margin-bottom: 12px;">How to test:</h4>
+                    <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.8;">
+                        <li>Go to your <a href="https://squareup.com/dashboard" target="_blank" style="color: var(--gold);">Square Dashboard</a></li>
+                        <li>Go to Virtual Terminal or create a test payment</li>
+                        <li>Process a payment for any amount</li>
+                        <li>Complete the transaction</li>
+                        <li>Click "Verify Connection" below</li>
+                    </ol>
+                `
+            },
+            paypal: {
+                title: '🧪 Test Your PayPal Connection',
+                color: '#0070ba',
+                steps: `
+                    <h4 style="color: #0070ba; margin-bottom: 12px;">How to test:</h4>
+                    <ol style="padding-left: 20px; color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1.8;">
+                        <li>Go to your <a href="https://www.paypal.com/merchant" target="_blank" style="color: var(--gold);">PayPal Business Dashboard</a></li>
+                        <li>Create a test payment or use PayPal Sandbox</li>
+                        <li>Process a payment for any amount</li>
+                        <li>Complete the transaction</li>
+                        <li>Click "Verify Connection" below</li>
+                    </ol>
+                `
+            }
+        };
+
         function showTestPaymentModal(connectionId, provider = 'stripe') {
             window.testConnectionId = connectionId;
             window.testProvider = provider;
+            
+            // Populate provider-specific instructions
+            const config = providerTestInstructions[provider] || providerTestInstructions.stripe;
+            document.getElementById('testModalTitle').textContent = config.title;
+            document.getElementById('testInstructionsContainer').innerHTML = config.steps;
+            document.getElementById('testInstructionsContainer').style.borderColor = config.color;
+            document.getElementById('testInstructionsContainer').style.background = config.color + '10'; // 10% opacity
+            
             openModal('testPaymentModal');
         }
 
