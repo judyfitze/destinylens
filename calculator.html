@@ -953,9 +953,47 @@
             }
         }
         
-        function continueToCalculator() {
-            // Save profile data
+        async function continueToCalculator() {
+            // Save profile data to localStorage
             saveProfileData();
+            
+            // Also save to Supabase immediately
+            try {
+                const { user } = await getCurrentUser();
+                if (user) {
+                    const profileData = {
+                        name: document.getElementById('profileName').value,
+                        gender: document.getElementById('profileGender').value,
+                        age: parseInt(document.getElementById('profileAge').value) || null,
+                        ethnicity: document.getElementById('profileEthnicity').value
+                    };
+                    
+                    // Save to a dedicated profile table or update the latest calculation
+                    const { data: latestCalc } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('id')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+                    
+                    if (latestCalc) {
+                        await supabaseClient
+                            .from('dream_life_calculations')
+                            .update({
+                                profile_name: profileData.name,
+                                profile_gender: profileData.gender,
+                                profile_age: profileData.age,
+                                profile_ethnicity: profileData.ethnicity,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', latestCalc.id);
+                        console.log('Profile saved to Supabase');
+                    }
+                }
+            } catch (err) {
+                console.log('Could not save profile to Supabase:', err);
+            }
             
             // Show progress bar and step indicator
             document.getElementById('progressBar').style.display = 'block';
@@ -1333,12 +1371,28 @@
         async function loadPreviousEntries() {
             try {
                 const { user } = await getCurrentUser();
+                
+                // First, try to load from localStorage (fastest, works even if not logged in)
+                const localProfile = localStorage.getItem('destinylens_profile');
+                if (localProfile) {
+                    try {
+                        const profileData = JSON.parse(localProfile);
+                        if (profileData.name) document.getElementById('profileName').value = profileData.name;
+                        if (profileData.gender) document.getElementById('profileGender').value = profileData.gender;
+                        if (profileData.age) document.getElementById('profileAge').value = profileData.age;
+                        if (profileData.ethnicity) document.getElementById('profileEthnicity').value = profileData.ethnicity;
+                        console.log('Loaded profile from localStorage:', profileData);
+                    } catch (e) {
+                        console.log('Error parsing localStorage profile:', e);
+                    }
+                }
+                
                 if (!user) {
-                    console.log('No user logged in, skipping load');
+                    console.log('No user logged in, skipping Supabase load');
                     return;
                 }
                 
-                console.log('Loading previous entries for user:', user.id);
+                console.log('Loading previous entries from Supabase for user:', user.id);
                 
                 const { data: calc, error } = await supabaseClient
                     .from('dream_life_calculations')
@@ -1349,17 +1403,18 @@
                     .single();
                 
                 if (error) {
-                    console.error('Error loading previous entries:', error);
+                    console.error('Error loading previous entries from Supabase:', error);
                     return;
                 }
                 
                 if (!calc) {
-                    console.log('No previous calculation found');
+                    console.log('No previous calculation found in Supabase');
                     return;
                 }
                 
-                console.log('Loaded calculation:', calc);
-                // Load profile info
+                console.log('Loaded calculation from Supabase:', calc);
+                
+                // Load profile info from Supabase (overwrites localStorage if exists)
                 if (calc.profile_name) document.getElementById('profileName').value = calc.profile_name;
                 if (calc.profile_gender) document.getElementById('profileGender').value = calc.profile_gender;
                 if (calc.profile_age) document.getElementById('profileAge').value = calc.profile_age;
