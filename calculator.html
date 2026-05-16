@@ -885,53 +885,78 @@
         }
         
         async function calculateJourneyOptions(timeframeDays) {
+            console.log('calculateJourneyOptions called with timeframeDays:', timeframeDays);
+            
+            // Check if elements exist
+            const journeyLengthDisplay = document.getElementById('journeyLengthDisplay');
+            const currentDayDisplay = document.getElementById('currentDayDisplay');
+            const journeyCurrentDayDisplay = document.getElementById('journeyCurrentDayDisplay');
+            const journeyEndDateDisplay = document.getElementById('journeyEndDateDisplay');
+            const journeyContinue = document.getElementById('journeyContinue');
+            const journeyReset = document.getElementById('journeyReset');
+            
+            console.log('Journey elements found:', {
+                journeyLengthDisplay: !!journeyLengthDisplay,
+                currentDayDisplay: !!currentDayDisplay,
+                journeyCurrentDayDisplay: !!journeyCurrentDayDisplay,
+                journeyEndDateDisplay: !!journeyEndDateDisplay,
+                journeyContinue: !!journeyContinue,
+                journeyReset: !!journeyReset
+            });
+            
             // Load existing journey data if not already loaded
             if (!originalJourneyStartDate) {
+                console.log('Loading existing journey data...');
                 await loadExistingJourneyData();
+                console.log('Journey data loaded:', originalJourneyStartDate);
             }
             
             const today = new Date();
             const journeyLength = timeframeDays || 730;
             
             // Update the display
-            document.getElementById('journeyLengthDisplay').textContent = journeyLength + ' days';
+            if (journeyLengthDisplay) journeyLengthDisplay.textContent = journeyLength + ' days';
             
             if (originalJourneyStartDate) {
+                console.log('Showing continue option');
                 // Show continue option with current day
                 const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
                 currentJourneyDay = Math.max(1, daysElapsed);
                 
-                document.getElementById('currentDayDisplay').textContent = 'Day ' + currentJourneyDay;
-                document.getElementById('journeyCurrentDayDisplay').textContent = 'Day ' + currentJourneyDay;
+                if (currentDayDisplay) currentDayDisplay.textContent = 'Day ' + currentJourneyDay;
+                if (journeyCurrentDayDisplay) journeyCurrentDayDisplay.textContent = 'Day ' + currentJourneyDay;
                 
                 // Calculate end date based on original start
                 const endDate = new Date(originalJourneyStartDate);
                 endDate.setDate(endDate.getDate() + journeyLength);
-                document.getElementById('journeyEndDateDisplay').textContent = endDate.toLocaleDateString('en-US', { 
+                if (journeyEndDateDisplay) journeyEndDateDisplay.textContent = endDate.toLocaleDateString('en-US', { 
                     year: 'numeric', month: 'long', day: 'numeric' 
                 });
                 
                 // Enable continue radio
-                document.getElementById('journeyContinue').disabled = false;
+                if (journeyContinue) journeyContinue.disabled = false;
             } else {
+                console.log('No existing journey - showing reset option only');
                 // No existing journey - only show reset option
-                document.getElementById('currentDayDisplay').textContent = 'Day 1';
-                document.getElementById('journeyCurrentDayDisplay').textContent = 'Day 1';
+                if (currentDayDisplay) currentDayDisplay.textContent = 'Day 1';
+                if (journeyCurrentDayDisplay) journeyCurrentDayDisplay.textContent = 'Day 1';
                 
                 const endDate = new Date(today);
                 endDate.setDate(endDate.getDate() + journeyLength);
-                document.getElementById('journeyEndDateDisplay').textContent = endDate.toLocaleDateString('en-US', { 
+                if (journeyEndDateDisplay) journeyEndDateDisplay.textContent = endDate.toLocaleDateString('en-US', { 
                     year: 'numeric', month: 'long', day: 'numeric' 
                 });
                 
                 // Disable continue option, select reset
-                document.getElementById('journeyContinue').disabled = true;
-                document.getElementById('journeyReset').checked = true;
+                if (journeyContinue) journeyContinue.disabled = true;
+                if (journeyReset) journeyReset.checked = true;
             }
             
             // Add event listeners to radio buttons
-            document.getElementById('journeyContinue').addEventListener('change', updateJourneyPreview);
-            document.getElementById('journeyReset').addEventListener('change', updateJourneyPreview);
+            if (journeyContinue) journeyContinue.addEventListener('change', updateJourneyPreview);
+            if (journeyReset) journeyReset.addEventListener('change', updateJourneyPreview);
+            
+            console.log('Journey options setup complete');
         }
         
         function updateJourneyPreview() {
@@ -1162,7 +1187,13 @@
             window.scrollTo(0, 0);
             
             // Now calculate and show journey options
-            await calculateJourneyOptions(calculation.timeframeDays);
+            try {
+                console.log('About to calculate journey options...');
+                await calculateJourneyOptions(calculation.timeframeDays);
+                console.log('Journey options calculated successfully');
+            } catch (err) {
+                console.error('Error calculating journey options:', err);
+            }
         }
         
         async function applyToDashboard() {
