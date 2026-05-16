@@ -858,29 +858,20 @@
                     return;
                 }
                 
-                // Load calculation separately
-                let calc = null;
-                if (settings.active_calculation_id) {
-                    const { data: calcData, error: calcError } = await supabaseClient
-                        .from('dream_life_calculations')
-                        .select('*')
-                        .eq('id', settings.active_calculation_id)
-                        .single();
-                    calc = calcData;
-                    console.log('Calculation:', calc, 'Error:', calcError);
-                }
-                
-                // Fallback to latest calculation
-                if (!calc) {
-                    const { data: latestCalcs, error: latestError } = await supabaseClient
-                        .from('dream_life_calculations')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false })
-                        .limit(1);
-                    calc = latestCalcs?.[0] || null;
-                    console.log('Latest calc:', calc, 'Error:', latestError);
-                }
+                // Load calculation - always use latest
+                console.log('Loading latest calculation for user:', userId);
+                const { data: latestCalcs, error: latestError } = await supabaseClient
+                    .from('dream_life_calculations')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                const calc = latestCalcs?.[0] || null;
+                console.log('Latest calc:', calc, 'Error:', latestError);
+                console.log('Calculation ID:', calc?.id);
+                console.log('Created at:', calc?.created_at);
+                console.log('Home amount:', calc?.home_monthly_amount);
+                console.log('Monthly total:', calc?.monthly_total);
                 
                 // Load background - fade in after load
                 if (settings.background_image_url) {
