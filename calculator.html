@@ -1348,7 +1348,7 @@
                 }
                 
                 // Link to dashboard settings
-                const continueJourney = document.getElementById('journeyContinue').checked;
+                // Re-use continueJourney from earlier in the function
                 const settingsUpdate = {
                     user_id: user.id,
                     active_calculation_id: calcData.id,
