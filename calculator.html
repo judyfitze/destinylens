@@ -909,7 +909,10 @@
         async function saveCalculationToSupabase(calculation) {
             try {
                 const { user } = await getCurrentUser();
-                if (!user) return;
+                if (!user) {
+                    console.error('No user found');
+                    return;
+                }
                 
                 // Build insert object with only fields that exist in database
                 const insertData = {
@@ -949,11 +952,17 @@
                 }
                 
                 // Save calculation
-                const { data: calcData, error: calcError } = await supabaseClient
+                let calcData = null;
+                let calcError = null;
+                
+                const result = await supabaseClient
                     .from('dream_life_calculations')
                     .insert(insertData)
                     .select()
                     .single();
+                
+                calcData = result.data;
+                calcError = result.error;
                 
                 if (calcError) {
                     console.error('Supabase insert error:', calcError);
@@ -977,17 +986,23 @@
                     }
                     
                     // Retry with reduced fields
-                    const { data: retryData, error: retryError } = await supabaseClient
+                    const retryResult = await supabaseClient
                         .from('dream_life_calculations')
                         .insert(insertData)
                         .select()
                         .single();
                     
-                    if (retryError) {
-                        console.error('Retry failed:', retryError);
-                        throw retryError;
+                    if (retryResult.error) {
+                        console.error('Retry failed:', retryResult.error);
+                        throw retryResult.error;
                     }
+                    
+                    calcData = retryResult.data;
                     console.log('Calculation saved (with compatible fields only)');
+                }
+                
+                if (!calcData || !calcData.id) {
+                    throw new Error('No calculation data returned after save');
                 }
                 
                 // Link to dashboard settings
@@ -1013,18 +1028,34 @@
         
         // Load from Supabase on page load
         async function loadPreviousEntries() {
-            const { user } = await getCurrentUser();
-            if (!user) return;
-            
-            const { data: calc } = await supabaseClient
-                .from('dream_life_calculations')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-            
-            if (calc) {
+            try {
+                const { user } = await getCurrentUser();
+                if (!user) {
+                    console.log('No user logged in, skipping load');
+                    return;
+                }
+                
+                console.log('Loading previous entries for user:', user.id);
+                
+                const { data: calc, error } = await supabaseClient
+                    .from('dream_life_calculations')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+                
+                if (error) {
+                    console.error('Error loading previous entries:', error);
+                    return;
+                }
+                
+                if (!calc) {
+                    console.log('No previous calculation found');
+                    return;
+                }
+                
+                console.log('Loaded calculation:', calc);
                 // Load profile info
                 if (calc.profile_name) document.getElementById('profileName').value = calc.profile_name;
                 if (calc.profile_gender) document.getElementById('profileGender').value = calc.profile_gender;
@@ -1061,6 +1092,8 @@
                         list.appendChild(row);
                     });
                 }
+            } catch (err) {
+                console.error('Error in loadPreviousEntries:', err);
             }
         }
         
