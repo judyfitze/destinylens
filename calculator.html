@@ -957,22 +957,37 @@
                 
                 if (calcError) {
                     console.error('Supabase insert error:', calcError);
-                    // Try without profile fields if that fails
-                    if (calcError.message && calcError.message.includes('profile_')) {
+                    // Try removing fields that don't exist in database
+                    const errorMsg = calcError.message || '';
+                    
+                    if (errorMsg.includes('custom_goals')) {
+                        delete insertData.custom_goals;
+                    }
+                    if (errorMsg.includes('profile_')) {
                         delete insertData.profile_name;
                         delete insertData.profile_gender;
                         delete insertData.profile_age;
                         delete insertData.profile_ethnicity;
-                        const { data: retryData, error: retryError } = await supabaseClient
-                            .from('dream_life_calculations')
-                            .insert(insertData)
-                            .select()
-                            .single();
-                        if (retryError) throw retryError;
-                        console.log('Calculation saved (without profile fields)');
-                    } else {
-                        throw calcError;
                     }
+                    if (errorMsg.includes('is_active')) {
+                        delete insertData.is_active;
+                    }
+                    if (errorMsg.includes('timeframe_days')) {
+                        delete insertData.timeframe_days;
+                    }
+                    
+                    // Retry with reduced fields
+                    const { data: retryData, error: retryError } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .insert(insertData)
+                        .select()
+                        .single();
+                    
+                    if (retryError) {
+                        console.error('Retry failed:', retryError);
+                        throw retryError;
+                    }
+                    console.log('Calculation saved (with compatible fields only)');
                 }
                 
                 // Link to dashboard settings
