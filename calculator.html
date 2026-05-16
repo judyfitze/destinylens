@@ -953,47 +953,10 @@
             }
         }
         
-        async function continueToCalculator() {
-            // Save profile data to localStorage
+        function continueToCalculator() {
+            // Save profile data to localStorage immediately
             saveProfileData();
-            
-            // Also save to Supabase immediately
-            try {
-                const { user } = await getCurrentUser();
-                if (user) {
-                    const profileData = {
-                        name: document.getElementById('profileName').value,
-                        gender: document.getElementById('profileGender').value,
-                        age: parseInt(document.getElementById('profileAge').value) || null,
-                        ethnicity: document.getElementById('profileEthnicity').value
-                    };
-                    
-                    // Save to a dedicated profile table or update the latest calculation
-                    const { data: latestCalc } = await supabaseClient
-                        .from('dream_life_calculations')
-                        .select('id')
-                        .eq('user_id', user.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .single();
-                    
-                    if (latestCalc) {
-                        await supabaseClient
-                            .from('dream_life_calculations')
-                            .update({
-                                profile_name: profileData.name,
-                                profile_gender: profileData.gender,
-                                profile_age: profileData.age,
-                                profile_ethnicity: profileData.ethnicity,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', latestCalc.id);
-                        console.log('Profile saved to Supabase');
-                    }
-                }
-            } catch (err) {
-                console.log('Could not save profile to Supabase:', err);
-            }
+            console.log('Profile saved to localStorage, navigating to calculator...');
             
             // Show progress bar and step indicator
             document.getElementById('progressBar').style.display = 'block';
@@ -1003,6 +966,45 @@
             currentQuestion = 1;
             updateProgress();
             showPage('question1');
+            
+            // Also try to save to Supabase in the background (don't block navigation)
+            (async () => {
+                try {
+                    const { user } = await getCurrentUser();
+                    if (user) {
+                        const profileData = {
+                            name: document.getElementById('profileName').value,
+                            gender: document.getElementById('profileGender').value,
+                            age: parseInt(document.getElementById('profileAge').value) || null,
+                            ethnicity: document.getElementById('profileEthnicity').value
+                        };
+                        
+                        const { data: latestCalc } = await supabaseClient
+                            .from('dream_life_calculations')
+                            .select('id')
+                            .eq('user_id', user.id)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+                        
+                        if (latestCalc) {
+                            await supabaseClient
+                                .from('dream_life_calculations')
+                                .update({
+                                    profile_name: profileData.name,
+                                    profile_gender: profileData.gender,
+                                    profile_age: profileData.age,
+                                    profile_ethnicity: profileData.ethnicity,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', latestCalc.id);
+                            console.log('Profile also saved to Supabase');
+                        }
+                    }
+                } catch (err) {
+                    console.log('Could not save profile to Supabase:', err);
+                }
+            })();
         }
         
         function nextQuestion() {
