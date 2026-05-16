@@ -646,25 +646,6 @@
             
             const calculation = calc;
             
-            // Calculate and display journey progress
-            if (calculation) {
-                const timeframeDays = calculation.timeframe_days || 730;
-                const journeyStartDate = calculation.journey_start_date 
-                    ? new Date(calculation.journey_start_date) 
-                    : new Date(calculation.created_at);
-                const todayDate = new Date();
-                const daysElapsed = Math.floor((todayDate - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
-                const currentDay = Math.min(daysElapsed, timeframeDays);
-                const progressPercent = Math.round((todayIncome / (calculation.daily_total || 1)) * 100);
-                
-                document.getElementById('journeyStatus').textContent = 
-                    `Day ${currentDay} of ${timeframeDays} • You're ${progressPercent}% to today's target`;
-                
-                console.log('Journey status:', { currentDay, timeframeDays, progressPercent, journeyStartDate });
-            } else {
-                document.getElementById('journeyStatus').textContent = 'Start your Dream Life journey today!';
-            }
-            
             // Get manual income entries with cache-busting - force fresh data
             const { data: manualIncomeEntries } = await supabaseClient
                 .from('manual_income_entries')
@@ -696,6 +677,25 @@
             const todayIncome = allIncomeEntries
                 ?.filter(e => e.entry_date === today)
                 ?.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0) || 0;
+            
+            // Calculate and display journey progress (AFTER we have todayIncome)
+            if (calculation) {
+                const timeframeDays = calculation.timeframe_days || 730;
+                const journeyStartDate = calculation.journey_start_date 
+                    ? new Date(calculation.journey_start_date) 
+                    : new Date(calculation.created_at);
+                const todayDate = new Date();
+                const daysElapsed = Math.floor((todayDate - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                const currentDay = Math.min(daysElapsed, timeframeDays);
+                const progressPercent = Math.round((todayIncome / (calculation.daily_total || 1)) * 100);
+                
+                document.getElementById('journeyStatus').textContent = 
+                    `Day ${currentDay} of ${timeframeDays} • You're ${progressPercent}% to today's target`;
+                
+                console.log('Journey status:', { currentDay, timeframeDays, progressPercent, todayIncome, dailyTotal: calculation.daily_total });
+            } else {
+                document.getElementById('journeyStatus').textContent = 'Start your Dream Life journey today!';
+            }
             
             // Get last 7 days for weekly
             const weekAgo = new Date();
