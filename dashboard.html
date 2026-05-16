@@ -810,17 +810,38 @@
                     return;
                 }
                 
-                // Load calculation - always use latest with cache-busting - force fresh data
-                console.log('Loading latest calculation for user:', userId);
-                const cacheBuster = Date.now();
-                const { data: latestCalcs, error: latestError } = await supabaseClient
-                    .from('dream_life_calculations')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                const calc = latestCalcs?.[0] || null;
-                console.log('Latest calc:', calc, 'Error:', latestError);
+                // Load calculation - use active_calculation_id from settings if available
+                console.log('Loading calculation for user:', userId);
+                console.log('Active calculation ID from settings:', settings?.active_calculation_id);
+                
+                let calc = null;
+                let latestError = null;
+                
+                if (settings?.active_calculation_id) {
+                    // Load the specific active calculation
+                    const { data: activeCalc, error } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('*')
+                        .eq('id', settings.active_calculation_id)
+                        .single();
+                    calc = activeCalc;
+                    latestError = error;
+                    console.log('Loaded active calculation:', calc);
+                }
+                
+                // Fallback to latest if no active calculation or error
+                if (!calc && !latestError) {
+                    const { data: latestCalcs, error } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    calc = latestCalcs?.[0] || null;
+                    latestError = error;
+                    console.log('Fallback to latest calculation:', calc);
+                }
+                
                 console.log('Calculation ID:', calc?.id);
                 console.log('Created at:', calc?.created_at);
                 console.log('Home amount:', calc?.home_monthly_amount);

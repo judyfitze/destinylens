@@ -595,21 +595,51 @@
             
             const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             
-            // Get calculation from Supabase - always use latest with cache-busting - force fresh data
+            // Get active calculation from dashboard_settings first, then fallback to latest
             console.log('Loading calculation for user:', user.id);
-            const { data: calc, error: calcError } = await supabaseClient
-                .from('dream_life_calculations')
-                .select('*')
+            
+            const { data: settings, error: settingsError } = await supabaseClient
+                .from('dashboard_settings')
+                .select('active_calculation_id')
                 .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
                 .single();
+            
+            console.log('Dashboard settings:', settings, 'Error:', settingsError);
+            
+            let calc = null;
+            let calcError = null;
+            
+            if (settings?.active_calculation_id) {
+                // Load the specific active calculation
+                const { data: activeCalc, error } = await supabaseClient
+                    .from('dream_life_calculations')
+                    .select('*')
+                    .eq('id', settings.active_calculation_id)
+                    .single();
+                calc = activeCalc;
+                calcError = error;
+                console.log('Loaded active calculation:', calc);
+            }
+            
+            // Fallback to latest if no active calculation or error
+            if (!calc) {
+                const { data: latestCalc, error } = await supabaseClient
+                    .from('dream_life_calculations')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+                calc = latestCalc;
+                calcError = error;
+                console.log('Fallback to latest calculation:', calc);
+            }
             
             if (calcError) {
                 console.error('Error loading calculation:', calcError);
             }
             
-            console.log('Loaded calculation:', calc);
+            console.log('Calculation ID:', calc?.id);
             console.log('Calculation created_at:', calc?.created_at);
             console.log('Home amount:', calc?.home_monthly_amount);
             console.log('Monthly total:', calc?.monthly_total);
