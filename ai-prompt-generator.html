@@ -513,6 +513,7 @@
         let goalCards = [];
         let mainPrompt = '';
         let goalPrompts = [];
+        let profileInfo = null;
         
         // Initialize
         document.addEventListener('DOMContentLoaded', init);
@@ -573,6 +574,14 @@
                     
                     if (calcError) throw calcError;
                     userData = calc;
+                    
+                    // Extract profile info
+                    profileInfo = {
+                        name: calc.profile_name || '',
+                        gender: calc.profile_gender || '',
+                        age: calc.profile_age || '',
+                        ethnicity: calc.profile_ethnicity || ''
+                    };
                 }
                 
                 // Load goal cards
@@ -602,11 +611,11 @@
         function createGoalCardsFromCalculation(calc) {
             const goals = [];
             const goalMap = [
-                { key: 'home', icon: '🏖️', title: 'Dream Home' },
+                { key: 'home', icon: '🏖️', title: 'Home' },
                 { key: 'vehicle', icon: '🚗', title: 'Dream Vehicle' },
                 { key: 'travel', icon: '✈️', title: 'Travel' },
                 { key: 'food', icon: '🍽️', title: 'Food & Dining' },
-                { key: 'trainer', icon: '💪', title: 'Personal Trainer' },
+                { key: 'trainer', icon: '💪', title: 'Wellness/Fitness' },
                 { key: 'chef', icon: '👨‍🍳', title: 'Personal Chef' },
                 { key: 'college', icon: '🎓', title: 'Education' },
                 { key: 'retirement', icon: '📈', title: 'Investments' }
@@ -614,15 +623,27 @@
             
             goalMap.forEach(g => {
                 const monthlyAmount = calc[g.key + '_monthly_amount'];
-                if (monthlyAmount && monthlyAmount > 0) {
-                    goals.push({
-                        icon: g.icon,
-                        title: g.title,
-                        monthly_amount: monthlyAmount,
-                        description: calc[g.key + '_description'] || ''
-                    });
-                }
+                // Include all 8 standard goals, even if amount is 0
+                goals.push({
+                    icon: g.icon,
+                    title: g.title,
+                    monthly_amount: monthlyAmount || 0,
+                    description: calc[g.key + '_description'] || ''
+                });
             });
+            
+            // Add custom goals from custom_goals JSONB
+            if (calc.custom_goals && Array.isArray(calc.custom_goals)) {
+                calc.custom_goals.forEach((customGoal, index) => {
+                    goals.push({
+                        icon: '⭐',
+                        title: customGoal.label || `Custom Goal ${index + 1}`,
+                        monthly_amount: customGoal.amount || 0,
+                        description: customGoal.description || '',
+                        isCustom: true
+                    });
+                });
+            }
             
             return goals;
         }
@@ -647,10 +668,23 @@
         }
         
         function generateMainScenePrompt(data) {
-            const location = data.location || 'a beautiful location';
-            const timeframe = data.timeframe_years || 2;
+            const location = data.home_location || data.location || 'a beautiful location';
+            const timeframe = data.timeframe_days ? Math.round(data.timeframe_days / 365) : 2;
             const yearlyTotal = data.yearly_total || 0;
             const monthlyTotal = data.monthly_total || 0;
+            
+            // Build profile description for personalization
+            let profileDesc = '';
+            if (profileInfo) {
+                const parts = [];
+                if (profileInfo.age) parts.push(`${profileInfo.age}-year-old`);
+                if (profileInfo.gender && profileInfo.gender !== 'Prefer not to say') parts.push(profileInfo.gender.toLowerCase());
+                if (profileInfo.ethnicity) parts.push(profileInfo.ethnicity);
+                if (profileInfo.name) parts.push(`named ${profileInfo.name}`);
+                if (parts.length > 0) {
+                    profileDesc = 'A ' + parts.join(' ') + ' person';
+                }
+            }
             
             // Build scene elements based on what's in the calculation
             const elements = [];
@@ -675,7 +709,9 @@
                 ? elements.join(', ') 
                 : 'living your dream life with financial freedom and abundance';
             
-            return `Create a stunning, photorealistic visualization of a successful person ${sceneDescription} in ${location}. 
+            const subjectDesc = profileDesc || 'A successful person';
+            
+            return `Create a stunning, photorealistic visualization of ${subjectDesc} ${sceneDescription} in ${location}. 
 
 Scene details:
 - Location: ${location}
@@ -690,37 +726,53 @@ The image should evoke feelings of accomplishment, freedom, and the reward of di
         }
         
         function generateGoalPrompt(goal, data) {
-            const location = data.location || 'a beautiful location';
+            const location = data.home_location || data.location || 'a beautiful location';
+            
+            // Build profile description for personalization
+            let profileDesc = '';
+            if (profileInfo) {
+                const parts = [];
+                if (profileInfo.age) parts.push(`${profileInfo.age}-year-old`);
+                if (profileInfo.gender && profileInfo.gender !== 'Prefer not to say') parts.push(profileInfo.gender.toLowerCase());
+                if (profileInfo.ethnicity) parts.push(profileInfo.ethnicity);
+                if (parts.length > 0) {
+                    profileDesc = ' featuring a ' + parts.join(' ') + ' person';
+                }
+            }
             
             let sceneSpecifics = '';
             
             switch(goal.title) {
-                case 'Dream Home':
-                    sceneSpecifics = `A stunning ${goal.description || 'dream home'} in ${location}. Architectural photography style, showcasing the beauty and comfort of the space. Warm interior lighting, inviting atmosphere, attention to detail in design elements.`;
+                case 'Home':
+                    sceneSpecifics = `A stunning ${goal.description || 'dream home'} in ${location}${profileDesc}. Architectural photography style, showcasing the beauty and comfort of the space. Warm interior lighting, inviting atmosphere, attention to detail in design elements.`;
                     break;
                 case 'Dream Vehicle':
-                    sceneSpecifics = `A ${goal.description || 'luxury vehicle'} parked in an scenic location in ${location}. Automotive photography style, sleek and polished, golden hour lighting reflecting off the curves, sense of freedom and adventure.`;
+                    sceneSpecifics = `A ${goal.description || 'luxury vehicle'} parked in a scenic location in ${location}${profileDesc}. Automotive photography style, sleek and polished, golden hour lighting reflecting off the curves, sense of freedom and adventure.`;
                     break;
                 case 'Travel':
-                    sceneSpecifics = `Travel scene at ${goal.description || 'an exotic destination'}. Wanderlust photography style, breathtaking scenery, sense of exploration and discovery, vibrant colors, memorable moments.`;
+                    sceneSpecifics = `Travel scene at ${goal.description || 'an exotic destination'}${profileDesc}. Wanderlust photography style, breathtaking scenery, sense of exploration and discovery, vibrant colors, memorable moments.`;
                     break;
                 case 'Food & Dining':
-                    sceneSpecifics = `Exquisite dining experience at ${goal.description || 'a fine restaurant'}. Food photography style, beautifully plated gourmet dishes, elegant table setting, ambient restaurant lighting, celebration of culinary arts.`;
+                    sceneSpecifics = `Exquisite dining experience at ${goal.description || 'a fine restaurant'}${profileDesc}. Food photography style, beautifully plated gourmet dishes, elegant table setting, ambient restaurant lighting, celebration of culinary arts.`;
                     break;
-                case 'Personal Trainer':
-                    sceneSpecifics = `Fitness and wellness scene in ${location}. Health and wellness photography, vibrant energy, modern gym or outdoor workout space, feeling of strength and vitality.`;
+                case 'Wellness/Fitness':
+                    sceneSpecifics = `Fitness and wellness scene in ${location}${profileDesc}. Health and wellness photography, vibrant energy, modern gym or outdoor workout space, feeling of strength and vitality.`;
                     break;
                 case 'Personal Chef':
-                    sceneSpecifics = `Gourmet kitchen scene with professional chef preparing meals. Culinary photography, fresh ingredients, artistic food presentation, warm kitchen atmosphere, celebration of fine dining at home.`;
+                    sceneSpecifics = `Gourmet kitchen scene with professional chef preparing meals${profileDesc}. Culinary photography, fresh ingredients, artistic food presentation, warm kitchen atmosphere, celebration of fine dining at home.`;
                     break;
                 case 'Education':
-                    sceneSpecifics = `Educational achievement scene in ${location}. Inspirational academic setting, books and learning materials, sense of growth and knowledge, bright and motivating atmosphere.`;
+                    sceneSpecifics = `Educational achievement scene in ${location}${profileDesc}. Inspirational academic setting, books and learning materials, sense of growth and knowledge, bright and motivating atmosphere.`;
                     break;
                 case 'Investments':
-                    sceneSpecifics = `Symbol of financial growth and investment success. Business photography style, modern office or home workspace, charts showing growth, sense of security and smart planning.`;
+                    sceneSpecifics = `Symbol of financial growth and investment success${profileDesc}. Business photography style, modern office or home workspace, charts showing growth, sense of security and smart planning.`;
                     break;
                 default:
-                    sceneSpecifics = `Visualization of ${goal.title} in ${location}. Lifestyle photography, aspirational yet realistic, warm lighting, sense of achievement and fulfillment.`;
+                    if (goal.isCustom) {
+                        sceneSpecifics = `Visualization of ${goal.title}: ${goal.description || ''}${profileDesc}. Lifestyle photography, aspirational yet realistic, warm lighting, sense of achievement and fulfillment.`;
+                    } else {
+                        sceneSpecifics = `Visualization of ${goal.title} in ${location}${profileDesc}. Lifestyle photography, aspirational yet realistic, warm lighting, sense of achievement and fulfillment.`;
+                    }
             }
             
             return `Create a vivid, photorealistic image representing: ${sceneSpecifics}

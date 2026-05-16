@@ -413,10 +413,42 @@
         <div class="progress-bar">
             <div class="progress-fill" id="progressFill" style="width: 11%"></div>
         </div>
-        <div class="step-indicator" id="stepIndicator">Question 1 of 9</div>
+        <div class="step-indicator" id="stepIndicator">Question 1 of 10</div>
+        
+        <!-- Question 0: Profile Info -->
+        <div class="question-container active" data-step="0">
+            <h2 class="question-title">This dream life is for:</h2>
+            <p class="question-subtitle">Tell us a bit about yourself to create personalized AI vision board images.</p>
+            <div class="input-group">
+                <label>Name</label>
+                <input type="text" id="profileName" placeholder="Your name">
+            </div>
+            <div class="input-group">
+                <label>Gender</label>
+                <select id="profileGender" style="width: 100%; padding: 16px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 1rem; font-family: inherit;">
+                    <option value="" style="background: #1a1a2e;">Select gender</option>
+                    <option value="Male" style="background: #1a1a2e;">Male</option>
+                    <option value="Female" style="background: #1a1a2e;">Female</option>
+                    <option value="Non-binary" style="background: #1a1a2e;">Non-binary</option>
+                    <option value="Prefer not to say" style="background: #1a1a2e;">Prefer not to say</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Age</label>
+                <input type="number" id="profileAge" placeholder="Your age" min="1" max="120">
+            </div>
+            <div class="input-group">
+                <label>Ethnicity</label>
+                <input type="text" id="profileEthnicity" placeholder="e.g., Caucasian, Asian, Hispanic, African American, Mixed, etc.">
+            </div>
+            <div class="microcopy">This information is used to generate more realistic and personalized AI image creation prompts for your vision board. Your data is private and secure.</div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+            </div>
+        </div>
         
         <!-- Question 1: Dream Home -->
-        <div class="question-container active" data-step="1">
+        <div class="question-container" data-step="1">
             <h2 class="question-title">Where do you want to live?</h2>
             <p class="question-subtitle">Describe your dream home — and what would the exact monthly mortgage or rent be? Down to the penny.</p>
             <div class="microcopy">"There's no need to shrink the dream here. Just name it clearly."</div>
@@ -654,8 +686,8 @@
         </div>
     </div>
     <script>
-        let currentStep = 1;
-        const totalSteps = 10;
+        let currentStep = 0;
+        const totalSteps = 11;
         
         function updateProgress() {
             const progress = (currentStep / totalSteps) * 100;
@@ -708,6 +740,19 @@
             }
         }
         
+        function collectCustomGoals() {
+            const goals = [];
+            document.querySelectorAll('.expense-row').forEach(row => {
+                const label = row.querySelector('.other-label')?.value?.trim();
+                const desc = row.querySelector('.other-desc')?.value?.trim();
+                const amount = parseFloat(row.querySelector('.other-amount')?.value) || 0;
+                if (label && (desc || amount > 0)) {
+                    goals.push({ label, description: desc, amount });
+                }
+            });
+            return goals;
+        }
+        
         function calculateResults() {
             // Helper to parse amount with proper rounding
             const parseAmount = (val) => Math.round((parseFloat(val) || 0) * 100) / 100;
@@ -748,16 +793,23 @@
             const calculation = {
                 monthly, yearly, weekly, daily, hourly,
                 timeframeDays,
+                profile: {
+                    name: document.getElementById('profileName').value,
+                    gender: document.getElementById('profileGender').value,
+                    age: parseInt(document.getElementById('profileAge').value) || null,
+                    ethnicity: document.getElementById('profileEthnicity').value
+                },
                 answers: {
                     home: { description: document.getElementById('homeDescription').value, amount: parseAmount(document.getElementById('homeAmount').value) },
                     vehicle: { description: document.getElementById('vehicleDescription').value, amount: parseAmount(document.getElementById('vehicleAmount').value) },
                     travel: { description: document.getElementById('travelDescription').value, amount: parseAmount(document.getElementById('travelAmount').value) },
                     food: { description: document.getElementById('foodDescription').value, amount: parseAmount(document.getElementById('foodAmount').value) },
-                    trainer: { description: document.getElementById('trainerDescription').value, amount: parseAmount(document.getElementById('trainerAmount').value) },
+                    wellness: { description: document.getElementById('trainerDescription').value, amount: parseAmount(document.getElementById('trainerAmount').value) },
                     chef: { description: document.getElementById('chefDescription').value, amount: parseAmount(document.getElementById('chefAmount').value) },
-                    college: { description: document.getElementById('collegeDescription').value, amount: parseAmount(document.getElementById('collegeAmount').value) },
-                    retirement: { description: document.getElementById('retirementDescription').value, amount: parseAmount(document.getElementById('retirementAmount').value) }
+                    education: { description: document.getElementById('collegeDescription').value, amount: parseAmount(document.getElementById('collegeAmount').value) },
+                    investments: { description: document.getElementById('retirementDescription').value, amount: parseAmount(document.getElementById('retirementAmount').value) }
                 },
+                customGoals: collectCustomGoals()
                 timestamp: new Date().toISOString()
             };
             // Save to Supabase and link to dashboard
@@ -819,14 +871,19 @@
                         travel_monthly_amount: calculation.answers.travel.amount,
                         food_description: calculation.answers.food.description,
                         food_monthly_amount: calculation.answers.food.amount,
-                        trainer_description: calculation.answers.trainer.description,
-                        trainer_monthly_amount: calculation.answers.trainer.amount,
+                        trainer_description: calculation.answers.wellness.description,
+                        trainer_monthly_amount: calculation.answers.wellness.amount,
                         chef_description: calculation.answers.chef.description,
                         chef_monthly_amount: calculation.answers.chef.amount,
-                        college_description: calculation.answers.college.description,
-                        college_monthly_amount: calculation.answers.college.amount,
-                        retirement_description: calculation.answers.retirement.description,
-                        retirement_monthly_amount: calculation.answers.retirement.amount,
+                        college_description: calculation.answers.education.description,
+                        college_monthly_amount: calculation.answers.education.amount,
+                        retirement_description: calculation.answers.investments.description,
+                        retirement_monthly_amount: calculation.answers.investments.amount,
+                        profile_name: calculation.profile.name,
+                        profile_gender: calculation.profile.gender,
+                        profile_age: calculation.profile.age,
+                        profile_ethnicity: calculation.profile.ethnicity,
+                        custom_goals: calculation.customGoals,
                         monthly_total: calculation.monthly,
                         yearly_total: calculation.yearly,
                         weekly_total: calculation.weekly,
@@ -875,6 +932,13 @@
                 .single();
             
             if (calc) {
+                // Load profile info
+                if (calc.profile_name) document.getElementById('profileName').value = calc.profile_name;
+                if (calc.profile_gender) document.getElementById('profileGender').value = calc.profile_gender;
+                if (calc.profile_age) document.getElementById('profileAge').value = calc.profile_age;
+                if (calc.profile_ethnicity) document.getElementById('profileEthnicity').value = calc.profile_ethnicity;
+                
+                // Load standard goals
                 if (calc.home_description) { document.getElementById('homeDescription').value = calc.home_description; document.getElementById('homeAmount').value = calc.home_monthly_amount || ''; }
                 if (calc.vehicle_description) { document.getElementById('vehicleDescription').value = calc.vehicle_description; document.getElementById('vehicleAmount').value = calc.vehicle_monthly_amount || ''; }
                 if (calc.travel_description) { document.getElementById('travelDescription').value = calc.travel_description; document.getElementById('travelAmount').value = calc.travel_monthly_amount || ''; }
@@ -884,6 +948,23 @@
                 if (calc.college_description) { document.getElementById('collegeDescription').value = calc.college_description; document.getElementById('collegeAmount').value = calc.college_monthly_amount || ''; }
                 if (calc.retirement_description) { document.getElementById('retirementDescription').value = calc.retirement_description; document.getElementById('retirementAmount').value = calc.retirement_monthly_amount || ''; }
                 if (calc.timeframe_days) { document.getElementById('timeframeDays').value = calc.timeframe_days; }
+                
+                // Load custom goals
+                if (calc.custom_goals && Array.isArray(calc.custom_goals) && calc.custom_goals.length > 0) {
+                    const list = document.getElementById('otherExpensesList');
+                    list.innerHTML = ''; // Clear existing rows
+                    calc.custom_goals.forEach(goal => {
+                        const row = document.createElement('div');
+                        row.className = 'expense-row';
+                        row.innerHTML = `
+                            <input type="text" placeholder="Category" class="other-label" value="${goal.label || ''}">
+                            <input type="text" placeholder="Description" class="other-desc" value="${goal.description || ''}">
+                            <input type="number" placeholder="0.00" step="0.01" class="other-amount" value="${goal.amount || ''}">
+                            <button class="btn-remove" onclick="removeExpenseRow(this)">×</button>
+                        `;
+                        list.appendChild(row);
+                    });
+                }
             }
         }
         

@@ -8,6 +8,12 @@ CREATE TABLE dream_life_calculations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     
+    -- Profile Info (for AI prompt personalization)
+    profile_name TEXT,
+    profile_gender TEXT,
+    profile_age INTEGER,
+    profile_ethnicity TEXT,
+    
     -- Home
     home_description TEXT,
     home_location TEXT,
@@ -43,6 +49,9 @@ CREATE TABLE dream_life_calculations (
     
     -- Other expenses (JSON array)
     other_expenses JSONB DEFAULT '[]'::jsonb,
+    
+    -- Custom goals (JSON array for flexible goal storage)
+    custom_goals JSONB DEFAULT '[]'::jsonb,
     
     -- Timeframe for manifestation
     timeframe_days INTEGER DEFAULT 730,
