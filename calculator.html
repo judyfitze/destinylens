@@ -826,16 +826,24 @@
         }
         
         function showPage(pageId) {
+            console.log('showPage called with:', pageId);
+            
             // Hide all pages
-            document.querySelectorAll('.page-container').forEach(page => {
+            const allPages = document.querySelectorAll('.page-container');
+            console.log('Found', allPages.length, 'pages to hide');
+            allPages.forEach(page => {
                 page.classList.remove('active');
             });
             
             // Show target page
             const targetPage = document.getElementById(pageId);
+            console.log('Target page found:', !!targetPage);
             if (targetPage) {
                 targetPage.classList.add('active');
+                console.log('Added active class to', pageId);
                 window.scrollTo(0, 0);
+            } else {
+                console.error('Target page not found:', pageId);
             }
         }
         
@@ -954,18 +962,25 @@
         }
         
         function continueToCalculator() {
+            console.log('continueToCalculator called');
+            
             // Save profile data to localStorage immediately
             saveProfileData();
-            console.log('Profile saved to localStorage, navigating to calculator...');
+            console.log('Profile saved to localStorage');
             
             // Show progress bar and step indicator
-            document.getElementById('progressBar').style.display = 'block';
-            document.getElementById('stepIndicator').style.display = 'block';
+            const progressBar = document.getElementById('progressBar');
+            const stepIndicator = document.getElementById('stepIndicator');
+            if (progressBar) progressBar.style.display = 'block';
+            if (stepIndicator) stepIndicator.style.display = 'block';
+            console.log('Progress bar and step indicator shown');
             
             // Go to first question
             currentQuestion = 1;
             updateProgress();
+            console.log('About to show question1 page');
             showPage('question1');
+            console.log('Navigation complete');
             
             // Also try to save to Supabase in the background (don't block navigation)
             (async () => {
