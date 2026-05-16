@@ -1150,15 +1150,9 @@
                 timestamp: new Date().toISOString()
             };
             
-            // Save to Supabase and link to dashboard - MUST await before redirecting
-            try {
-                await saveCalculationToSupabase(calculation);
-                console.log('Calculation saved successfully, now showing results');
-            } catch (err) {
-                console.error('Failed to save calculation:', err);
-                alert('Error saving your Dream Life calculation. Please try again.');
-                return; // Don't show results if save failed
-            }
+            // Store calculation data globally for later save
+            window.pendingCalculation = calculation;
+            console.log('Calculation ready, showing results page');
             
             // Hide all question pages and progress
             document.querySelectorAll('.page-container').forEach(c => c.classList.remove('active'));
@@ -1166,12 +1160,37 @@
             document.getElementById('stepIndicator').style.display = 'none';
             document.getElementById('resultsContainer').classList.add('active');
             window.scrollTo(0, 0);
+            
+            // Now calculate and show journey options
+            await calculateJourneyOptions(calculation.timeframeDays);
         }
         
         async function applyToDashboard() {
-            // Ensure any pending save completes before redirecting
-            console.log('Applying to dashboard, ensuring save is complete...');
-            window.location.href = '/members.html';
+            console.log('Applying to dashboard, saving calculation...');
+            
+            // Get the pending calculation
+            const calculation = window.pendingCalculation;
+            if (!calculation) {
+                console.error('No pending calculation found');
+                alert('Error: No calculation data found. Please try again.');
+                return;
+            }
+            
+            // Capture journey choice
+            const journeyContinue = document.getElementById('journeyContinue');
+            if (journeyContinue) {
+                window.selectedJourneyOption = journeyContinue.checked ? 'continue' : 'reset';
+            }
+            
+            // Now save to Supabase
+            try {
+                await saveCalculationToSupabase(calculation);
+                console.log('Calculation saved successfully, redirecting to dashboard...');
+                window.location.href = '/members.html';
+            } catch (err) {
+                console.error('Failed to save calculation:', err);
+                alert('Error saving your Dream Life calculation. Please try again.');
+            }
         }
         
         async function generatePrompt() {
@@ -1247,22 +1266,23 @@
                 }
                 insertData.is_active = true;
                 
-                // Handle journey options
-                const continueJourney = document.getElementById('journeyContinue').checked;
-                
-                if (continueJourney && originalJourneyStartDate) {
-                    // Continue from original journey
-                    insertData.journey_start_date = originalJourneyStartDate.toISOString();
-                    insertData.original_journey_calculation_id = originalJourneyCalculationId;
-                    console.log('Continuing journey from:', originalJourneyStartDate);
-                } else {
-                    // Start fresh - use current date
-                    insertData.journey_start_date = new Date().toISOString();
-                    if (originalJourneyCalculationId) {
-                        // This is a reset, but keep reference to original
+                // Handle journey options - use global variable set by results page
+                if (typeof window.selectedJourneyOption !== 'undefined') {
+                    if (window.selectedJourneyOption === 'continue' && originalJourneyStartDate) {
+                        insertData.journey_start_date = originalJourneyStartDate.toISOString();
                         insertData.original_journey_calculation_id = originalJourneyCalculationId;
+                        console.log('Continuing journey from:', originalJourneyStartDate);
+                    } else {
+                        insertData.journey_start_date = new Date().toISOString();
+                        if (originalJourneyCalculationId) {
+                            insertData.original_journey_calculation_id = originalJourneyCalculationId;
+                        }
+                        console.log('Starting fresh journey from:', insertData.journey_start_date);
                     }
-                    console.log('Starting fresh journey from:', insertData.journey_start_date);
+                } else {
+                    // Default: start fresh
+                    insertData.journey_start_date = new Date().toISOString();
+                    console.log('Default: Starting fresh journey from:', insertData.journey_start_date);
                 }
                 
                 // Only add profile fields if they exist in the object
