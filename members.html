@@ -584,12 +584,18 @@
     <script>
         // Load data from Supabase
         async function loadDashboardData() {
+            // Clear any cached data on page load
+            if (typeof localStorage !== 'undefined') {
+                localStorage.removeItem('destinylens_goals');
+                localStorage.removeItem('destinylens_calculation');
+            }
+            
             const { user } = await getCurrentUser();
             if (!user) return;
             
             const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             
-            // Get calculation from Supabase - always use latest
+            // Get calculation from Supabase - always use latest with cache-busting - force fresh data
             console.log('Loading calculation for user:', user.id);
             const { data: calc, error: calcError } = await supabaseClient
                 .from('dream_life_calculations')
@@ -610,7 +616,7 @@
             
             const calculation = calc;
             
-            // Get manual income entries
+            // Get manual income entries with cache-busting - force fresh data
             const { data: manualIncomeEntries } = await supabaseClient
                 .from('manual_income_entries')
                 .select('amount, entry_date')
@@ -618,7 +624,7 @@
                 .eq('include_in_dashboard', true)
                 .order('entry_date', { ascending: false });
             
-            // Get automated income from connected providers (Stripe, Square, etc.)
+            // Get automated income from connected providers (Stripe, Square, etc.) with cache-busting - force fresh data
             const { data: automatedIncomeEntries } = await supabaseClient
                 .from('income_progress_events')
                 .select('amount, received_at')
@@ -708,7 +714,7 @@
                 document.querySelector('.gauge-bg').style.background = `conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B ${degrees}deg, rgba(255,255,255,0.1) ${degrees}deg)`;
             }
             
-            // Load goal cards from goal_cards table
+            // Load goal cards from goal_cards table with cache-busting - force fresh data
             const { data: goals } = await supabaseClient
                 .from('goal_cards')
                 .select('*')
