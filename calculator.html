@@ -907,44 +907,69 @@
                 const { user } = await getCurrentUser();
                 if (!user) return;
                 
+                // Build insert object with only fields that exist in database
+                const insertData = {
+                    user_id: user.id,
+                    home_description: calculation.answers.home.description,
+                    home_monthly_amount: calculation.answers.home.amount,
+                    vehicle_description: calculation.answers.vehicle.description,
+                    vehicle_monthly_amount: calculation.answers.vehicle.amount,
+                    travel_description: calculation.answers.travel.description,
+                    travel_monthly_amount: calculation.answers.travel.amount,
+                    food_description: calculation.answers.food.description,
+                    food_monthly_amount: calculation.answers.food.amount,
+                    trainer_description: calculation.answers.wellness.description,
+                    trainer_monthly_amount: calculation.answers.wellness.amount,
+                    chef_description: calculation.answers.chef.description,
+                    chef_monthly_amount: calculation.answers.chef.amount,
+                    college_description: calculation.answers.education.description,
+                    college_monthly_amount: calculation.answers.education.amount,
+                    retirement_description: calculation.answers.investments.description,
+                    retirement_monthly_amount: calculation.answers.investments.amount,
+                    custom_goals: calculation.customGoals,
+                    monthly_total: calculation.monthly,
+                    yearly_total: calculation.yearly,
+                    weekly_total: calculation.weekly,
+                    daily_total: calculation.daily,
+                    hourly_total: calculation.hourly,
+                    timeframe_days: calculation.timeframeDays,
+                    is_active: true
+                };
+                
+                // Only add profile fields if they exist in the object
+                if (calculation.profile) {
+                    if (calculation.profile.name) insertData.profile_name = calculation.profile.name;
+                    if (calculation.profile.gender) insertData.profile_gender = calculation.profile.gender;
+                    if (calculation.profile.age) insertData.profile_age = calculation.profile.age;
+                    if (calculation.profile.ethnicity) insertData.profile_ethnicity = calculation.profile.ethnicity;
+                }
+                
                 // Save calculation
                 const { data: calcData, error: calcError } = await supabaseClient
                     .from('dream_life_calculations')
-                    .insert({
-                        user_id: user.id,
-                        home_description: calculation.answers.home.description,
-                        home_monthly_amount: calculation.answers.home.amount,
-                        vehicle_description: calculation.answers.vehicle.description,
-                        vehicle_monthly_amount: calculation.answers.vehicle.amount,
-                        travel_description: calculation.answers.travel.description,
-                        travel_monthly_amount: calculation.answers.travel.amount,
-                        food_description: calculation.answers.food.description,
-                        food_monthly_amount: calculation.answers.food.amount,
-                        trainer_description: calculation.answers.wellness.description,
-                        trainer_monthly_amount: calculation.answers.wellness.amount,
-                        chef_description: calculation.answers.chef.description,
-                        chef_monthly_amount: calculation.answers.chef.amount,
-                        college_description: calculation.answers.education.description,
-                        college_monthly_amount: calculation.answers.education.amount,
-                        retirement_description: calculation.answers.investments.description,
-                        retirement_monthly_amount: calculation.answers.investments.amount,
-                        profile_name: calculation.profile.name,
-                        profile_gender: calculation.profile.gender,
-                        profile_age: calculation.profile.age,
-                        profile_ethnicity: calculation.profile.ethnicity,
-                        custom_goals: calculation.customGoals,
-                        monthly_total: calculation.monthly,
-                        yearly_total: calculation.yearly,
-                        weekly_total: calculation.weekly,
-                        daily_total: calculation.daily,
-                        hourly_total: calculation.hourly,
-                        timeframe_days: calculation.timeframeDays,
-                        is_active: true
-                    })
+                    .insert(insertData)
                     .select()
                     .single();
                 
-                if (calcError) throw calcError;
+                if (calcError) {
+                    console.error('Supabase insert error:', calcError);
+                    // Try without profile fields if that fails
+                    if (calcError.message && calcError.message.includes('profile_')) {
+                        delete insertData.profile_name;
+                        delete insertData.profile_gender;
+                        delete insertData.profile_age;
+                        delete insertData.profile_ethnicity;
+                        const { data: retryData, error: retryError } = await supabaseClient
+                            .from('dream_life_calculations')
+                            .insert(insertData)
+                            .select()
+                            .single();
+                        if (retryError) throw retryError;
+                        console.log('Calculation saved (without profile fields)');
+                    } else {
+                        throw calcError;
+                    }
+                }
                 
                 // Link to dashboard settings
                 await supabaseClient
