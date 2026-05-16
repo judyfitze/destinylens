@@ -672,22 +672,37 @@
                 ?.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0) || 0;
             
             if (calculation) {
+                // Calculate totals from individual fields if totals aren't saved
+                const monthlyTotal = calculation.monthly_total || 
+                    (parseFloat(calculation.home_monthly_amount || 0) + 
+                     parseFloat(calculation.vehicle_monthly_amount || 0) + 
+                     parseFloat(calculation.travel_monthly_amount || 0) + 
+                     parseFloat(calculation.food_monthly_amount || 0) + 
+                     parseFloat(calculation.trainer_monthly_amount || 0) + 
+                     parseFloat(calculation.chef_monthly_amount || 0) + 
+                     parseFloat(calculation.college_monthly_amount || 0) + 
+                     parseFloat(calculation.retirement_monthly_amount || 0));
+                
+                const yearlyTotal = calculation.yearly_total || (monthlyTotal * 12);
+                const weeklyTotal = calculation.weekly_total || (monthlyTotal / 4.33);
+                const dailyTotal = calculation.daily_total || (monthlyTotal / 30);
+                
                 // Update target values
-                document.getElementById('dailyTargetValue').textContent = '$' + calculation.daily_total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                document.getElementById('weeklyTargetValue').textContent = '$' + calculation.weekly_total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                document.getElementById('monthlyTargetValue').textContent = '$' + calculation.monthly_total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                document.getElementById('annualTargetValue').textContent = '$' + calculation.yearly_total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('dailyTargetValue').textContent = '$' + dailyTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('weeklyTargetValue').textContent = '$' + weeklyTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('monthlyTargetValue').textContent = '$' + monthlyTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('annualTargetValue').textContent = '$' + yearlyTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 
                 // Update progress (income vs target) - show cumulative amounts
-                document.getElementById('dailyProgress').innerHTML = `<span>$${todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.daily_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                document.getElementById('weeklyProgress').innerHTML = `<span>$${weeklyIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.weekly_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                document.getElementById('monthlyProgress').innerHTML = `<span>$${monthlyIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.monthly_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                document.getElementById('annualProgress').innerHTML = `<span>$${annualIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${calculation.yearly_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('dailyProgress').innerHTML = `<span>$${todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${dailyTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('weeklyProgress').innerHTML = `<span>$${weeklyIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${weeklyTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('monthlyProgress').innerHTML = `<span>$${monthlyIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${monthlyTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('annualProgress').innerHTML = `<span>$${annualIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> / $${yearlyTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                 
                 // Update gauge - show actual percentage even if over 100%
-                const progress = (todayIncome / calculation.daily_total) * 100;
+                const progress = (todayIncome / dailyTotal) * 100;
                 document.querySelector('.gauge-percent').textContent = Math.round(progress) + '%';
-                document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / $' + calculation.daily_total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.querySelector('.gauge-label').textContent = '$' + todayIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / $' + dailyTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 
                 // Update gauge background - cap visual at 100% but show actual percentage
                 const degrees = (Math.min(progress, 100) / 100) * 360;
