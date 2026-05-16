@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <title>AI Prompt Generator — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a12;
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        /* Background Layer */
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            background: linear-gradient(135deg, #0a0a12 0%, #1a0a2e 50%, #0a0a12 100%);
+        }
+        
+        .bg-layer::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(169, 76, 240, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(246, 194, 107, 0.1) 0%, transparent 50%);
+        }
+        
+        /* App Container */
+        .app {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Nav */
+        .nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px 20px;
+            position: relative;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            background: linear-gradient(135deg, rgba(10,10,18,0.85) 0%, rgba(10,10,18,0.6) 100%);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 0.9rem;
+        }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo-subtitle { font-size: 0.6rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
+        
+        /* Hamburger Menu */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 8px;
+            position: absolute;
+            right: 20px;
+        }
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .nav-menu {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 180px;
+            display: none;
+            z-index: 1000;
+        }
+        .nav-menu.active { display: block; }
+        .nav-menu a, .nav-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .nav-menu a:hover, .nav-menu button:hover { background: rgba(255,255,255,0.1); }
+        
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p {
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+        }
+        
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { transform: translateY(-2px); }
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%); 
+            color: #fff; 
+        }
+        .btn-secondary { 
+            background: rgba(255,255,255,0.1); 
+            color: #fff; 
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+        
+        /* Prompt Cards */
+        .prompts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .prompt-card {
+            background: rgba(10, 10, 18, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(169, 76, 240, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .prompt-card-header {
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .prompt-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .prompt-card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .prompt-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .icon-btn:hover {
+            background: rgba(169, 76, 240, 0.3);
+            border-color: var(--purple);
+        }
+        .icon-btn.copied {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: #22c55e;
+        }
+        
+        .prompt-content {
+            padding: 24px;
+        }
+        
+        .prompt-text {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.9);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .prompt-text::-webkit-scrollbar {
+            width: 8px;
+        }
+        .prompt-text::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+        .prompt-text::-webkit-scrollbar-thumb {
+            background: rgba(169, 76, 240, 0.5);
+            border-radius: 4px;
+        }
+        
+        /* Goal Prompts Grid */
+        .goal-prompts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .goal-prompt-card {
+            background: rgba(10, 10, 18, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .goal-prompt-card:hover {
+            border-color: rgba(169, 76, 240, 0.3);
+        }
+        
+        .goal-prompt-header {
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .goal-prompt-title {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .goal-prompt-content {
+            padding: 16px 20px;
+        }
+        
+        .goal-prompt-text {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.85);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(169, 76, 240, 0.3);
+            border-top-color: var(--purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text {
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(10, 10, 18, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+        }
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .empty-state h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        .empty-state p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 24px;
+        }
+        .empty-state a {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .toast-icon {
+            font-size: 1.3rem;
+        }
+        .toast-message {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        /* Section Title */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-left: 8px;
+            border-left: 3px solid var(--purple);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.5rem; }
+            .goal-prompts-grid { grid-template-columns: 1fr; }
+            .prompt-card-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+            .action-bar { flex-direction: column; }
+            .action-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    
+    <div class="app">
+        <!-- Nav -->
+        <nav class="nav">
+            <a href="/" class="logo">
+                <div class="logo-icon">DL</div>
+                <div class="logo-text">
+                    <div class="logo-title">DestinyLens</div>
+                    <div class="logo-subtitle">Your Dream Life In Focus</div>
+                </div>
+            </a>
+            <div class="hamburger" onclick="toggleNavMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="/dashboard.html">📊 Dashboard</a>
+                <a href="/members.html">👤 Members</a>
+                <a href="/calculator.html">🧮 Calculator</a>
+                <a href="/ai-prompt-generator.html">🖼️ AI Prompt Generator</a>
+                <a href="/settings.html">⚙️ Settings</a>
+                <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+            </div>
+        </nav>
+        
+        <!-- Main -->
+        <div class="main">
+            <div class="header">
+                <h1>🖼️ AI Prompt Generator</h1>
+                <p>Generate personalized AI prompts to visualize your dream life</p>
+            </div>
+            
+            <div class="action-bar">
+                <button class="action-btn btn-primary" onclick="generatePrompts()">
+                    <span>✨</span> Generate Prompts
+                </button>
+                <button class="action-btn btn-secondary" onclick="refreshData()">
+                    <span>🔄</span> Refresh Data
+                </button>
+                <button class="action-btn btn-secondary" onclick="exportAllPrompts()">
+                    <span>📥</span> Export All
+                </button>
+            </div>
+            
+            <div id="contentArea">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading your dream life data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✅</span>
+        <span class="toast-message" id="toastMessage">Copied to clipboard!</span>
+    </div>
+
+    <script>
+        let userData = null;
+        let goalCards = [];
+        let mainPrompt = '';
+        let goalPrompts = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', init);
+        
+        async function init() {
+            await loadUserData();
+        }
+        
+        function toggleNavMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+        
+        async function loadUserData() {
+            try {
+                const { user } = await getCurrentUser();
+                if (!user) {
+                    window.location.href = '/auth.html';
+                    return;
+                }
+                
+                // Load dashboard settings to get active calculation
+                const { data: settings, error: settingsError } = await supabaseClient
+                    .from('dashboard_settings')
+                    .select('active_calculation_id')
+                    .eq('user_id', user.id)
+                    .single();
+                
+                let calculationId = settings?.active_calculation_id;
+                
+                // If no active calculation, get the latest one
+                if (!calculationId) {
+                    const { data: latestCalcs } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('id')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    
+                    if (latestCalcs && latestCalcs.length > 0) {
+                        calculationId = latestCalcs[0].id;
+                    }
+                }
+                
+                // Load calculation data
+                if (calculationId) {
+                    const { data: calc, error: calcError } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('*')
+                        .eq('id', calculationId)
+                        .single();
+                    
+                    if (calcError) throw calcError;
+                    userData = calc;
+                }
+                
+                // Load goal cards
+                const { data: goals, error: goalsError } = await supabaseClient
+                    .from('goal_cards')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('sort_order', { ascending: true });
+                
+                if (!goalsError && goals) {
+                    goalCards = goals;
+                }
+                
+                // If no goal cards, create from calculation
+                if (goalCards.length === 0 && userData) {
+                    goalCards = createGoalCardsFromCalculation(userData);
+                }
+                
+                renderContent();
+                
+            } catch (err) {
+                console.error('Error loading data:', err);
+                renderEmptyState();
+            }
+        }
+        
+        function createGoalCardsFromCalculation(calc) {
+            const goals = [];
+            const goalMap = [
+                { key: 'home', icon: '🏖️', title: 'Dream Home' },
+                { key: 'vehicle', icon: '🚗', title: 'Dream Vehicle' },
+                { key: 'travel', icon: '✈️', title: 'Travel' },
+                { key: 'food', icon: '🍽️', title: 'Food & Dining' },
+                { key: 'trainer', icon: '💪', title: 'Personal Trainer' },
+                { key: 'chef', icon: '👨‍🍳', title: 'Personal Chef' },
+                { key: 'college', icon: '🎓', title: 'Education' },
+                { key: 'retirement', icon: '📈', title: 'Investments' }
+            ];
+            
+            goalMap.forEach(g => {
+                const monthlyAmount = calc[g.key + '_monthly_amount'];
+                if (monthlyAmount && monthlyAmount > 0) {
+                    goals.push({
+                        icon: g.icon,
+                        title: g.title,
+                        monthly_amount: monthlyAmount,
+                        description: calc[g.key + '_description'] || ''
+                    });
+                }
+            });
+            
+            return goals;
+        }
+        
+        function generatePrompts() {
+            if (!userData) {
+                showToast('No dream life data found. Complete the calculator first.', '⚠️');
+                return;
+            }
+            
+            // Generate main dream life scene prompt
+            mainPrompt = generateMainScenePrompt(userData);
+            
+            // Generate individual goal prompts
+            goalPrompts = goalCards.map(goal => ({
+                ...goal,
+                prompt: generateGoalPrompt(goal, userData)
+            }));
+            
+            renderContent();
+            showToast('Prompts generated successfully!', '✨');
+        }
+        
+        function generateMainScenePrompt(data) {
+            const location = data.location || 'a beautiful location';
+            const timeframe = data.timeframe_years || 2;
+            const yearlyTotal = data.yearly_total || 0;
+            const monthlyTotal = data.monthly_total || 0;
+            
+            // Build scene elements based on what's in the calculation
+            const elements = [];
+            
+            if (data.home_description) {
+                elements.push(`living in ${data.home_description}`);
+            }
+            if (data.vehicle_description) {
+                elements.push(`driving ${data.vehicle_description}`);
+            }
+            if (data.travel_description) {
+                elements.push(`traveling to ${data.travel_description}`);
+            }
+            if (data.chef_monthly_amount > 0) {
+                elements.push('enjoying gourmet meals prepared by a personal chef');
+            }
+            if (data.trainer_monthly_amount > 0) {
+                elements.push('staying fit with a personal trainer');
+            }
+            
+            const sceneDescription = elements.length > 0 
+                ? elements.join(', ') 
+                : 'living your dream life with financial freedom and abundance';
+            
+            return `Create a stunning, photorealistic visualization of a successful person ${sceneDescription} in ${location}. 
+
+Scene details:
+- Location: ${location}
+- Financial abundance: Earning $${monthlyTotal.toLocaleString()} per month ($${yearlyTotal.toLocaleString()} annually)
+- Timeframe: ${timeframe} years from now
+- Mood: Joyful, peaceful, abundant, fulfilled
+- Lighting: Golden hour, warm and inviting
+- Style: High-end lifestyle photography, cinematic composition
+- Atmosphere: Relaxed confidence, genuine happiness, aspirational yet achievable
+
+The image should evoke feelings of accomplishment, freedom, and the reward of disciplined pursuit of dreams. Include subtle visual cues of success without being ostentatious. The overall tone should be inspiring and emotionally resonant.`;
+        }
+        
+        function generateGoalPrompt(goal, data) {
+            const location = data.location || 'a beautiful location';
+            
+            let sceneSpecifics = '';
+            
+            switch(goal.title) {
+                case 'Dream Home':
+                    sceneSpecifics = `A stunning ${goal.description || 'dream home'} in ${location}. Architectural photography style, showcasing the beauty and comfort of the space. Warm interior lighting, inviting atmosphere, attention to detail in design elements.`;
+                    break;
+                case 'Dream Vehicle':
+                    sceneSpecifics = `A ${goal.description || 'luxury vehicle'} parked in an scenic location in ${location}. Automotive photography style, sleek and polished, golden hour lighting reflecting off the curves, sense of freedom and adventure.`;
+                    break;
+                case 'Travel':
+                    sceneSpecifics = `Travel scene at ${goal.description || 'an exotic destination'}. Wanderlust photography style, breathtaking scenery, sense of exploration and discovery, vibrant colors, memorable moments.`;
+                    break;
+                case 'Food & Dining':
+                    sceneSpecifics = `Exquisite dining experience at ${goal.description || 'a fine restaurant'}. Food photography style, beautifully plated gourmet dishes, elegant table setting, ambient restaurant lighting, celebration of culinary arts.`;
+                    break;
+                case 'Personal Trainer':
+                    sceneSpecifics = `Fitness and wellness scene in ${location}. Health and wellness photography, vibrant energy, modern gym or outdoor workout space, feeling of strength and vitality.`;
+                    break;
+                case 'Personal Chef':
+                    sceneSpecifics = `Gourmet kitchen scene with professional chef preparing meals. Culinary photography, fresh ingredients, artistic food presentation, warm kitchen atmosphere, celebration of fine dining at home.`;
+                    break;
+                case 'Education':
+                    sceneSpecifics = `Educational achievement scene in ${location}. Inspirational academic setting, books and learning materials, sense of growth and knowledge, bright and motivating atmosphere.`;
+                    break;
+                case 'Investments':
+                    sceneSpecifics = `Symbol of financial growth and investment success. Business photography style, modern office or home workspace, charts showing growth, sense of security and smart planning.`;
+                    break;
+                default:
+                    sceneSpecifics = `Visualization of ${goal.title} in ${location}. Lifestyle photography, aspirational yet realistic, warm lighting, sense of achievement and fulfillment.`;
+            }
+            
+            return `Create a vivid, photorealistic image representing: ${sceneSpecifics}
+
+Budget context: $${(goal.monthly_amount || 0).toLocaleString()} per month allocated for this goal.
+
+Style: High-end lifestyle photography, cinematic, emotionally resonant, inspiring. Golden hour lighting preferred. Focus on the feeling of having achieved this goal.`;
+        }
+        
+        function renderContent() {
+            const contentArea = document.getElementById('contentArea');
+            
+            if (!userData) {
+                renderEmptyState();
+                return;
+            }
+            
+            let html = '';
+            
+            // Main scene prompt
+            html += `
+                <h2 class="section-title">Main Dream Life Scene</h2>
+                <div class="prompt-card">
+                    <div class="prompt-card-header">
+                        <div class="prompt-card-title">
+                            <span class="prompt-card-icon">🌟</span>
+                            Complete Dream Life Visualization
+                        </div>
+                        <div class="prompt-card-actions">
+                            <button class="icon-btn" onclick="copyPrompt('main')" title="Copy to clipboard">📋</button>
+                            <button class="icon-btn" onclick="downloadPrompt('main')" title="Download as file">💾</button>
+                        </div>
+                    </div>
+                    <div class="prompt-content">
+                        <div class="prompt-text" id="mainPrompt">${mainPrompt || 'Click "Generate Prompts" to create your personalized AI prompts.'}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Individual goal prompts
+            if (goalPrompts.length > 0) {
+                html += `<h2 class="section-title" style="margin-top: 32px;">Individual Goal Visualizations</h2>`;
+                html += `<div class="goal-prompts-grid">`;
+                
+                goalPrompts.forEach((goal, index) => {
+                    html += `
+                        <div class="goal-prompt-card">
+                            <div class="goal-prompt-header">
+                                <div class="goal-prompt-title">
+                                    <span>${goal.icon}</span>
+                                    ${goal.title}
+                                </div>
+                                <div class="prompt-card-actions">
+                                    <button class="icon-btn" onclick="copyPrompt('goal-${index}')" title="Copy to clipboard">📋</button>
+                                    <button class="icon-btn" onclick="downloadPrompt('goal-${index}')" title="Download as file">💾</button>
+                                </div>
+                            </div>
+                            <div class="goal-prompt-content">
+                                <div class="goal-prompt-text" id="goal-${index}">${goal.prompt}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            contentArea.innerHTML = html;
+        }
+        
+        function renderEmptyState() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🎯</div>
+                    <h3>No Dream Life Data Found</h3>
+                    <p>Complete your Dream Life Calculator to generate personalized AI prompts for visualization.</p>
+                    <a href="/calculator.html">Go to Calculator</a>
+                </div>
+            `;
+        }
+        
+        async function refreshData() {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Refreshing your dream life data...</div>
+                </div>
+            `;
+            
+            mainPrompt = '';
+            goalPrompts = [];
+            await loadUserData();
+            showToast('Data refreshed!', '🔄');
+        }
+        
+        function copyPrompt(id) {
+            const promptText = document.getElementById(id === 'main' ? 'mainPrompt' : id).textContent;
+            
+            navigator.clipboard.writeText(promptText).then(() => {
+                showToast('Copied to clipboard!', '✅');
+                
+                // Visual feedback on button
+                const btn = event.target.closest('.icon-btn');
+                btn.classList.add('copied');
+                btn.innerHTML = '✓';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '📋';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showToast('Failed to copy. Please try again.', '❌');
+            });
+        }
+        
+        function downloadPrompt(id) {
+            const promptText = document.getElementById(id === 'main' ? 'mainPrompt' : id).textContent;
+            const filename = id === 'main' 
+                ? 'dream-life-main-prompt.txt' 
+                : `dream-life-goal-${id.replace('goal-', '')}-prompt.txt`;
+            
+            const blob = new Blob([promptText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Downloaded!', '💾');
+        }
+        
+        function exportAllPrompts() {
+            if (!mainPrompt && goalPrompts.length === 0) {
+                showToast('Generate prompts first!', '⚠️');
+                return;
+            }
+            
+            let allContent = '=== DESTINYLENS AI PROMPTS ===\n\n';
+            allContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+            
+            if (mainPrompt) {
+                allContent += '=== MAIN DREAM LIFE SCENE ===\n\n';
+                allContent += mainPrompt + '\n\n';
+            }
+            
+            if (goalPrompts.length > 0) {
+                allContent += '=== INDIVIDUAL GOAL PROMPTS ===\n\n';
+                goalPrompts.forEach((goal, index) => {
+                    allContent += `--- ${goal.icon} ${goal.title} ---\n\n`;
+                    allContent += goal.prompt + '\n\n';
+                });
+            }
+            
+            const blob = new Blob([allContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `destinylens-ai-prompts-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('All prompts exported!', '📥');
+        }
+        
+        function showToast(message, icon = '✅') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.querySelector('.toast-icon').textContent = icon;
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
