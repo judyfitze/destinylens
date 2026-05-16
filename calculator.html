@@ -687,6 +687,45 @@
                     <div class="breakdown-value" id="hourlyTotal">$0</div>
                 </div>
             </div>
+            <!-- Journey Options Section -->
+            <div class="journey-options" style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%); border: 1px solid rgba(169, 76, 240, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; color: #fff;">🎯 Journey Timeline</h3>
+                <p style="color: rgba(255,255,255,0.7); margin-bottom: 16px; font-size: 0.95rem;">Choose how to track your progress toward your Dream Life:</p>
+                
+                <div class="journey-choice" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <label style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                        <input type="radio" name="journeyOption" value="continue" id="journeyContinue" style="margin-top: 4px;" checked>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">Continue from Original Journey</div>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Keep counting from your first calculation. You're on <span id="currentDayDisplay">Day 1</span> of your journey.</div>
+                        </div>
+                    </label>
+                    
+                    <label style="display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                        <input type="radio" name="journeyOption" value="reset" id="journeyReset" style="margin-top: 4px;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">Start Fresh (Reset to Day 1)</div>
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Begin a new journey timeline with these updated goals. Day 1 starts today.</div>
+                        </div>
+                    </label>
+                </div>
+                
+                <div id="journeyPreview" style="padding: 16px; background: rgba(10,10,18,0.5); border-radius: 12px; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: rgba(255,255,255,0.6);">Journey Length:</span>
+                        <span id="journeyLengthDisplay" style="font-weight: 600;">730 days</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: rgba(255,255,255,0.6);">Current Day:</span>
+                        <span id="journeyCurrentDayDisplay" style="font-weight: 600; color: #F6C26B;">Day 1</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: rgba(255,255,255,0.6);">Target Completion:</span>
+                        <span id="journeyEndDateDisplay" style="font-weight: 600;">May 16, 2028</span>
+                    </div>
+                </div>
+            </div>
+            
             <div class="action-buttons">
                 <button class="btn btn-primary btn-full" onclick="applyToDashboard()">Apply to My Dashboard</button>
                 <button class="btn btn-secondary btn-full" onclick="generatePrompt()">Generate My Dream Life Image Prompt</button>
@@ -720,6 +759,120 @@
             if (targetPage) {
                 targetPage.classList.add('active');
                 window.scrollTo(0, 0);
+            }
+        }
+        
+        // Journey tracking variables
+        let originalJourneyStartDate = null;
+        let originalJourneyCalculationId = null;
+        let currentJourneyDay = 1;
+        
+        async function loadExistingJourneyData() {
+            try {
+                const { user } = await getCurrentUser();
+                if (!user) return;
+                
+                // Get dashboard settings to check for original journey
+                const { data: settings } = await supabaseClient
+                    .from('dashboard_settings')
+                    .select('original_journey_start_date, original_journey_calculation_id')
+                    .eq('user_id', user.id)
+                    .single();
+                
+                if (settings?.original_journey_start_date) {
+                    originalJourneyStartDate = new Date(settings.original_journey_start_date);
+                    originalJourneyCalculationId = settings.original_journey_calculation_id;
+                    
+                    // Calculate current day
+                    const today = new Date();
+                    const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                    currentJourneyDay = Math.max(1, daysElapsed);
+                    
+                    console.log('Loaded existing journey:', {
+                        startDate: originalJourneyStartDate,
+                        currentDay: currentJourneyDay,
+                        calculationId: originalJourneyCalculationId
+                    });
+                }
+            } catch (err) {
+                console.log('No existing journey found:', err);
+            }
+        }
+        
+        async function calculateJourneyOptions(timeframeDays) {
+            // Load existing journey data if not already loaded
+            if (!originalJourneyStartDate) {
+                await loadExistingJourneyData();
+            }
+            
+            const today = new Date();
+            const journeyLength = timeframeDays || 730;
+            
+            // Update the display
+            document.getElementById('journeyLengthDisplay').textContent = journeyLength + ' days';
+            
+            if (originalJourneyStartDate) {
+                // Show continue option with current day
+                const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                currentJourneyDay = Math.max(1, daysElapsed);
+                
+                document.getElementById('currentDayDisplay').textContent = 'Day ' + currentJourneyDay;
+                document.getElementById('journeyCurrentDayDisplay').textContent = 'Day ' + currentJourneyDay;
+                
+                // Calculate end date based on original start
+                const endDate = new Date(originalJourneyStartDate);
+                endDate.setDate(endDate.getDate() + journeyLength);
+                document.getElementById('journeyEndDateDisplay').textContent = endDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'long', day: 'numeric' 
+                });
+                
+                // Enable continue radio
+                document.getElementById('journeyContinue').disabled = false;
+            } else {
+                // No existing journey - only show reset option
+                document.getElementById('currentDayDisplay').textContent = 'Day 1';
+                document.getElementById('journeyCurrentDayDisplay').textContent = 'Day 1';
+                
+                const endDate = new Date(today);
+                endDate.setDate(endDate.getDate() + journeyLength);
+                document.getElementById('journeyEndDateDisplay').textContent = endDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'long', day: 'numeric' 
+                });
+                
+                // Disable continue option, select reset
+                document.getElementById('journeyContinue').disabled = true;
+                document.getElementById('journeyReset').checked = true;
+            }
+            
+            // Add event listeners to radio buttons
+            document.getElementById('journeyContinue').addEventListener('change', updateJourneyPreview);
+            document.getElementById('journeyReset').addEventListener('change', updateJourneyPreview);
+        }
+        
+        function updateJourneyPreview() {
+            const continueSelected = document.getElementById('journeyContinue').checked;
+            const timeframeDays = parseInt(document.getElementById('timeframeDays').value) || 730;
+            const today = new Date();
+            
+            if (continueSelected && originalJourneyStartDate) {
+                // Continue from original
+                const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                document.getElementById('journeyCurrentDayDisplay').textContent = 'Day ' + Math.max(1, daysElapsed);
+                
+                const endDate = new Date(originalJourneyStartDate);
+                endDate.setDate(endDate.getDate() + timeframeDays);
+                document.getElementById('journeyEndDateDisplay').textContent = endDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'long', day: 'numeric' 
+                });
+            } else {
+                // Reset - start from today
+                document.getElementById('journeyCurrentDayDisplay').textContent = 'Day 1';
+                
+                const endDate = new Date(today);
+                endDate.setDate(endDate.getDate() + timeframeDays);
+                document.getElementById('journeyEndDateDisplay').textContent = endDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'long', day: 'numeric' 
+                });
             }
         }
         
@@ -844,6 +997,9 @@
             // Get profile data from localStorage
             const profileData = JSON.parse(localStorage.getItem('destinylens_profile') || '{}');
             
+            // Calculate journey options
+            await calculateJourneyOptions(timeframeDays);
+            
             const calculation = {
                 monthly, yearly, weekly, daily, hourly,
                 timeframeDays,
@@ -959,6 +1115,24 @@
                 }
                 insertData.is_active = true;
                 
+                // Handle journey options
+                const continueJourney = document.getElementById('journeyContinue').checked;
+                
+                if (continueJourney && originalJourneyStartDate) {
+                    // Continue from original journey
+                    insertData.journey_start_date = originalJourneyStartDate.toISOString();
+                    insertData.original_journey_calculation_id = originalJourneyCalculationId;
+                    console.log('Continuing journey from:', originalJourneyStartDate);
+                } else {
+                    // Start fresh - use current date
+                    insertData.journey_start_date = new Date().toISOString();
+                    if (originalJourneyCalculationId) {
+                        // This is a reset, but keep reference to original
+                        insertData.original_journey_calculation_id = originalJourneyCalculationId;
+                    }
+                    console.log('Starting fresh journey from:', insertData.journey_start_date);
+                }
+                
                 // Only add profile fields if they exist in the object
                 if (calculation.profile) {
                     if (calculation.profile.name) insertData.profile_name = calculation.profile.name;
@@ -1042,13 +1216,27 @@
                 }
                 
                 // Link to dashboard settings
+                const continueJourney = document.getElementById('journeyContinue').checked;
+                const settingsUpdate = {
+                    user_id: user.id,
+                    active_calculation_id: calcData.id,
+                    updated_at: new Date().toISOString()
+                };
+                
+                // Track original journey for future calculations
+                if (continueJourney && originalJourneyStartDate) {
+                    // Keep original journey tracking
+                    settingsUpdate.original_journey_start_date = originalJourneyStartDate.toISOString();
+                    settingsUpdate.original_journey_calculation_id = originalJourneyCalculationId;
+                } else {
+                    // This is a new journey start - update the tracking
+                    settingsUpdate.original_journey_start_date = insertData.journey_start_date;
+                    settingsUpdate.original_journey_calculation_id = calcData.id;
+                }
+                
                 await supabaseClient
                     .from('dashboard_settings')
-                    .upsert({
-                        user_id: user.id,
-                        active_calculation_id: calcData.id,
-                        updated_at: new Date().toISOString()
-                    }, {
+                    .upsert(settingsUpdate, {
                         onConflict: 'user_id'
                     });
                 

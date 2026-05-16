@@ -868,9 +868,10 @@
                     
                     // Update Journey counter with timeframe
                     const timeframeDays = calc.timeframe_days || 730; // Default 2 years
-                    const calcDate = new Date(calc.created_at);
+                    // Use journey_start_date if available, fallback to created_at
+                    const journeyStartDate = calc.journey_start_date ? new Date(calc.journey_start_date) : new Date(calc.created_at);
                     const today = new Date();
-                    const daysElapsed = Math.floor((today - calcDate) / (1000 * 60 * 60 * 24)) + 1;
+                    const daysElapsed = Math.floor((today - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
                     const currentDay = Math.min(daysElapsed, timeframeDays);
                     document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
                 }
