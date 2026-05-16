@@ -589,34 +589,20 @@
             
             const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             
-            // Get calculation from Supabase
-            const { data: settings } = await supabaseClient
-                .from('dashboard_settings')
-                .select('active_calculation_id')
+            // Get calculation from Supabase - always use latest
+            const { data: calc, error: calcError } = await supabaseClient
+                .from('dream_life_calculations')
+                .select('*')
                 .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
                 .single();
             
-            let calculation = null;
-            if (settings?.active_calculation_id) {
-                const { data: calc } = await supabaseClient
-                    .from('dream_life_calculations')
-                    .select('*')
-                    .eq('id', settings.active_calculation_id)
-                    .single();
-                calculation = calc;
+            if (calcError) {
+                console.error('Error loading calculation:', calcError);
             }
             
-            // Fallback to latest
-            if (!calculation) {
-                const { data: calc } = await supabaseClient
-                    .from('dream_life_calculations')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
-                calculation = calc;
-            }
+            const calculation = calc;
             
             // Get manual income entries
             const { data: manualIncomeEntries } = await supabaseClient
