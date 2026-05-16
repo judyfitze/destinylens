@@ -988,7 +988,10 @@
             document.getElementById('navMenu').classList.toggle('active');
         }
         
-        updateProgress();
+        // Initialize immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            showStep(0);
+        });
     </script>
 </body>
 </html>
