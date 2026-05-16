@@ -692,7 +692,11 @@
         function updateProgress() {
             const progress = (currentStep / totalSteps) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('stepIndicator').textContent = `Question ${currentStep} of ${totalSteps}`;
+            if (currentStep === 0) {
+                document.getElementById('stepIndicator').textContent = 'Profile Information';
+            } else {
+                document.getElementById('stepIndicator').textContent = `Question ${currentStep} of ${totalSteps}`;
+            }
         }
         
         function showStep(step) {
