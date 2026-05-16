@@ -804,7 +804,7 @@
             return goals;
         }
         
-        function calculateResults() {
+        async function calculateResults() {
             // Helper to parse amount with proper rounding
             const parseAmount = (val) => Math.round((parseFloat(val) || 0) * 100) / 100;
             
@@ -862,8 +862,15 @@
                 timestamp: new Date().toISOString()
             };
             
-            // Save to Supabase and link to dashboard
-            saveCalculationToSupabase(calculation);
+            // Save to Supabase and link to dashboard - MUST await before redirecting
+            try {
+                await saveCalculationToSupabase(calculation);
+                console.log('Calculation saved successfully, now showing results');
+            } catch (err) {
+                console.error('Failed to save calculation:', err);
+                alert('Error saving your Dream Life calculation. Please try again.');
+                return; // Don't show results if save failed
+            }
             
             // Hide all question pages and progress
             document.querySelectorAll('.page-container').forEach(c => c.classList.remove('active'));
@@ -873,7 +880,9 @@
             window.scrollTo(0, 0);
         }
         
-        function applyToDashboard() {
+        async function applyToDashboard() {
+            // Ensure any pending save completes before redirecting
+            console.log('Applying to dashboard, ensuring save is complete...');
             window.location.href = '/members.html';
         }
         
@@ -911,7 +920,7 @@
                 const { user } = await getCurrentUser();
                 if (!user) {
                     console.error('No user found');
-                    return;
+                    throw new Error('No user found');
                 }
                 
                 // Build insert object with only fields that exist in database
@@ -1017,8 +1026,10 @@
                     });
                 
                 console.log('Calculation saved and linked to dashboard');
+                return calcData; // Return data so caller knows save succeeded
             } catch (err) {
                 console.error('Error saving calculation:', err);
+                throw err; // Re-throw so caller can handle the error
             }
         }
         
