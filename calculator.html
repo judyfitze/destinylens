@@ -924,6 +924,7 @@
                 }
                 
                 // Build insert object with only fields that exist in database
+                // NOTE: custom_goals, profile_*, is_active, timeframe_days may not exist in schema
                 const insertData = {
                     user_id: user.id,
                     home_description: calculation.answers.home.description,
@@ -942,15 +943,21 @@
                     college_monthly_amount: calculation.answers.education.amount,
                     retirement_description: calculation.answers.investments.description,
                     retirement_monthly_amount: calculation.answers.investments.amount,
-                    custom_goals: calculation.customGoals,
                     monthly_total: calculation.monthly,
                     yearly_total: calculation.yearly,
                     weekly_total: calculation.weekly,
                     daily_total: calculation.daily,
-                    hourly_total: calculation.hourly,
-                    timeframe_days: calculation.timeframeDays,
-                    is_active: true
+                    hourly_total: calculation.hourly
                 };
+                
+                // Only add optional fields if they exist in the object (will be removed if schema doesn't have them)
+                if (calculation.customGoals && calculation.customGoals.length > 0) {
+                    insertData.custom_goals = calculation.customGoals;
+                }
+                if (calculation.timeframeDays) {
+                    insertData.timeframe_days = calculation.timeframeDays;
+                }
+                insertData.is_active = true;
                 
                 // Only add profile fields if they exist in the object
                 if (calculation.profile) {
@@ -977,37 +984,57 @@
                     console.error('Supabase insert error:', calcError);
                     // Try removing fields that don't exist in database
                     const errorMsg = calcError.message || '';
+                    let needsRetry = false;
                     
                     if (errorMsg.includes('custom_goals')) {
                         delete insertData.custom_goals;
+                        needsRetry = true;
                     }
-                    if (errorMsg.includes('profile_')) {
+                    if (errorMsg.includes('profile_name')) {
                         delete insertData.profile_name;
+                        needsRetry = true;
+                    }
+                    if (errorMsg.includes('profile_gender')) {
                         delete insertData.profile_gender;
+                        needsRetry = true;
+                    }
+                    if (errorMsg.includes('profile_age')) {
                         delete insertData.profile_age;
+                        needsRetry = true;
+                    }
+                    if (errorMsg.includes('profile_ethnicity')) {
                         delete insertData.profile_ethnicity;
+                        needsRetry = true;
                     }
                     if (errorMsg.includes('is_active')) {
                         delete insertData.is_active;
+                        needsRetry = true;
                     }
                     if (errorMsg.includes('timeframe_days')) {
                         delete insertData.timeframe_days;
+                        needsRetry = true;
                     }
                     
-                    // Retry with reduced fields
-                    const retryResult = await supabaseClient
-                        .from('dream_life_calculations')
-                        .insert(insertData)
-                        .select()
-                        .single();
-                    
-                    if (retryResult.error) {
-                        console.error('Retry failed:', retryResult.error);
-                        throw retryResult.error;
+                    // Retry with reduced fields if we removed anything
+                    if (needsRetry) {
+                        console.log('Retrying with fields removed:', Object.keys(insertData));
+                        const retryResult = await supabaseClient
+                            .from('dream_life_calculations')
+                            .insert(insertData)
+                            .select()
+                            .single();
+                        
+                        if (retryResult.error) {
+                            console.error('Retry failed:', retryResult.error);
+                            throw retryResult.error;
+                        }
+                        
+                        calcData = retryResult.data;
+                        console.log('Calculation saved (with compatible fields only)');
+                    } else {
+                        // No fields to remove, throw the original error
+                        throw calcError;
                     }
-                    
-                    calcData = retryResult.data;
-                    console.log('Calculation saved (with compatible fields only)');
                 }
                 
                 if (!calcData || !calcData.id) {
