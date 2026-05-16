@@ -18,6 +18,11 @@ function initSupabase() {
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true
+        },
+        global: {
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
         }
     });
     
