@@ -862,16 +862,45 @@
                 
                 console.log('Loading journey data for user:', user.id);
                 
-                // Get dashboard settings to check for original journey
-                // Use .maybeSingle() instead of .single() to avoid 400 error when no row exists
-                const { data: settings, error } = await supabaseClient
-                    .from('dashboard_settings')
-                    .select('original_journey_start_date, original_journey_calculation_id')
-                    .eq('user_id', user.id)
-                    .maybeSingle();
-                
-                if (error) {
-                    console.log('Error loading dashboard settings:', error);
+                // Try to get dashboard settings, but handle case where table/columns don't exist
+                let settings = null;
+                try {
+                    const result = await supabaseClient
+                        .from('dashboard_settings')
+                        .select('original_journey_start_date, original_journey_calculation_id')
+                        .eq('user_id', user.id)
+                        .maybeSingle();
+                    
+                    if (result.error) {
+                        console.log('Error loading dashboard settings (table may not exist):', result.error);
+                        // Fallback: check the latest calculation for journey_start_date
+                        const { data: latestCalc } = await supabaseClient
+                            .from('dream_life_calculations')
+                            .select('journey_start_date, id')
+                            .eq('user_id', user.id)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+                        
+                        if (latestCalc?.journey_start_date) {
+                            console.log('Found journey data in latest calculation:', latestCalc);
+                            originalJourneyStartDate = new Date(latestCalc.journey_start_date);
+                            originalJourneyCalculationId = latestCalc.id;
+                            
+                            const today = new Date();
+                            const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                            currentJourneyDay = Math.max(1, daysElapsed);
+                            
+                            console.log('Loaded journey from calculation:', {
+                                startDate: originalJourneyStartDate,
+                                currentDay: currentJourneyDay
+                            });
+                        }
+                        return;
+                    }
+                    settings = result.data;
+                } catch (err) {
+                    console.log('Exception loading dashboard settings:', err);
                     return;
                 }
                 
