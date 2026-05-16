@@ -590,6 +590,7 @@
             const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
             
             // Get calculation from Supabase - always use latest
+            console.log('Loading calculation for user:', user.id);
             const { data: calc, error: calcError } = await supabaseClient
                 .from('dream_life_calculations')
                 .select('*')
@@ -601,6 +602,11 @@
             if (calcError) {
                 console.error('Error loading calculation:', calcError);
             }
+            
+            console.log('Loaded calculation:', calc);
+            console.log('Calculation created_at:', calc?.created_at);
+            console.log('Home amount:', calc?.home_monthly_amount);
+            console.log('Monthly total:', calc?.monthly_total);
             
             const calculation = calc;
             
@@ -659,19 +665,26 @@
             
             if (calculation) {
                 // Calculate totals from individual fields if totals aren't saved
-                const monthlyTotal = calculation.monthly_total || 
-                    (parseFloat(calculation.home_monthly_amount || 0) + 
-                     parseFloat(calculation.vehicle_monthly_amount || 0) + 
-                     parseFloat(calculation.travel_monthly_amount || 0) + 
-                     parseFloat(calculation.food_monthly_amount || 0) + 
-                     parseFloat(calculation.trainer_monthly_amount || 0) + 
-                     parseFloat(calculation.chef_monthly_amount || 0) + 
-                     parseFloat(calculation.college_monthly_amount || 0) + 
-                     parseFloat(calculation.retirement_monthly_amount || 0));
+                const homeAmount = parseFloat(calculation.home_monthly_amount || 0);
+                const vehicleAmount = parseFloat(calculation.vehicle_monthly_amount || 0);
+                const travelAmount = parseFloat(calculation.travel_monthly_amount || 0);
+                const foodAmount = parseFloat(calculation.food_monthly_amount || 0);
+                const trainerAmount = parseFloat(calculation.trainer_monthly_amount || 0);
+                const chefAmount = parseFloat(calculation.chef_monthly_amount || 0);
+                const collegeAmount = parseFloat(calculation.college_monthly_amount || 0);
+                const retirementAmount = parseFloat(calculation.retirement_monthly_amount || 0);
                 
+                const calculatedMonthly = homeAmount + vehicleAmount + travelAmount + foodAmount + trainerAmount + chefAmount + collegeAmount + retirementAmount;
+                
+                console.log('Individual amounts:', { homeAmount, vehicleAmount, travelAmount, foodAmount, trainerAmount, chefAmount, collegeAmount, retirementAmount });
+                console.log('Calculated monthly total:', calculatedMonthly);
+                
+                const monthlyTotal = calculation.monthly_total || calculatedMonthly;
                 const yearlyTotal = calculation.yearly_total || (monthlyTotal * 12);
                 const weeklyTotal = calculation.weekly_total || (monthlyTotal / 4.33);
                 const dailyTotal = calculation.daily_total || (monthlyTotal / 30);
+                
+                console.log('Final totals:', { monthlyTotal, yearlyTotal, weeklyTotal, dailyTotal });
                 
                 // Update target values
                 document.getElementById('dailyTargetValue').textContent = '$' + dailyTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
