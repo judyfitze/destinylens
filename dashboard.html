@@ -12,7 +12,14 @@
     <script src="js/data-migration.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        :root { 
+            --purple: #A94CF0; 
+            --gold: #F6C26B;
+            --gold-light: #FFD700;
+            --gold-dark: #D4AF37;
+            --dark-bg: #0a0a12;
+            --card-bg: rgba(20, 20, 35, 0.7);
+        }
         
         html, body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -169,20 +176,51 @@
             flex-shrink: 0;
         }
         .metric-card {
-            background: rgba(10, 10, 18, 0.85);
+            background: linear-gradient(145deg, rgba(30, 30, 50, 0.9) 0%, rgba(15, 15, 30, 0.95) 100%);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 10px 16px;
-            min-width: 100px;
+            border: 1px solid rgba(246, 194, 107, 0.25);
+            border-radius: 16px;
+            padding: 14px 20px;
+            min-width: 120px;
             text-align: center;
+            box-shadow: 
+                0 8px 32px rgba(169, 76, 240, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
         }
-        .metric-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
-        .metric-value { font-size: 1.1rem; font-weight: 800; }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: left 0.5s;
+        }
+        .metric-card:hover::before {
+            left: 100%;
+        }
+        .metric-label { 
+            font-size: 0.65rem; 
+            color: rgba(255,255,255,0.6); 
+            text-transform: uppercase; 
+            letter-spacing: 0.15em; 
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .metric-value { 
+            font-size: 1.3rem; 
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
         .metric-value.highlight {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(246, 194, 107, 0.3);
         }
         
         /* Middle Section - Dashboard Panel */
@@ -192,48 +230,90 @@
             flex-shrink: 0;
         }
         
-        /* Left Panel - Compact */
+        /* Left Panel - Luxurious Compact */
         .panel {
             width: 300px;
-            background: rgba(10, 10, 18, 0.9);
+            background: linear-gradient(145deg, rgba(35, 35, 55, 0.95) 0%, rgba(18, 18, 35, 0.98) 100%);
             backdrop-filter: blur(30px);
-            border: 1px solid rgba(169, 76, 240, 0.3);
-            border-radius: 16px;
-            padding: 20px;
+            border: 1px solid rgba(169, 76, 240, 0.4);
+            border-radius: 20px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
+            box-shadow: 
+                0 12px 40px rgba(169, 76, 240, 0.2),
+                0 4px 12px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
         }
-        .panel-header { margin-bottom: 15px; }
+        .panel::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(169, 76, 240, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .panel-header { margin-bottom: 18px; position: relative; z-index: 1; }
         .panel-title {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+            background: linear-gradient(135deg, #fff 0%, var(--gold-light) 50%, var(--gold) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(246, 194, 107, 0.2);
+            letter-spacing: 0.02em;
         }
         .panel-subtitle {
             font-size: 0.7rem;
             color: rgba(255,255,255,0.5);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.12em;
+            margin-top: 4px;
         }
         
-        /* Daily Target */
+        /* Daily Target - Luxurious Gold */
         .daily-target {
             text-align: center;
-            padding: 12px;
-            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);
-            border-radius: 12px;
-            border: 1px solid rgba(169, 76, 240, 0.3);
-            margin-bottom: 15px;
+            padding: 18px;
+            background: linear-gradient(145deg, rgba(246, 194, 107, 0.08) 0%, rgba(169, 76, 240, 0.05) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(246, 194, 107, 0.3);
+            margin-bottom: 18px;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                0 4px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
         }
-        .daily-target-label { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; }
+        .daily-target::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(246, 194, 107, 0.5), transparent);
+        }
+        .daily-target-label { 
+            font-size: 0.7rem; 
+            color: rgba(255,255,255,0.6); 
+            text-transform: uppercase; 
+            letter-spacing: 0.15em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
         .daily-target-amount {
-            font-size: 1.6rem;
+            font-size: 2rem;
             font-weight: 900;
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(246, 194, 107, 0.4);
+            letter-spacing: -0.02em;
         }
         
         /* Gauge */
@@ -363,23 +443,52 @@
             min-width: 180px;
             max-width: 240px;
             aspect-ratio: 16/10;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             position: relative;
-            background: #1a1a2e;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(145deg, rgba(40, 40, 60, 0.9) 0%, rgba(20, 20, 40, 0.95) 100%);
+            border: 1px solid rgba(246, 194, 107, 0.2);
             flex-shrink: 0;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .goal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 16px 48px rgba(169, 76, 240, 0.25),
+                0 8px 24px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-color: rgba(246, 194, 107, 0.35);
         }
         .goal-card img { width: 100%; height: 100%; object-fit: cover; }
         .goal-info {
             position: absolute;
             bottom: 0; left: 0; right: 0;
-            padding: 10px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 14px;
+            background: linear-gradient(transparent, rgba(10, 10, 18, 0.95));
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .goal-emoji { font-size: 1.1rem; margin-bottom: 2px; }
-        .goal-name { font-weight: 700; font-size: 0.85rem; }
-        .goal-amt { color: var(--gold); font-weight: 600; font-size: 0.75rem; }
+        .goal-emoji { 
+            font-size: 1.3rem; 
+            margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .goal-name { 
+            font-weight: 700; 
+            font-size: 0.9rem;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .goal-amt { 
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700; 
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
         
         /* Three Dot Menu */
         .goal-menu-btn {
@@ -426,17 +535,23 @@
         .goal-dropdown-item.delete { color: #ff6b6b; }
         .goal-dropdown-item.delete:hover { background: rgba(255, 107, 107, 0.2); }
         
-        /* Add Goal Card */
+        /* Add Goal Card - Luxurious */
         .add-card {
-            border: 2px dashed rgba(255,255,255,0.25);
+            border: 2px dashed rgba(246, 194, 107, 0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            background: rgba(255,255,255,0.03);
+            background: linear-gradient(145deg, rgba(30, 30, 50, 0.5) 0%, rgba(15, 15, 30, 0.6) 100%);
+            border-radius: 16px;
+            transition: all 0.3s ease;
         }
-        .add-card:hover { border-color: var(--purple); background: rgba(169, 76, 240, 0.1); }
+        .add-card:hover { 
+            border-color: var(--gold); 
+            background: linear-gradient(145deg, rgba(169, 76, 240, 0.15) 0%, rgba(246, 194, 107, 0.1) 100%);
+            box-shadow: 0 8px 32px rgba(169, 76, 240, 0.2);
+        }
         .add-plus { font-size: 2.5rem; color: var(--purple); font-weight: 300; line-height: 1; }
         .add-text { color: rgba(255,255,255,0.6); font-weight: 600; font-size: 0.8rem; margin-top: 4px; }
         
