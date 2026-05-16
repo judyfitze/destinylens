@@ -702,7 +702,11 @@
         function updateProgress() {
             const progress = (currentQuestion / totalQuestions) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('stepIndicator').textContent = `Question ${currentQuestion} of ${totalQuestions}`;
+            if (currentQuestion === 0) {
+                document.getElementById('stepIndicator').textContent = 'Profile Information';
+            } else {
+                document.getElementById('stepIndicator').textContent = `Question ${currentQuestion} of ${totalQuestions}`;
+            }
         }
         
         function showPage(pageId) {
