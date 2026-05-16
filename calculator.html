@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Dream Life Calculator — DestinyLens</title>
-    <meta name="version" content="3">
+    <meta name="version" content="4">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/auth-guard.js"></script>
@@ -143,10 +143,10 @@
             color: rgba(255,255,255,0.5);
             font-size: 0.9rem;
         }
-        .question-container {
+        .page-container {
             display: none;
         }
-        .question-container.active {
+        .page-container.active {
             display: block;
             animation: fadeIn 0.3s ease;
         }
@@ -187,7 +187,8 @@
             letter-spacing: 0.05em;
         }
         .input-group input,
-        .input-group textarea {
+        .input-group textarea,
+        .input-group select {
             width: 100%;
             padding: 16px 20px;
             background: rgba(255,255,255,0.05);
@@ -199,7 +200,8 @@
             transition: border-color 0.2s;
         }
         .input-group input:focus,
-        .input-group textarea:focus {
+        .input-group textarea:focus,
+        .input-group select:focus {
             outline: none;
             border-color: #A94CF0;
         }
@@ -210,6 +212,10 @@
         .input-group textarea {
             min-height: 120px;
             resize: vertical;
+        }
+        .input-group select option {
+            background: #1a1a2e;
+            color: #fff;
         }
         .amount-input {
             position: relative;
@@ -414,13 +420,13 @@
         </div>
     </nav>
     <div class="container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill" style="width: 11%"></div>
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
         </div>
-        <div class="step-indicator" id="stepIndicator">Question 1 of 10</div>
+        <div class="step-indicator" id="stepIndicator" style="display: none;">Question 1 of 10</div>
         
-        <!-- Question 0: Profile Info -->
-        <div class="question-container active" data-step="0">
+        <!-- Profile Page (Intro) -->
+        <div class="page-container active" id="profilePage">
             <h2 class="question-title">This dream life is for:</h2>
             <p class="question-subtitle">Tell us a bit about yourself to create personalized AI vision board images.</p>
             <div class="input-group">
@@ -429,12 +435,12 @@
             </div>
             <div class="input-group">
                 <label>Gender</label>
-                <select id="profileGender" style="width: 100%; padding: 16px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 1rem; font-family: inherit;">
-                    <option value="" style="background: #1a1a2e;">Select gender</option>
-                    <option value="Male" style="background: #1a1a2e;">Male</option>
-                    <option value="Female" style="background: #1a1a2e;">Female</option>
-                    <option value="Non-binary" style="background: #1a1a2e;">Non-binary</option>
-                    <option value="Prefer not to say" style="background: #1a1a2e;">Prefer not to say</option>
+                <select id="profileGender">
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
                 </select>
             </div>
             <div class="input-group">
@@ -447,12 +453,12 @@
             </div>
             <div class="microcopy">This information is used to generate more realistic and personalized AI image creation prompts for your vision board. Your data is private and secure.</div>
             <div class="button-group">
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-primary" onclick="continueToCalculator()">Continue to Calculator →</button>
             </div>
         </div>
         
         <!-- Question 1: Dream Home -->
-        <div class="question-container" data-step="1">
+        <div class="page-container" id="question1">
             <h2 class="question-title">Where do you want to live?</h2>
             <p class="question-subtitle">Describe your dream home — and what would the exact monthly mortgage or rent be? Down to the penny.</p>
             <div class="microcopy">"There's no need to shrink the dream here. Just name it clearly."</div>
@@ -467,12 +473,12 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 2: Vehicle -->
-        <div class="question-container" data-step="2">
+        <div class="page-container" id="question2">
             <h2 class="question-title">What are you driving?</h2>
             <p class="question-subtitle">What is your dream vehicle? What is the exact monthly payment?</p>
             <div class="microcopy">"Specific numbers make the dream easier to build."</div>
@@ -487,13 +493,13 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 3: Travel -->
-        <div class="question-container" data-step="3">
+        <div class="page-container" id="question3">
             <h2 class="question-title">How often are you traveling?</h2>
             <p class="question-subtitle">Where are you going? What is your exact monthly travel budget?</p>
             <div class="microcopy">"This isn't about pressure. It's about clarity."</div>
@@ -508,13 +514,13 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 4: Food -->
-        <div class="question-container" data-step="4">
+        <div class="page-container" id="question4">
             <h2 class="question-title">What does your food life look like?</h2>
             <p class="question-subtitle">Groceries, restaurants, date nights. What is your exact monthly food budget?</p>
             <div class="microcopy">"Let the number be honest. You can refine it later."</div>
@@ -529,13 +535,13 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 5: Personal Trainer -->
-        <div class="question-container" data-step="5">
+        <div class="page-container" id="question5">
             <h2 class="question-title">Are you investing in wellness?</h2>
             <p class="question-subtitle">Personal trainer? Fitness? What is the exact monthly cost?</p>
             <div class="microcopy">"You're not guessing anymore. You're designing."</div>
@@ -550,13 +556,13 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 6: Personal Chef -->
-        <div class="question-container" data-step="6">
+        <div class="page-container" id="question6">
             <h2 class="question-title">Do you have a personal chef?</h2>
             <p class="question-subtitle">What is the exact monthly cost? (Enter $0.00 if not applicable)</p>
             <div class="microcopy">"Every detail matters. Include it all."</div>
@@ -571,13 +577,13 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 7: Kids College -->
-        <div class="question-container" data-step="7">
+        <div class="page-container" id="question7">
             <h2 class="question-title">Are you saving for education?</h2>
             <p class="question-subtitle">Kids' college or other education? What is the exact monthly amount?</p>
             <div class="microcopy">"Think long-term. What legacy are you building?"</div>
@@ -592,13 +598,13 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 8: Retirement -->
-        <div class="question-container" data-step="8">
+        <div class="page-container" id="question8">
             <h2 class="question-title">How much are you building wealth?</h2>
             <p class="question-subtitle">Retirement, investments, emergency fund. What is the exact monthly amount?</p>
             <div class="microcopy">"Your future self will thank you for this number."</div>
@@ -613,13 +619,13 @@
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
         
         <!-- Question 9: Everything Else -->
-        <div class="question-container" data-step="9">
+        <div class="page-container" id="question9">
             <h2 class="question-title">What else is in your dream life?</h2>
             <p class="question-subtitle">Any other monthly expenses? Give me every last one — down to the penny.</p>
             <div class="microcopy">"This is the final piece. Make it complete."</div>
@@ -633,13 +639,13 @@
             </div>
             <button class="btn-add" onclick="addExpenseRow()">+ Add Another Expense</button>
             <div class="button-group" style="margin-top: 32px;">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
+                <button class="btn btn-primary" onclick="nextQuestion()">Next →</button>
             </div>
         </div>
 
         <!-- Question 10: Timeframe -->
-        <div class="question-container" data-step="10">
+        <div class="page-container" id="question10">
             <h2 class="question-title">When will this be your reality?</h2>
             <p class="question-subtitle">How many days do you give yourself to manifest this dream life?</p>
             <div class="microcopy">"A deadline creates momentum. Be ambitious but realistic."</div>
@@ -649,7 +655,7 @@
                 <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Examples: 365 days = 1 year, 730 days = 2 years, 1095 days = 3 years</p>
             </div>
             <div class="button-group">
-                <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                <button class="btn btn-secondary" onclick="prevQuestion()">← Back</button>
                 <button class="btn btn-primary" onclick="calculateResults()">Calculate My Dream Life Number</button>
             </div>
         </div>
@@ -690,42 +696,75 @@
         </div>
     </div>
     <script>
-        let currentStep = 0;
-        const totalSteps = 11;
+        let currentQuestion = 0;
+        const totalQuestions = 10;
         
         function updateProgress() {
-            const progress = (currentStep / totalSteps) * 100;
+            const progress = (currentQuestion / totalQuestions) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
-            if (currentStep === 0) {
-                document.getElementById('stepIndicator').textContent = 'Profile Information';
-            } else {
-                document.getElementById('stepIndicator').textContent = `Question ${currentStep} of ${totalSteps}`;
-            }
+            document.getElementById('stepIndicator').textContent = `Question ${currentQuestion} of ${totalQuestions}`;
         }
         
-        function showStep(step) {
-            document.querySelectorAll('.question-container').forEach(container => {
-                container.classList.remove('active');
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.remove('active');
             });
-            const targetStep = document.querySelector(`[data-step="${step}"]`);
-            if (targetStep) {
-                targetStep.classList.add('active');
-                currentStep = step;
-                updateProgress();
+            
+            // Show target page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
                 window.scrollTo(0, 0);
             }
         }
         
-        function nextStep() {
-            if (currentStep < totalSteps) {
-                showStep(currentStep + 1);
+        function continueToCalculator() {
+            // Save profile data
+            saveProfileData();
+            
+            // Show progress bar and step indicator
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('stepIndicator').style.display = 'block';
+            
+            // Go to first question
+            currentQuestion = 1;
+            updateProgress();
+            showPage('question1');
+        }
+        
+        function nextQuestion() {
+            if (currentQuestion < totalQuestions) {
+                currentQuestion++;
+                updateProgress();
+                showPage('question' + currentQuestion);
             }
         }
         
-        function prevStep() {
-            if (currentStep > 1) {
-                showStep(currentStep - 1);
+        function prevQuestion() {
+            if (currentQuestion > 1) {
+                currentQuestion--;
+                updateProgress();
+                showPage('question' + currentQuestion);
+            } else if (currentQuestion === 1) {
+                // Go back to profile page
+                currentQuestion = 0;
+                document.getElementById('progressBar').style.display = 'none';
+                document.getElementById('stepIndicator').style.display = 'none';
+                showPage('profilePage');
             }
+        }
+        
+        function saveProfileData() {
+            // Profile data is saved when continuing to calculator
+            // This function can be extended to save to localStorage or Supabase
+            const profileData = {
+                name: document.getElementById('profileName').value,
+                gender: document.getElementById('profileGender').value,
+                age: parseInt(document.getElementById('profileAge').value) || null,
+                ethnicity: document.getElementById('profileEthnicity').value
+            };
+            localStorage.setItem('destinylens_profile', JSON.stringify(profileData));
         }
         
         function addExpenseRow() {
@@ -798,15 +837,13 @@
             
             const timeframeDays = parseInt(document.getElementById('timeframeDays').value) || 730;
             
+            // Get profile data from localStorage
+            const profileData = JSON.parse(localStorage.getItem('destinylens_profile') || '{}');
+            
             const calculation = {
                 monthly, yearly, weekly, daily, hourly,
                 timeframeDays,
-                profile: {
-                    name: document.getElementById('profileName').value,
-                    gender: document.getElementById('profileGender').value,
-                    age: parseInt(document.getElementById('profileAge').value) || null,
-                    ethnicity: document.getElementById('profileEthnicity').value
-                },
+                profile: profileData,
                 answers: {
                     home: { description: document.getElementById('homeDescription').value, amount: parseAmount(document.getElementById('homeAmount').value) },
                     vehicle: { description: document.getElementById('vehicleDescription').value, amount: parseAmount(document.getElementById('vehicleAmount').value) },
@@ -817,14 +854,16 @@
                     education: { description: document.getElementById('collegeDescription').value, amount: parseAmount(document.getElementById('collegeAmount').value) },
                     investments: { description: document.getElementById('retirementDescription').value, amount: parseAmount(document.getElementById('retirementAmount').value) }
                 },
-                customGoals: collectCustomGoals()
+                customGoals: collectCustomGoals(),
                 timestamp: new Date().toISOString()
             };
+            
             // Save to Supabase and link to dashboard
             saveCalculationToSupabase(calculation);
             
-            document.querySelectorAll('.question-container').forEach(c => c.classList.remove('active'));
-            document.querySelector('.progress-bar').style.display = 'none';
+            // Hide all question pages and progress
+            document.querySelectorAll('.page-container').forEach(c => c.classList.remove('active'));
+            document.getElementById('progressBar').style.display = 'none';
             document.getElementById('stepIndicator').style.display = 'none';
             document.getElementById('resultsContainer').classList.add('active');
             window.scrollTo(0, 0);
@@ -856,9 +895,11 @@
         
         function editAnswers() {
             document.getElementById('resultsContainer').classList.remove('active');
-            document.querySelector('.progress-bar').style.display = 'block';
+            document.getElementById('progressBar').style.display = 'block';
             document.getElementById('stepIndicator').style.display = 'block';
-            showStep(1);
+            currentQuestion = 1;
+            updateProgress();
+            showPage('question1');
         }
         
         async function saveCalculationToSupabase(calculation) {
@@ -946,6 +987,9 @@
                 if (calc.profile_age) document.getElementById('profileAge').value = calc.profile_age;
                 if (calc.profile_ethnicity) document.getElementById('profileEthnicity').value = calc.profile_ethnicity;
                 
+                // Save to localStorage for consistency
+                saveProfileData();
+                
                 // Load standard goals
                 if (calc.home_description) { document.getElementById('homeDescription').value = calc.home_description; document.getElementById('homeAmount').value = calc.home_monthly_amount || ''; }
                 if (calc.vehicle_description) { document.getElementById('vehicleDescription').value = calc.vehicle_description; document.getElementById('vehicleAmount').value = calc.vehicle_monthly_amount || ''; }
@@ -976,12 +1020,15 @@
             }
         }
         
-        // Initialize first, then load previous entries
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize step display immediately
-            showStep(0);
+            // Start at profile page (no progress bar)
+            currentQuestion = 0;
+            document.getElementById('progressBar').style.display = 'none';
+            document.getElementById('stepIndicator').style.display = 'none';
+            showPage('profilePage');
             
-            // Then try to load previous entries (may fail if columns don't exist)
+            // Then try to load previous entries
             loadPreviousEntries().catch(err => console.log('Could not load previous entries:', err));
         });
         
