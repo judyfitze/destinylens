@@ -4,5 +4,11 @@
       "source": "/share/:slug",
       "destination": "/share.html"
     }
+  ],
+  "routes": [
+    {
+      "src": "/ai-prompt-generator",
+      "dest": "/ai-prompt-generator.html"
+    }
   ]
 }
