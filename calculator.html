@@ -975,7 +975,14 @@
             }
         }
         
-        document.addEventListener('DOMContentLoaded', loadPreviousEntries);
+        // Initialize first, then load previous entries
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize step display immediately
+            showStep(0);
+            
+            // Then try to load previous entries (may fail if columns don't exist)
+            loadPreviousEntries().catch(err => console.log('Could not load previous entries:', err));
+        });
         
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
@@ -987,11 +994,6 @@
         function toggleNavMenu() {
             document.getElementById('navMenu').classList.toggle('active');
         }
-        
-        // Initialize immediately
-        document.addEventListener('DOMContentLoaded', function() {
-            showStep(0);
-        });
     </script>
 </body>
 </html>
