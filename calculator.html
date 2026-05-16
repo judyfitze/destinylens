@@ -855,14 +855,27 @@
         async function loadExistingJourneyData() {
             try {
                 const { user } = await getCurrentUser();
-                if (!user) return;
+                if (!user) {
+                    console.log('No user logged in, cannot load journey data');
+                    return;
+                }
+                
+                console.log('Loading journey data for user:', user.id);
                 
                 // Get dashboard settings to check for original journey
-                const { data: settings } = await supabaseClient
+                // Use .maybeSingle() instead of .single() to avoid 400 error when no row exists
+                const { data: settings, error } = await supabaseClient
                     .from('dashboard_settings')
                     .select('original_journey_start_date, original_journey_calculation_id')
                     .eq('user_id', user.id)
-                    .single();
+                    .maybeSingle();
+                
+                if (error) {
+                    console.log('Error loading dashboard settings:', error);
+                    return;
+                }
+                
+                console.log('Dashboard settings loaded:', settings);
                 
                 if (settings?.original_journey_start_date) {
                     originalJourneyStartDate = new Date(settings.original_journey_start_date);
@@ -878,9 +891,11 @@
                         currentDay: currentJourneyDay,
                         calculationId: originalJourneyCalculationId
                     });
+                } else {
+                    console.log('No original journey found in settings');
                 }
             } catch (err) {
-                console.log('No existing journey found:', err);
+                console.log('Error in loadExistingJourneyData:', err);
             }
         }
         
