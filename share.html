@@ -533,16 +533,21 @@
                             <span class="goals-heading">🎯 My Dream Life Goals</span>
                         </div>
                         <div class="goals-grid">
-                            ${goals.map((g, idx) => `
-                                <div class="goal-card" style="background-image: url('${g.image_url || g.image || 'dashboard-preview.jpg'}'); background-size: cover; background-position: center;">
-                                    <div class="goal-card-overlay"></div>
+                            ${goals.map((g, idx) => {
+                                const hasImage = (g.image_url || g.image) && (g.image_url || g.image) !== 'dashboard-preview.jpg';
+                                const cardStyle = hasImage 
+                                    ? `background-image: url('${g.image_url || g.image}'); background-size: cover; background-position: center;`
+                                    : `background: linear-gradient(145deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);`;
+                                return `
+                                <div class="goal-card" style="${cardStyle}">
+                                    ${hasImage ? '<div class="goal-card-overlay"></div>' : ''}
                                     <div class="goal-info">
                                         <div class="goal-emoji">${g.icon || '🎯'}</div>
-                                        <div class="goal-name">${g.title || 'Goal'}</div>
                                         <div class="goal-amt">${formatCurrency(g.monthly_amount || g.amount || 0)}/mo</div>
                                     </div>
                                 </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `;
