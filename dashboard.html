@@ -1374,6 +1374,9 @@
 
             if (!confirmed) return;
 
+            // Get goal ID before removing
+            const goalId = goals[index]?.id;
+            
             // Remove from array
             goals.splice(index, 1);
 
@@ -1382,6 +1385,19 @@
             const userGoalsKey = currentUser?.id ? `destinylens_goals_${currentUser.id}` : 'destinylens_goals';
             localStorage.setItem(userGoalsKey, JSON.stringify(goals));
             console.log('Goal deleted. Saved goals:', goals);
+            
+            // Also delete from Supabase
+            if (goalId) {
+                try {
+                    await supabaseClient
+                        .from('goal_cards')
+                        .delete()
+                        .eq('id', goalId);
+                    console.log('Goal deleted from Supabase');
+                } catch (err) {
+                    console.error('Error deleting from Supabase:', err);
+                }
+            }
 
             // Re-render
             renderGoals();
@@ -1624,6 +1640,66 @@
                 const userGoalsKey = currentUser?.id ? `destinylens_goals_${currentUser.id}` : 'destinylens_goals';
                 localStorage.setItem(userGoalsKey, JSON.stringify(goals));
                 console.log('Goals saved to localStorage:', goals);
+
+                // ALSO save to Supabase for share page
+                try {
+                    // First, get dashboard_settings id for this user
+                    const { data: settings } = await supabaseClient
+                        .from('dashboard_settings')
+                        .select('id')
+                        .eq('user_id', currentUser.id)
+                        .single();
+                    
+                    const dashboardId = settings?.id;
+                    
+                    // Prepare goal data for Supabase
+                    // Note: base64 images are too large for Supabase, store a placeholder
+                    // The actual image stays in localStorage for the dashboard
+                    const imageUrl = goal.image && goal.image.startsWith('data:') 
+                        ? 'dashboard-preview.jpg'  // Use placeholder for share page
+                        : (goal.image || 'dashboard-preview.jpg');
+                    
+                    if (goalEditIndex !== null && goals[goalEditIndex].id) {
+                        // Update existing in Supabase
+                        await supabaseClient
+                            .from('goal_cards')
+                            .update({
+                                title: goal.title,
+                                icon: goal.icon,
+                                monthly_amount: goal.amount,
+                                image_url: imageUrl,
+                                sort_order: goalEditIndex,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', goals[goalEditIndex].id);
+                    } else {
+                        // Insert new to Supabase
+                        const { data: newGoal } = await supabaseClient
+                            .from('goal_cards')
+                            .insert({
+                                user_id: currentUser.id,
+                                dashboard_id: dashboardId,
+                                title: goal.title,
+                                icon: goal.icon,
+                                monthly_amount: goal.amount,
+                                image_url: imageUrl,
+                                sort_order: goals.length - 1,
+                                visible: true
+                            })
+                            .select()
+                            .single();
+                        
+                        // Store the Supabase ID in localStorage goal
+                        if (newGoal) {
+                            goals[goals.length - 1].id = newGoal.id;
+                            localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                        }
+                    }
+                    console.log('Goal synced to Supabase');
+                } catch (syncErr) {
+                    console.error('Error syncing goal to Supabase:', syncErr);
+                    // Don't fail - localStorage is primary
+                }
 
                 renderGoals();
                 closeModal('goalModal');
