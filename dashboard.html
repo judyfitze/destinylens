@@ -1104,10 +1104,16 @@
                     latestError = error;
                 }
                 
+                console.log('*** CALC DATA ***');
                 console.log('Calculation ID:', calc?.id);
+                console.log('Calculation user_id:', calc?.user_id);
+                console.log('Current userId:', userId);
+                console.log('MATCH:', calc?.user_id === userId);
                 console.log('Created at:', calc?.created_at);
                 console.log('Home amount:', calc?.home_monthly_amount);
                 console.log('Monthly total:', calc?.monthly_total);
+                console.log('DAILY TOTAL:', calc?.daily_total);
+                console.log('*** END CALC DATA ***');
                 
                 // Load background - fade in after load
                 if (settings.background_image_url) {
