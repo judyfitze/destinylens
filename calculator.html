@@ -1224,7 +1224,11 @@
             
             // Store calculation data globally for later save
             window.pendingCalculation = calculation;
-            console.log('Calculation ready, showing results page');
+            console.log('Calculation stored:', { 
+                monthly: calculation.monthly, 
+                yearly: calculation.yearly,
+                totalAmounts: amounts.reduce((a,b) => a+b, 0)
+            });
             
             // Hide all question pages and progress
             document.querySelectorAll('.page-container').forEach(c => c.classList.remove('active'));
@@ -1253,6 +1257,11 @@
                 alert('Error: No calculation data found. Please try again.');
                 return;
             }
+            
+            console.log('About to save calculation:', { 
+                monthly: calculation.monthly, 
+                yearly: calculation.yearly 
+            });
             
             // Capture journey choice
             const journeyContinue = document.getElementById('journeyContinue');
