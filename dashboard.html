@@ -1079,6 +1079,22 @@
                     const daysElapsed = Math.floor((today - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
                     const currentDay = Math.min(daysElapsed, timeframeDays);
                     document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
+                    
+                    // Save calculation totals to dashboard_settings for share page
+                    try {
+                        await supabaseClient
+                            .from('dashboard_settings')
+                            .update({
+                                daily_income_target: calc.daily_total,
+                                weekly_income_target: calc.weekly_total,
+                                monthly_income_target: calc.monthly_total,
+                                yearly_income_target: calc.yearly_total,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('user_id', userId);
+                    } catch (e) {
+                        console.error('Error saving targets to settings:', e);
+                    }
                 } else {
                     // No calculation yet - show $0 for all metrics and clear goals
                     dailyTarget = 0;

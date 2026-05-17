@@ -467,10 +467,11 @@
                 };
             }
             
-            const daily = calc?.daily_total || 0;
-            const weekly = calc?.weekly_total || 0;
-            const monthly = calc?.monthly_total || 0;
-            const yearly = calc?.yearly_total || 0;
+            // Use settings for targets (share page can't read calculations due to RLS)
+            const daily = settings.daily_income_target || calc?.daily_total || 0;
+            const weekly = settings.weekly_income_target || calc?.weekly_total || 0;
+            const monthly = settings.monthly_income_target || calc?.monthly_total || 0;
+            const yearly = settings.yearly_income_target || calc?.yearly_total || 0;
             
             // Calculate actual progress
             const progress = daily > 0 ? Math.min(100, (todayIncome / daily) * 100) : 0;
