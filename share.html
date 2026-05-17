@@ -245,22 +245,21 @@
             border-radius: 12px;
             overflow: hidden;
             position: relative;
-            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);
-            border: 1px solid rgba(169, 76, 240, 0.3);
+            background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.1);
             flex-shrink: 0;
-            display: flex;
-            align-items: flex-end;
-            padding: 15px;
         }
-        .goal-card-bg {
+        .goal-card-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(transparent 30%, rgba(0,0,0,0.8) 100%);
             z-index: 1;
         }
         .goal-info {
-            position: relative;
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 10px;
             z-index: 2;
-            width: 100%;
         }
         .goal-emoji { font-size: 1.1rem; margin-bottom: 2px; }
         .goal-name { font-weight: 700; font-size: 0.85rem; }
@@ -539,12 +538,12 @@
                         </div>
                         <div class="goals-grid">
                             ${goals.map((g, idx) => `
-                                <div class="goal-card">
-                                    <div class="goal-card-bg" style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.3) 0%, rgba(246, 194, 107, 0.2) 100%);"></div>
+                                <div class="goal-card" style="background-image: url('${g.image_url || g.image || 'dashboard-preview.jpg'}'); background-size: cover; background-position: center;">
+                                    <div class="goal-card-overlay"></div>
                                     <div class="goal-info">
                                         <div class="goal-emoji">${g.icon || '🎯'}</div>
                                         <div class="goal-name">${g.title}</div>
-                                        <div class="goal-amt">${formatCurrency(g.monthly_amount)}/mo</div>
+                                        <div class="goal-amt">${formatCurrency(g.monthly_amount || g.amount)}/mo</div>
                                     </div>
                                 </div>
                             `).join('')}

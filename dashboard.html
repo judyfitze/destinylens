@@ -1652,12 +1652,20 @@
                     
                     const dashboardId = settings?.id;
                     
-                    // Prepare goal data for Supabase
-                    // Note: base64 images are too large for Supabase, store a placeholder
-                    // The actual image stays in localStorage for the dashboard
-                    const imageUrl = goal.image && goal.image.startsWith('data:') 
-                        ? 'dashboard-preview.jpg'  // Use placeholder for share page
-                        : (goal.image || 'dashboard-preview.jpg');
+                    // Upload image to Supabase Storage if it's base64
+                    let imageUrl = goal.image;
+                    if (goal.image && goal.image.startsWith('data:')) {
+                        try {
+                            imageUrl = await uploadImageToStorage(goal.image, `goal_${Date.now()}.jpg`, 'goals');
+                            // Update localStorage with the public URL
+                            goal.image = imageUrl;
+                            goals[goalEditIndex !== null ? goalEditIndex : goals.length - 1].image = imageUrl;
+                            localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                        } catch (uploadErr) {
+                            console.error('Error uploading goal image:', uploadErr);
+                            imageUrl = 'dashboard-preview.jpg';
+                        }
+                    }
                     
                     if (goalEditIndex !== null && goals[goalEditIndex].id) {
                         // Update existing in Supabase
