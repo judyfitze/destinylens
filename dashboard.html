@@ -456,6 +456,7 @@
                 0 8px 32px rgba(0, 0, 0, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.08);
             transition: all 0.3s ease;
+            isolation: isolate;
         }
         .goal-card:hover {
             transform: translateY(-4px);
@@ -465,32 +466,58 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             border-color: rgba(246, 194, 107, 0.35);
         }
-        .goal-card img { width: 100%; height: 100%; object-fit: cover; }
+        .goal-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
         .goal-info {
             position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 14px;
-            background: linear-gradient(transparent, rgba(10, 10, 18, 0.95));
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(
+                to top,
+                rgba(10, 10, 18, 0.98) 0%,
+                rgba(10, 10, 18, 0.9) 40%,
+                rgba(10, 10, 18, 0.6) 70%,
+                transparent 100%
+            );
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 2;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
         }
-        .goal-emoji { 
-            font-size: 1.3rem; 
+        .goal-emoji {
+            font-size: 1.3rem;
             margin-bottom: 4px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+            z-index: 3;
         }
-        .goal-name { 
-            font-weight: 700; 
+        .goal-name {
+            font-weight: 700;
             font-size: 0.9rem;
             color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            z-index: 3;
+            line-height: 1.2;
         }
-        .goal-amt { 
+        .goal-amt {
             background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-weight: 700; 
+            font-weight: 700;
             font-size: 0.8rem;
-            margin-top: 2px;
+            margin-top: 4px;
+            z-index: 3;
+            text-shadow: none;
         }
         
         /* Three Dot Menu */
@@ -500,7 +527,7 @@
             right: 8px;
             width: 28px;
             height: 28px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             border-radius: 6px;
             display: flex;
             align-items: center;
@@ -509,32 +536,35 @@
             font-size: 1rem;
             opacity: 0;
             transition: opacity 0.2s;
-            z-index: 5;
+            z-index: 10;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         .goal-card:hover .goal-menu-btn { opacity: 1; }
         .goal-dropdown {
             display: none;
             position: absolute;
-            top: 38px;
+            top: 40px;
             right: 8px;
-            background: #1a1a2e;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(26, 26, 46, 0.98);
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 8px;
             min-width: 140px;
-            z-index: 10;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
         }
         .goal-dropdown.active { display: block; }
         .goal-dropdown-item {
-            padding: 10px 14px;
+            padding: 12px 16px;
             font-size: 0.85rem;
             color: rgba(255,255,255,0.9);
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: background 0.15s;
         }
-        .goal-dropdown-item:hover { background: rgba(169, 76, 240, 0.2); }
+        .goal-dropdown-item:hover { background: rgba(169, 76, 240, 0.25); }
         .goal-dropdown-item.delete { color: #ff6b6b; }
         .goal-dropdown-item.delete:hover { background: rgba(255, 107, 107, 0.2); }
         
@@ -988,7 +1018,7 @@
                     document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
                 }
                 
-                // Load goals from localStorage first, then fall back to calculation defaults
+                // Load goals - ONLY from localStorage, never overwrite with defaults if exists
                 const savedGoals = localStorage.getItem('destinylens_goals');
                 if (savedGoals) {
                     try {
@@ -999,8 +1029,8 @@
                         goals = [];
                     }
                 }
-                
-                // If no saved goals, create defaults from calculation
+
+                // Only create defaults if NO goals exist at all
                 if (goals.length === 0 && calc) {
                     const map = [
                         {k: 'home', i: '🏖️', t: calc.home_description || 'Dream Home'},
@@ -1009,14 +1039,18 @@
                         {k: 'food', i: '🍽️', t: calc.food_description || 'Food & Dining'}
                     ];
                     goals = map.map(g => ({
-                        icon: g.i, title: g.t,
+                        icon: g.i,
+                        title: g.t,
                         amount: calc[g.k + '_monthly_amount'] || 0,
-                        image: 'dashboard-preview.jpg'
+                        image: 'dashboard-preview.jpg',
+                        createdAt: new Date().toISOString()
                     })).filter(g => g.amount > 0).slice(0, 4);
-                    
+
                     // Save defaults to localStorage
-                    localStorage.setItem('destinylens_goals', JSON.stringify(goals));
-                    console.log('Created default goals from calculation:', goals);
+                    if (goals.length > 0) {
+                        localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                        console.log('Created and saved default goals:', goals);
+                    }
                 }
                 
                 renderGoals();
@@ -1111,18 +1145,28 @@
         
         function renderGoals() {
             const grid = document.getElementById('goalsGrid');
+            if (!grid) return;
+
             let html = goals.map((g, i) => {
                 // Check if goal has a custom image (not the default)
-                const hasCustomImage = g.image && g.image !== 'dashboard-preview.jpg' && !g.image.startsWith('data:');
-                const cardStyle = hasCustomImage 
-                    ? `background-image: url('${g.image}'); background-size: cover; background-position: center;`
-                    : `background: linear-gradient(145deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);`;
-                
+                const hasCustomImage = g.image && g.image !== 'dashboard-preview.jpg';
+
+                // Build card style
+                let cardStyle = '';
+                if (hasCustomImage) {
+                    // Use background-image for better control
+                    cardStyle = `background-image: url('${g.image}'); background-size: cover; background-position: center;`;
+                } else {
+                    // Default gradient background
+                    cardStyle = `background: linear-gradient(145deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);`;
+                }
+
                 return `
-                <div class="goal-card" style="${cardStyle}">
+                <div class="goal-card" style="${cardStyle}" data-index="${i}">
+                    ${hasCustomImage ? '' : `<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(145deg, rgba(169, 76, 240, 0.15) 0%, rgba(246, 194, 107, 0.08) 100%);"></div>`}
                     <div class="goal-info">
                         <div class="goal-emoji">${g.icon}</div>
-                        <div class="goal-name">${g.title}</div>
+                        <div class="goal-name">${escapeHtml(g.title)}</div>
                         <div class="goal-amt">${format$(g.amount)}/mo</div>
                     </div>
                     <div class="goal-menu-btn" onclick="toggleDropdown(event, ${i})">⋮</div>
@@ -1133,8 +1177,26 @@
                 </div>
                 `;
             }).join('');
-            
+
+            // Add the "Add Goal" card if less than 4 goals
+            if (goals.length < 4) {
+                html += `
+                <div class="goal-card add-card" onclick="openAddGoalModal()">
+                    <div class="add-plus">+</div>
+                    <div class="add-text">Add Goal</div>
+                </div>
+                `;
+            }
+
             grid.innerHTML = html;
+            console.log('Rendered', goals.length, 'goals');
+        }
+
+        // Helper for HTML escaping
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Dropdown functions
@@ -1220,18 +1282,37 @@
         
         async function deleteGoal(index) {
             closeAllDropdowns();
-            const confirmed = await showDLConfirm({
-                title: 'Delete Goal?',
-                message: 'Are you sure you want to delete this goal? This action cannot be undone.',
-                confirmText: 'Delete',
-                cancelText: 'Cancel',
-                type: 'warning'
-            });
+
+            // Use native confirm if showDLConfirm not available
+            let confirmed;
+            if (window.showDLConfirm) {
+                confirmed = await showDLConfirm({
+                    title: 'Delete Goal?',
+                    message: 'Are you sure you want to delete this goal? This action cannot be undone.',
+                    confirmText: 'Delete',
+                    cancelText: 'Cancel',
+                    type: 'warning'
+                });
+            } else {
+                confirmed = confirm('Are you sure you want to delete this goal? This action cannot be undone.');
+            }
+
             if (!confirmed) return;
-            
+
+            // Remove from array
             goals.splice(index, 1);
+
+            // CRITICAL: Save to localStorage immediately
             localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+            console.log('Goal deleted. Saved goals:', goals);
+
+            // Re-render
             renderGoals();
+
+            // Show success
+            if (window.showDLSuccess) {
+                window.showDLSuccess('Goal deleted successfully');
+            }
         }
         
         // Modal functions
@@ -1251,6 +1332,17 @@
             const modal = document.getElementById(id);
             if (modal) {
                 modal.classList.remove('active');
+            }
+
+            // Reset temp state when closing goal modal
+            if (id === 'goalModal') {
+                resetGoalForm();
+            }
+            if (id === 'bgModal') {
+                tempBgImage = null;
+                document.getElementById('bgPreview').style.display = 'none';
+                document.getElementById('bgUploadArea').classList.remove('has-image');
+                document.getElementById('bgFile').value = '';
             }
         }
         
@@ -1403,79 +1495,91 @@
         async function saveGoal() {
             const title = document.getElementById('goalTitle').value.trim();
             const amount = parseFloat(document.getElementById('goalAmount').value) || 0;
-            
+
             if (!title) {
-                if (window.showDLWarning) {
-                    window.showDLWarning('Please enter a goal title');
-                } else {
-                    alert('Please enter a goal title');
-                }
+                const msg = 'Please enter a goal title';
+                if (window.showDLWarning) window.showDLWarning(msg);
+                else alert(msg);
                 return;
             }
             if (amount <= 0) {
-                if (window.showDLWarning) {
-                    window.showDLWarning('Please enter a valid amount');
-                } else {
-                    alert('Please enter a valid amount');
-                }
+                const msg = 'Please enter a valid amount';
+                if (window.showDLWarning) window.showDLWarning(msg);
+                else alert(msg);
                 return;
             }
-            
+
             try {
                 let imageUrl = tempGoalImage;
-                
-                // If there's a new image (base64), upload to storage
+
+                // If there's a new image (base64), keep it as base64 for reliability
+                // (Supabase storage URLs can expire or have CORS issues)
                 if (tempGoalImage && tempGoalImage.startsWith('data:')) {
-                    imageUrl = await uploadImageToStorage(tempGoalImage, 'goal.jpg', 'goals');
+                    // Store base64 directly - more reliable for localStorage persistence
+                    imageUrl = tempGoalImage;
                 }
-                
+
                 const goal = {
                     icon: selectedIcon,
                     title: title,
                     amount: amount,
-                    image: imageUrl || 'dashboard-preview.jpg'
+                    image: imageUrl || 'dashboard-preview.jpg',
+                    createdAt: new Date().toISOString()
                 };
-                
+
                 if (goalEditIndex !== null) {
-                    // Update existing goal (local only since goal_cards table is deprecated)
+                    // Update existing - preserve createdAt
                     goals[goalEditIndex] = { ...goals[goalEditIndex], ...goal };
+                    console.log('Updated goal at index', goalEditIndex, goals[goalEditIndex]);
                 } else if (goals.length < 4) {
-                    // Add new goal locally
+                    // Add new goal
                     goals.push(goal);
+                    console.log('Added new goal:', goal);
                 } else {
-                    if (window.showDLWarning) {
-                        window.showDLWarning('Maximum 4 goals reached');
-                    } else {
-                        alert('Maximum 4 goals reached');
-                    }
+                    const msg = 'Maximum 4 goals reached';
+                    if (window.showDLWarning) window.showDLWarning(msg);
+                    else alert(msg);
                     return;
                 }
+
+                // CRITICAL: Save to localStorage immediately
+                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                console.log('Goals saved to localStorage:', goals);
 
                 renderGoals();
                 closeModal('goalModal');
 
-                // Show success message
-                if (window.showDLSuccess) {
-                    window.showDLSuccess(goalEditIndex !== null ? 'Goal updated successfully!' : 'Goal added successfully!');
-                }
+                // Show success
+                const successMsg = goalEditIndex !== null ? 'Goal updated!' : 'Goal added!';
+                if (window.showDLSuccess) window.showDLSuccess(successMsg);
 
                 // Reset form
-                document.getElementById('goalTitle').value = '';
-                document.getElementById('goalAmount').value = '';
-                document.getElementById('goalPreview').style.display = 'none';
-                document.getElementById('goalUploadText').textContent = 'Upload goal image';
-                document.getElementById('goalUploadArea').classList.remove('has-image');
-                tempGoalImage = null;
-                goalEditIndex = null;
+                resetGoalForm();
 
             } catch (err) {
                 console.error('Error saving goal:', err);
-                if (window.showDLError) {
-                    window.showDLError('Error saving goal. Please try again.');
-                } else {
-                    alert('Error saving goal. Please try again.');
-                }
+                const msg = 'Error saving goal. Please try again.';
+                if (window.showDLError) window.showDLError(msg);
+                else alert(msg);
             }
+        }
+
+        // ADD this helper function:
+        function resetGoalForm() {
+            document.getElementById('goalTitle').value = '';
+            document.getElementById('goalAmount').value = '';
+            document.getElementById('goalPreview').style.display = 'none';
+            document.getElementById('goalUploadText').textContent = 'Upload goal image';
+            document.getElementById('goalUploadArea').classList.remove('has-image');
+            document.getElementById('goalFile').value = '';
+            tempGoalImage = null;
+            goalEditIndex = null;
+
+            // Reset icon selection
+            document.querySelectorAll('.icon-opt').forEach((btn, i) => {
+                btn.classList.toggle('selected', i === 0);
+            });
+            selectedIcon = '🏖️';
         }
         
         // Income functions
