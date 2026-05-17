@@ -530,8 +530,8 @@
                 <div class="gauge-container">
                     <div class="gauge-bg"></div>
                     <div class="gauge-inner">
-                        <div class="gauge-percent">78%</div>
-                        <div class="gauge-label">$3,076 / $3,937</div>
+                        <div class="gauge-percent">0%</div>
+                        <div class="gauge-label">$0.00 / $0.00</div>
                     </div>
                 </div>
                 <div class="stats-grid">
@@ -598,35 +598,11 @@
                 <a href="/calculator.html" class="view-all">Edit Goals →</a>
             </div>
             <div class="goals-grid">
-                <div class="goal-card">
+                <!-- Goals will be populated by JavaScript from calculation data -->
+                <div class="goal-card placeholder" style="display:none;">
                     <div class="goal-card-icon">🏖️</div>
-                    <h4>Oceanfront Home</h4>
-                    <div class="goal-card-amount">$25,000/mo</div>
-                </div>
-                <div class="goal-card">
-                    <div class="goal-card-icon">🚗</div>
-                    <h4>Dream Vehicle</h4>
-                    <div class="goal-card-amount">$1,200/mo</div>
-                </div>
-                <div class="goal-card">
-                    <div class="goal-card-icon">✈️</div>
-                    <h4>Travel</h4>
-                    <div class="goal-card-amount">$5,000/mo</div>
-                </div>
-                <div class="goal-card">
-                    <div class="goal-card-icon">💪</div>
-                    <h4>Wellness</h4>
-                    <div class="goal-card-amount">$750/mo</div>
-                </div>
-                <div class="goal-card">
-                    <div class="goal-card-icon">📈</div>
-                    <h4>Investments</h4>
-                    <div class="goal-card-amount">$2,000/mo</div>
-                </div>
-                <div class="goal-card">
-                    <div class="goal-card-icon">👨‍🍳</div>
-                    <h4>Personal Chef</h4>
-                    <div class="goal-card-amount">$2,200/mo</div>
+                    <h4>Dream Home</h4>
+                    <div class="goal-card-amount">$0.00/mo</div>
                 </div>
             </div>
         </div>
@@ -868,9 +844,11 @@
                     goalsGrid.innerHTML = goalsHTML;
                     console.log('Goal cards generated from calculation:', goalData.length, 'goals');
                 } else {
+                    goalsGrid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.6);">Complete your Dream Life Calculator to see your goals here.</div>';
                     console.log('No goals with amounts to display');
                 }
             } else {
+                goalsGrid.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.6);">Complete your Dream Life Calculator to see your goals here.</div>';
                 console.log('No calculation data for goal cards');
             }
         }
