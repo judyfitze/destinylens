@@ -819,61 +819,58 @@
                 document.querySelector('.gauge-bg').style.background = `conic-gradient(from 0deg, #A94CF0 0deg, #F6C26B ${degrees}deg, rgba(255,255,255,0.1) ${degrees}deg)`;
             }
             
-            // Load goal cards from goal_cards table with cache-busting - force fresh data
-            console.log('Loading goal cards...');
-            const { data: goals, error: goalsError } = await supabaseClient
-                .from('goal_cards')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('sort_order', { ascending: true });
+            // Generate goal cards from calculation data (always use calculator, not DB)
+            console.log('Generating goal cards from calculation...');
             
-            console.log('Goal cards result:', { goals, goalsError });
-            
-            if (goals && goals.length > 0) {
+            if (calculation) {
                 const goalsGrid = document.querySelector('.goals-grid');
-                let goalsHTML = '';
-                goals.forEach(goal => {
-                    goalsHTML += `
-                        <div class="goal-card">
-                            <div class="goal-card-icon">${goal.icon || '🎯'}</div>
-                            <h4>${goal.title}</h4>
-                            <div class="goal-card-amount">$${(goal.monthly_amount || 0).toLocaleString()}/mo</div>
-                        </div>
-                    `;
-                });
-                if (goalsHTML) {
-                    goalsGrid.innerHTML = goalsHTML;
-                    console.log('Goal cards updated from DB');
-                }
-            } else if (calculation) {
-                console.log('Using calculation data for goal cards:', calculation);
-                const goalsGrid = document.querySelector('.goals-grid');
+                
+                // Build goal data from calculator answers with descriptions
                 const goalData = [
-                    { icon: '🏖️', title: 'Dream Home', amount: calculation.home_monthly_amount },
-                    { icon: '🚗', title: 'Dream Vehicle', amount: calculation.vehicle_monthly_amount },
-                    { icon: '✈️', title: 'Travel', amount: calculation.travel_monthly_amount },
-                    { icon: '🍽️', title: 'Food & Dining', amount: calculation.food_monthly_amount },
-                    { icon: '💪', title: 'Wellness', amount: calculation.trainer_monthly_amount },
-                    { icon: '👨‍🍳', title: 'Personal Chef', amount: calculation.chef_monthly_amount },
-                    { icon: '🎓', title: 'Education', amount: calculation.college_monthly_amount },
-                    { icon: '📈', title: 'Investments', amount: calculation.retirement_monthly_amount }
+                    { icon: '🏖️', title: calculation.home_description || 'Dream Home', amount: calculation.home_monthly_amount },
+                    { icon: '🚗', title: calculation.vehicle_description || 'Dream Vehicle', amount: calculation.vehicle_monthly_amount },
+                    { icon: '✈️', title: calculation.travel_description || 'Travel', amount: calculation.travel_monthly_amount },
+                    { icon: '🍽️', title: calculation.food_description || 'Food & Dining', amount: calculation.food_monthly_amount },
+                    { icon: '💪', title: calculation.trainer_description || 'Wellness', amount: calculation.trainer_monthly_amount },
+                    { icon: '👨‍🍳', title: calculation.chef_description || 'Personal Chef', amount: calculation.chef_monthly_amount },
+                    { icon: '🎓', title: calculation.college_description || 'Education', amount: calculation.college_monthly_amount },
+                    { icon: '📈', title: calculation.retirement_description || 'Investments', amount: calculation.retirement_monthly_amount }
                 ];
+                
+                // Add custom goals if they exist
+                if (calculation.custom_goals && calculation.custom_goals.length > 0) {
+                    calculation.custom_goals.forEach((customGoal, index) => {
+                        goalData.push({
+                            icon: '⭐',
+                            title: customGoal.description || `Custom Goal ${index + 1}`,
+                            amount: customGoal.amount || 0
+                        });
+                    });
+                }
                 
                 let goalsHTML = '';
                 goalData.forEach(goal => {
                     if (goal.amount > 0) {
+                        // Truncate long titles
+                        const displayTitle = goal.title.length > 40 
+                            ? goal.title.substring(0, 40) + '...' 
+                            : goal.title;
+                        
                         goalsHTML += `
                             <div class="goal-card">
                                 <div class="goal-card-icon">${goal.icon}</div>
-                                <h4>${goal.title}</h4>
+                                <h4>${displayTitle}</h4>
                                 <div class="goal-card-amount">$${goal.amount.toLocaleString()}/mo</div>
                             </div>
                         `;
                     }
                 });
+                
                 if (goalsHTML) {
                     goalsGrid.innerHTML = goalsHTML;
-                    console.log('Goal cards updated from calculation');
+                    console.log('Goal cards generated from calculation:', goalData.length, 'goals');
+                } else {
+                    console.log('No goals with amounts to display');
                 }
             } else {
                 console.log('No calculation data for goal cards');
