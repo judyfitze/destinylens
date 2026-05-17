@@ -924,7 +924,33 @@
                         calculationId: originalJourneyCalculationId
                     });
                 } else {
-                    console.log('No original journey found in settings');
+                    console.log('No original journey found in settings, checking latest calculation...');
+                    // Fallback: check the latest calculation for journey_start_date
+                    const { data: latestCalc } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('journey_start_date, created_at, id')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+                    
+                    if (latestCalc) {
+                        console.log('Found latest calculation:', latestCalc);
+                        // Use journey_start_date if set, otherwise fallback to created_at
+                        const journeyDate = latestCalc.journey_start_date || latestCalc.created_at;
+                        originalJourneyStartDate = new Date(journeyDate);
+                        originalJourneyCalculationId = latestCalc.id;
+                        
+                        const today = new Date();
+                        const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                        currentJourneyDay = Math.max(1, daysElapsed);
+                        
+                        console.log('Loaded journey from calculation:', {
+                            startDate: originalJourneyStartDate,
+                            currentDay: currentJourneyDay,
+                            source: latestCalc.journey_start_date ? 'journey_start_date' : 'created_at'
+                        });
+                    }
                 }
             } catch (err) {
                 console.log('Error in loadExistingJourneyData:', err);
