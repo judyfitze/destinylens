@@ -1057,9 +1057,15 @@
                         .select('*')
                         .eq('id', settings.active_calculation_id)
                         .single();
-                    calc = activeCalc;
+                    
+                    // SAFETY: Only use if it belongs to current user
+                    if (activeCalc && activeCalc.user_id === userId) {
+                        calc = activeCalc;
+                        console.log('Loaded active calculation:', calc);
+                    } else if (activeCalc) {
+                        console.error('SECURITY: Calculation belongs to different user!', activeCalc.user_id, '!=', userId);
+                    }
                     latestError = error;
-                    console.log('Loaded active calculation:', calc);
                 }
                 
                 // Fallback to latest if no active calculation or error
@@ -1070,9 +1076,18 @@
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false })
                         .limit(1);
-                    calc = latestCalcs?.[0] || null;
+                    
+                    // Extra safety: verify the returned calc belongs to user
+                    if (latestCalcs && latestCalcs[0] && latestCalcs[0].user_id === userId) {
+                        calc = latestCalcs[0];
+                        console.log('Fallback to latest calculation:', calc);
+                    } else if (latestCalcs && latestCalcs[0]) {
+                        console.error('SECURITY: Fallback calculation belongs to different user!', latestCalcs[0].user_id, '!=', userId);
+                        calc = null;
+                    } else {
+                        calc = null;
+                    }
                     latestError = error;
-                    console.log('Fallback to latest calculation:', calc);
                 }
                 
                 console.log('Calculation ID:', calc?.id);
