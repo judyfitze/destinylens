@@ -941,31 +941,22 @@
         async function init() {
             // Wait for auth first to know which user is logged in
             const { user } = await getCurrentUser();
+            if (!user) return;
             
-            // Clear ALL localStorage keys that don't belong to current user
-            const currentUserId = user?.id;
+            // Only clear legacy keys that aren't user-specific goals
+            // Goal images should persist per user
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key && key.startsWith('destinylens_')) {
-                    // If it's a user-specific key and not for current user, remove it
-                    if (key.includes('_goals_')) {
-                        if (!currentUserId || !key.includes(currentUserId)) {
-                            keysToRemove.push(key);
-                        }
-                    } else {
-                        // Remove all non-user-specific keys
-                        keysToRemove.push(key);
-                    }
+                // Only remove non-goals legacy keys
+                if (key && key.startsWith('destinylens_') && !key.includes('_goals_')) {
+                    keysToRemove.push(key);
                 }
             }
             keysToRemove.forEach(key => {
-                console.log('Clearing localStorage key:', key);
+                console.log('Clearing legacy key:', key);
                 localStorage.removeItem(key);
             });
-            
-            if (!user) return;
-            if (!user) return;
             
             // Load dashboard data
             await loadDashboardData(user.id);
