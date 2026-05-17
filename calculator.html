@@ -1485,30 +1485,38 @@
                 }
                 
                 // Try to update dashboard settings, but handle missing columns
-                try {
-                    await supabaseClient
+                const { error: settingsError } = await supabaseClient
+                    .from('dashboard_settings')
+                    .upsert(settingsUpdate, {
+                        onConflict: 'user_id'
+                    });
+                
+                if (settingsError) {
+                    console.log('Full settings update failed:', settingsError);
+                    // If that fails (missing columns), try with just the essential fields
+                    const { error: minimalError } = await supabaseClient
                         .from('dashboard_settings')
-                        .upsert(settingsUpdate, {
+                        .upsert({
+                            user_id: user.id,
+                            active_calculation_id: calcData.id,
+                            updated_at: new Date().toISOString()
+                        }, {
                             onConflict: 'user_id'
                         });
-                    console.log('Dashboard settings updated with all fields');
-                } catch (settingsErr) {
-                    // If that fails (missing columns), try with just the essential fields
-                    console.log('Full settings update failed, trying minimal update:', settingsErr);
-                    try {
+                    
+                    if (minimalError) {
+                        console.log('Minimal settings update also failed:', minimalError);
+                        // Last resort: just update the calculation's is_active flag
                         await supabaseClient
-                            .from('dashboard_settings')
-                            .upsert({
-                                user_id: user.id,
-                                active_calculation_id: calcData.id,
-                                updated_at: new Date().toISOString()
-                            }, {
-                                onConflict: 'user_id'
-                            });
+                            .from('dream_life_calculations')
+                            .update({ is_active: true })
+                            .eq('id', calcData.id);
+                        console.log('Marked calculation as active directly');
+                    } else {
                         console.log('Dashboard settings updated with minimal fields');
-                    } catch (minimalErr) {
-                        console.log('Minimal settings update also failed:', minimalErr);
                     }
+                } else {
+                    console.log('Dashboard settings updated with all fields');
                 }
                 
                 console.log('Calculation saved and linked to dashboard');
