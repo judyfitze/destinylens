@@ -820,11 +820,14 @@
             }
             
             // Load goal cards from goal_cards table with cache-busting - force fresh data
-            const { data: goals } = await supabaseClient
+            console.log('Loading goal cards...');
+            const { data: goals, error: goalsError } = await supabaseClient
                 .from('goal_cards')
                 .select('*')
                 .eq('user_id', user.id)
                 .order('sort_order', { ascending: true });
+            
+            console.log('Goal cards result:', { goals, goalsError });
             
             if (goals && goals.length > 0) {
                 const goalsGrid = document.querySelector('.goals-grid');
@@ -840,9 +843,10 @@
                 });
                 if (goalsHTML) {
                     goalsGrid.innerHTML = goalsHTML;
+                    console.log('Goal cards updated from DB');
                 }
             } else if (calculation) {
-                // Fallback to calculation data
+                console.log('Using calculation data for goal cards:', calculation);
                 const goalsGrid = document.querySelector('.goals-grid');
                 const goalData = [
                     { icon: '🏖️', title: 'Dream Home', amount: calculation.home_monthly_amount },
@@ -869,7 +873,10 @@
                 });
                 if (goalsHTML) {
                     goalsGrid.innerHTML = goalsHTML;
+                    console.log('Goal cards updated from calculation');
                 }
+            } else {
+                console.log('No calculation data for goal cards');
             }
         }
         
