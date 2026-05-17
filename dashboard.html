@@ -1115,8 +1115,15 @@
         
         function renderGoals() {
             const grid = document.getElementById('goalsGrid');
-            let html = goals.map((g, i) => `
-                <div class="goal-card" style="background: linear-gradient(145deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);">
+            let html = goals.map((g, i) => {
+                // Check if goal has a custom image (not the default)
+                const hasCustomImage = g.image && g.image !== 'dashboard-preview.jpg' && !g.image.startsWith('data:');
+                const cardStyle = hasCustomImage 
+                    ? `background-image: url('${g.image}'); background-size: cover; background-position: center;`
+                    : `background: linear-gradient(145deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);`;
+                
+                return `
+                <div class="goal-card" style="${cardStyle}">
                     <div class="goal-info">
                         <div class="goal-emoji">${g.icon}</div>
                         <div class="goal-name">${g.title}</div>
@@ -1128,7 +1135,8 @@
                         <div class="goal-dropdown-item delete" onclick="deleteGoal(${i})">🗑️ Delete</div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
             
             grid.innerHTML = html;
         }
