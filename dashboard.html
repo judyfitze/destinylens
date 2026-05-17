@@ -11,27 +11,17 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
     <script>
-        // NUCLEAR OPTION: Clear ALL DestinyLens localStorage on every load
-        // This ensures fresh data for every user session
+        // Smart cache clearing: Only clear if user changed, not on every load
         (function() {
-            console.log('NUCLEAR CLEAR v3: Clearing all destinylens keys');
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-                if (key.startsWith('destinylens_')) {
-                    console.log('NUCLEAR CLEAR:', key);
+            // Don't clear goals automatically - they should persist per user
+            // Only clear legacy non-user-specific keys
+            const keysToClear = ['destinylens_calculation', 'destinylens_settings', 'cached_calculation', 'dreamlife_data'];
+            keysToClear.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    console.log('Clearing legacy key:', key);
                     localStorage.removeItem(key);
                 }
             });
-            
-            // Also clear any cached calculation data
-            if (localStorage.getItem('cached_calculation')) {
-                console.log('NUCLEAR CLEAR: cached_calculation');
-                localStorage.removeItem('cached_calculation');
-            }
-            if (localStorage.getItem('dreamlife_data')) {
-                console.log('NUCLEAR CLEAR: dreamlife_data');
-                localStorage.removeItem('dreamlife_data');
-            }
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
