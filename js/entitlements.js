@@ -28,6 +28,17 @@ async function checkEntitlement(userId, entitlement) {
         };
     }
     
+    // TEMPORARY: Allow all logged-in users full access during testing/launch
+    // Remove this after launch when payment system is active
+    if (user) {
+        return {
+            hasAccess: true,
+            source: 'launch_promotion',
+            plan: 'full_access',
+            expiresAt: null
+        };
+    }
+    
     // First check if user has active subscription in database
     const { data: subscription, error } = await supabaseClient
         .from('user_subscriptions')

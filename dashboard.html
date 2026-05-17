@@ -1025,6 +1025,14 @@
                     const daysElapsed = Math.floor((today - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
                     const currentDay = Math.min(daysElapsed, timeframeDays);
                     document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
+                } else {
+                    // No calculation yet - show $0 for all metrics
+                    dailyTarget = 0;
+                    document.getElementById('dailyTarget').textContent = '$0.00';
+                    document.getElementById('weeklyTarget').textContent = '$0';
+                    document.getElementById('monthlyTarget').textContent = '$0';
+                    document.getElementById('yearlyTarget').textContent = '$0';
+                    document.getElementById('dayCounter').textContent = 'Day 1';
                 }
                 
                 // Load goals - ONLY from localStorage, never overwrite with defaults if exists
