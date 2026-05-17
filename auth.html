@@ -226,6 +226,12 @@
                 <button type="submit" class="btn" id="submitBtn">Sign In</button>
             </form>
             
+            <div class="auth-links" style="text-align: center; margin-top: 16px; font-size: 0.9rem;">
+                <a href="#" id="forgotPasswordLink" style="color: #F6C26B; text-decoration: none;">Forgot Password?</a>
+                <span style="color: rgba(255,255,255,0.3); margin: 0 12px;">|</span>
+                <a href="#" id="magicLink" style="color: #F6C26B; text-decoration: none;">Send Magic Link</a>
+            </div>
+            
             <div class="auth-switch">
                 <span id="switchText">Don't have an account?</span>
                 <a id="switchLink">Sign up</a>
@@ -284,6 +290,73 @@
         switchLink.addEventListener('click', (e) => {
             e.preventDefault();
             toggleMode();
+        });
+        
+        // Forgot Password
+        document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
+            e.preventDefault();
+            clearMessages();
+            
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showError('Please enter your email address first');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: 'https://destinylens.io/auth.html'
+                });
+                
+                if (error) {
+                    showError(error.message);
+                } else {
+                    showSuccess('Password reset link sent! Check your email.');
+                }
+            } catch (err) {
+                showError('Failed to send reset link. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = isSignIn ? 'Sign In' : 'Create Account';
+            }
+        });
+        
+        // Magic Link
+        document.getElementById('magicLink').addEventListener('click', async (e) => {
+            e.preventDefault();
+            clearMessages();
+            
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showError('Please enter your email address first');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            
+            try {
+                const { error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: 'https://destinylens.io/members.html'
+                    }
+                });
+                
+                if (error) {
+                    showError(error.message);
+                } else {
+                    showSuccess('Magic link sent! Check your email to sign in.');
+                }
+            } catch (err) {
+                showError('Failed to send magic link. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = isSignIn ? 'Sign In' : 'Create Account';
+            }
         });
         
         document.getElementById('authForm').addEventListener('submit', async (e) => {
