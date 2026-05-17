@@ -245,16 +245,22 @@
             border-radius: 12px;
             overflow: hidden;
             position: relative;
-            background: #1a1a2e;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.3);
             flex-shrink: 0;
+            display: flex;
+            align-items: flex-end;
+            padding: 15px;
         }
-        .goal-card img { width: 100%; height: 100%; object-fit: cover; }
-        .goal-info {
+        .goal-card-bg {
             position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 10px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1;
+        }
+        .goal-info {
+            position: relative;
+            z-index: 2;
+            width: 100%;
         }
         .goal-emoji { font-size: 1.1rem; margin-bottom: 2px; }
         .goal-name { font-weight: 700; font-size: 0.85rem; }
@@ -419,19 +425,25 @@
                     
                     if (dbGoals && dbGoals.length > 0) {
                         goals = dbGoals;
-                    } else if (calculation) {
-                        // Generate from calculation
+                    }
+                    
+                    // If no goals from DB, generate from calculation
+                    if (goals.length === 0 && calculation) {
                         const map = [
-                            {k: 'home', i: '🏖️', t: 'Dream Home'},
-                            {k: 'vehicle', i: '🚗', t: 'Dream Vehicle'},
-                            {k: 'travel', i: '✈️', t: 'Travel'},
-                            {k: 'food', i: '🍽️', t: 'Food & Dining'}
+                            {k: 'home', i: '🏖️', t: calculation.home_description || 'Dream Home'},
+                            {k: 'vehicle', i: '🚗', t: calculation.vehicle_description || 'Dream Vehicle'},
+                            {k: 'travel', i: '✈️', t: calculation.travel_description || 'Travel'},
+                            {k: 'food', i: '🍽️', t: calculation.food_description || 'Food & Dining'},
+                            {k: 'trainer', i: '💪', t: calculation.trainer_description || 'Wellness'},
+                            {k: 'chef', i: '👨‍🍳', t: calculation.chef_description || 'Personal Chef'},
+                            {k: 'college', i: '🎓', t: calculation.college_description || 'Education'},
+                            {k: 'retirement', i: '📈', t: calculation.retirement_description || 'Investments'}
                         ];
                         goals = map.map(g => ({
                             icon: g.i, title: g.t,
                             monthly_amount: calculation[g.k + '_monthly_amount'] || 0,
                             image_url: 'dashboard-preview.jpg'
-                        })).filter(g => g.monthly_amount > 0).slice(0, 4);
+                        })).filter(g => g.monthly_amount > 0).slice(0, 6);
                     }
                 }
                 
@@ -528,7 +540,7 @@
                         <div class="goals-grid">
                             ${goals.map((g, idx) => `
                                 <div class="goal-card">
-                                    <img src="${g.image_url || 'dashboard-preview.jpg'}" alt="${g.title}" onerror="this.src='dashboard-preview.jpg'">
+                                    <div class="goal-card-bg" style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.3) 0%, rgba(246, 194, 107, 0.2) 100%);"></div>
                                     <div class="goal-info">
                                         <div class="goal-emoji">${g.icon || '🎯'}</div>
                                         <div class="goal-name">${g.title}</div>
