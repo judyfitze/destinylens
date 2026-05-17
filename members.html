@@ -820,11 +820,14 @@
             }
             
             // Load goal cards from goal_cards table with cache-busting - force fresh data
+            console.log('Loading goal cards...');
             const { data: goals } = await supabaseClient
                 .from('goal_cards')
                 .select('*')
                 .eq('user_id', user.id)
                 .order('sort_order', { ascending: true });
+            
+            console.log('Goal cards from DB:', goals);
             
             if (goals && goals.length > 0) {
                 const goalsGrid = document.querySelector('.goals-grid');
@@ -840,19 +843,21 @@
                 });
                 if (goalsHTML) {
                     goalsGrid.innerHTML = goalsHTML;
+                    console.log('Goal cards updated from DB');
                 }
             } else if (calculation) {
+                console.log('No goal cards in DB, using calculation data:', calculation);
                 // Fallback to calculation data
                 const goalsGrid = document.querySelector('.goals-grid');
                 const goalData = [
-                    { icon: '🏖️', title: 'Dream Home', amount: calculation.home_monthly_amount },
-                    { icon: '🚗', title: 'Dream Vehicle', amount: calculation.vehicle_monthly_amount },
-                    { icon: '✈️', title: 'Travel', amount: calculation.travel_monthly_amount },
-                    { icon: '🍽️', title: 'Food & Dining', amount: calculation.food_monthly_amount },
-                    { icon: '💪', title: 'Wellness', amount: calculation.trainer_monthly_amount },
-                    { icon: '👨‍🍳', title: 'Personal Chef', amount: calculation.chef_monthly_amount },
-                    { icon: '🎓', title: 'Education', amount: calculation.college_monthly_amount },
-                    { icon: '📈', title: 'Investments', amount: calculation.retirement_monthly_amount }
+                    { icon: '🏖️', title: calculation.home_description || 'Dream Home', amount: calculation.home_monthly_amount },
+                    { icon: '🚗', title: calculation.vehicle_description || 'Dream Vehicle', amount: calculation.vehicle_monthly_amount },
+                    { icon: '✈️', title: calculation.travel_description || 'Travel', amount: calculation.travel_monthly_amount },
+                    { icon: '🍽️', title: calculation.food_description || 'Food & Dining', amount: calculation.food_monthly_amount },
+                    { icon: '💪', title: calculation.trainer_description || 'Wellness', amount: calculation.trainer_monthly_amount },
+                    { icon: '👨‍🍳', title: calculation.chef_description || 'Personal Chef', amount: calculation.chef_monthly_amount },
+                    { icon: '🎓', title: calculation.college_description || 'Education', amount: calculation.college_monthly_amount },
+                    { icon: '📈', title: calculation.retirement_description || 'Investments', amount: calculation.retirement_monthly_amount }
                 ];
                 
                 let goalsHTML = '';
@@ -869,9 +874,13 @@
                 });
                 if (goalsHTML) {
                     goalsGrid.innerHTML = goalsHTML;
+                    console.log('Goal cards updated from calculation data');
+                } else {
+                    console.log('No goal cards to display');
                 }
+            } else {
+                console.log('No calculation data available for goal cards');
             }
-        }
         
         // Load data when page loads
         document.addEventListener('DOMContentLoaded', loadDashboardData);
