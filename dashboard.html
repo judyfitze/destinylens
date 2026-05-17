@@ -1092,42 +1092,27 @@
                     goals = [];
                 }
                 
-                // Load goals from Supabase (single source of truth)
-                try {
-                    const { data: dbGoals, error: goalsError } = await supabaseClient
-                        .from('goal_cards')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('sort_order', { ascending: true });
-                    
-                    if (goalsError) {
-                        console.error('Error loading goals from Supabase:', goalsError);
+                // Load goals from localStorage ONLY if they belong to current user
+                // Use user-specific key to prevent cross-user contamination
+                const userGoalsKey = userId ? `destinylens_goals_${userId}` : 'destinylens_goals';
+                const savedGoals = localStorage.getItem(userGoalsKey);
+                if (savedGoals) {
+                    try {
+                        goals = JSON.parse(savedGoals);
+                        console.log('Loaded goals from localStorage:', goals);
+                    } catch (e) {
+                        console.error('Error parsing saved goals:', e);
+                        goals = [];
                     }
-                    
-                    if (dbGoals && dbGoals.length > 0) {
-                        // Convert DB format to dashboard format
-                        goals = dbGoals.map(g => ({
-                            id: g.id,
-                            icon: g.icon || '🎯',
-                            title: g.title || 'Goal',
-                            amount: g.monthly_amount || 0,
-                            image: g.image_url || 'dashboard-preview.jpg',
-                            createdAt: g.created_at
-                        }));
-                        console.log('Loaded goals from Supabase:', goals);
-                    }
-                } catch (e) {
-                    console.error('Error loading goals:', e);
-                    goals = [];
                 }
 
                 // Only create defaults if NO goals exist at all AND user has a calculation
                 if (goals.length === 0 && calc) {
                     const map = [
-                        {k: 'home', i: '🏖️', t: 'Dream Home'},
-                        {k: 'vehicle', i: '🚗', t: 'Dream Vehicle'},
-                        {k: 'travel', i: '✈️', t: 'Travel'},
-                        {k: 'food', i: '🍽️', t: 'Food & Dining'}
+                        {k: 'home', i: '🏖️', t: calc.home_description || 'Dream Home'},
+                        {k: 'vehicle', i: '🚗', t: calc.vehicle_description || 'Dream Vehicle'},
+                        {k: 'travel', i: '✈️', t: calc.travel_description || 'Travel'},
+                        {k: 'food', i: '🍽️', t: calc.food_description || 'Food & Dining'}
                     ];
                     goals = map.map(g => ({
                         icon: g.i,
@@ -1137,10 +1122,10 @@
                         createdAt: new Date().toISOString()
                     })).filter(g => g.amount > 0).slice(0, 4);
 
-                    // Save defaults to Supabase
+                    // Save defaults to localStorage with user-specific key
                     if (goals.length > 0) {
-                        await saveGoalsToSupabase(userId, goals);
-                        console.log('Created and saved default goals to Supabase:', goals);
+                        localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                        console.log('Created and saved default goals:', goals);
                     }
                 }
                 
@@ -1395,10 +1380,24 @@
             // Remove from array
             goals.splice(index, 1);
 
-            // Save to Supabase
+            // CRITICAL: Save to localStorage immediately with user-specific key
             const { user: currentUser } = await getCurrentUser();
-            await saveGoalsToSupabase(currentUser.id, goals);
+            const userGoalsKey = currentUser?.id ? `destinylens_goals_${currentUser.id}` : 'destinylens_goals';
+            localStorage.setItem(userGoalsKey, JSON.stringify(goals));
             console.log('Goal deleted. Saved goals:', goals);
+            
+            // Also delete from Supabase
+            if (goalId) {
+                try {
+                    await supabaseClient
+                        .from('goal_cards')
+                        .delete()
+                        .eq('id', goalId);
+                    console.log('Goal deleted from Supabase');
+                } catch (err) {
+                    console.error('Error deleting from Supabase:', err);
+                }
+            }
 
             // Re-render
             renderGoals();
@@ -1636,25 +1635,79 @@
                     return;
                 }
 
-                // CRITICAL: Save to Supabase as primary source
+                // CRITICAL: Save to localStorage immediately with user-specific key
                 const { user: currentUser } = await getCurrentUser();
-                
-                // Upload image to Supabase Storage if it's base64
-                let imageUrl = goal.image;
-                if (goal.image && goal.image.startsWith('data:')) {
-                    try {
-                        imageUrl = await uploadImageToStorage(goal.image, `goal_${Date.now()}.jpg`, 'goals');
-                        goal.image = imageUrl;
-                        goals[goalEditIndex !== null ? goalEditIndex : goals.length - 1].image = imageUrl;
-                    } catch (uploadErr) {
-                        console.error('Error uploading goal image:', uploadErr);
-                        imageUrl = 'dashboard-preview.jpg';
+                const userGoalsKey = currentUser?.id ? `destinylens_goals_${currentUser.id}` : 'destinylens_goals';
+                localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                console.log('Goals saved to localStorage:', goals);
+
+                // ALSO save to Supabase for share page
+                try {
+                    // First, get dashboard_settings id for this user
+                    const { data: settings } = await supabaseClient
+                        .from('dashboard_settings')
+                        .select('id')
+                        .eq('user_id', currentUser.id)
+                        .single();
+                    
+                    const dashboardId = settings?.id;
+                    
+                    // Upload image to Supabase Storage if it's base64
+                    let imageUrl = goal.image;
+                    if (goal.image && goal.image.startsWith('data:')) {
+                        try {
+                            imageUrl = await uploadImageToStorage(goal.image, `goal_${Date.now()}.jpg`, 'goals');
+                            // Update localStorage with the public URL
+                            goal.image = imageUrl;
+                            goals[goalEditIndex !== null ? goalEditIndex : goals.length - 1].image = imageUrl;
+                            localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                        } catch (uploadErr) {
+                            console.error('Error uploading goal image:', uploadErr);
+                            imageUrl = 'dashboard-preview.jpg';
+                        }
                     }
+                    
+                    if (goalEditIndex !== null && goals[goalEditIndex].id) {
+                        // Update existing in Supabase
+                        await supabaseClient
+                            .from('goal_cards')
+                            .update({
+                                title: goal.title,
+                                icon: goal.icon,
+                                monthly_amount: goal.amount,
+                                image_url: imageUrl,
+                                sort_order: goalEditIndex,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', goals[goalEditIndex].id);
+                    } else {
+                        // Insert new to Supabase
+                        const { data: newGoal } = await supabaseClient
+                            .from('goal_cards')
+                            .insert({
+                                user_id: currentUser.id,
+                                dashboard_id: dashboardId,
+                                title: goal.title,
+                                icon: goal.icon,
+                                monthly_amount: goal.amount,
+                                image_url: imageUrl,
+                                sort_order: goals.length - 1,
+                                visible: true
+                            })
+                            .select()
+                            .single();
+                        
+                        // Store the Supabase ID in localStorage goal
+                        if (newGoal) {
+                            goals[goals.length - 1].id = newGoal.id;
+                            localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                        }
+                    }
+                    console.log('Goal synced to Supabase');
+                } catch (syncErr) {
+                    console.error('Error syncing goal to Supabase:', syncErr);
+                    // Don't fail - localStorage is primary
                 }
-                
-                // Save all goals to Supabase
-                await saveGoalsToSupabase(currentUser.id, goals);
-                console.log('Goals saved to Supabase:', goals);
 
                 renderGoals();
                 closeModal('goalModal');
@@ -1674,54 +1727,6 @@
             }
         }
 
-        // Helper: Save all goals to Supabase
-        async function saveGoalsToSupabase(userId, goalsList) {
-            try {
-                // Get dashboard_settings id
-                const { data: settings } = await supabaseClient
-                    .from('dashboard_settings')
-                    .select('id')
-                    .eq('user_id', userId)
-                    .single();
-                
-                const dashboardId = settings?.id;
-                
-                // Delete existing goals
-                await supabaseClient
-                    .from('goal_cards')
-                    .delete()
-                    .eq('user_id', userId);
-                
-                // Insert all goals
-                const goalsToInsert = goalsList.map((g, idx) => ({
-                    user_id: userId,
-                    dashboard_id: dashboardId,
-                    title: g.title,
-                    icon: g.icon,
-                    monthly_amount: g.amount,
-                    image_url: g.image,
-                    sort_order: idx,
-                    visible: true
-                }));
-                
-                const { data: inserted } = await supabaseClient
-                    .from('goal_cards')
-                    .insert(goalsToInsert)
-                    .select();
-                
-                // Update local IDs
-                if (inserted) {
-                    inserted.forEach((dbGoal, idx) => {
-                        goalsList[idx].id = dbGoal.id;
-                    });
-                }
-                
-                console.log('Saved all goals to Supabase:', goalsList);
-            } catch (err) {
-                console.error('Error saving goals to Supabase:', err);
-            }
-        }
-        
         // ADD this helper function:
         function resetGoalForm() {
             document.getElementById('goalTitle').value = '';
