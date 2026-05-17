@@ -11,6 +11,9 @@
       "dest": "/ai-prompt-generator.html"
     }
   ],
+  "github": {
+    "silent": false
+  },
   "headers": [
     {
       "source": "/dashboard.html",
