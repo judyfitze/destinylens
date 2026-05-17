@@ -1026,17 +1026,22 @@
                     const currentDay = Math.min(daysElapsed, timeframeDays);
                     document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
                 } else {
-                    // No calculation yet - show $0 for all metrics
+                    // No calculation yet - show $0 for all metrics and clear goals
                     dailyTarget = 0;
                     document.getElementById('dailyTarget').textContent = '$0.00';
                     document.getElementById('weeklyTarget').textContent = '$0';
                     document.getElementById('monthlyTarget').textContent = '$0';
                     document.getElementById('yearlyTarget').textContent = '$0';
                     document.getElementById('dayCounter').textContent = 'Day 1';
+                    
+                    // Clear goals for new users without calculations
+                    goals = [];
                 }
                 
-                // Load goals - ONLY from localStorage, never overwrite with defaults if exists
-                const savedGoals = localStorage.getItem('destinylens_goals');
+                // Load goals from localStorage ONLY if they belong to current user
+                // Use user-specific key to prevent cross-user contamination
+                const userGoalsKey = userId ? `destinylens_goals_${userId}` : 'destinylens_goals';
+                const savedGoals = localStorage.getItem(userGoalsKey);
                 if (savedGoals) {
                     try {
                         goals = JSON.parse(savedGoals);
@@ -1047,7 +1052,7 @@
                     }
                 }
 
-                // Only create defaults if NO goals exist at all
+                // Only create defaults if NO goals exist at all AND user has a calculation
                 if (goals.length === 0 && calc) {
                     const map = [
                         {k: 'home', i: '🏖️', t: calc.home_description || 'Dream Home'},
@@ -1063,9 +1068,9 @@
                         createdAt: new Date().toISOString()
                     })).filter(g => g.amount > 0).slice(0, 4);
 
-                    // Save defaults to localStorage
+                    // Save defaults to localStorage with user-specific key
                     if (goals.length > 0) {
-                        localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                        localStorage.setItem(userGoalsKey, JSON.stringify(goals));
                         console.log('Created and saved default goals:', goals);
                     }
                 }
@@ -1318,8 +1323,10 @@
             // Remove from array
             goals.splice(index, 1);
 
-            // CRITICAL: Save to localStorage immediately
-            localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+            // CRITICAL: Save to localStorage immediately with user-specific key
+            const { user: currentUser } = await getCurrentUser();
+            const userGoalsKey = currentUser?.id ? `destinylens_goals_${currentUser.id}` : 'destinylens_goals';
+            localStorage.setItem(userGoalsKey, JSON.stringify(goals));
             console.log('Goal deleted. Saved goals:', goals);
 
             // Re-render
@@ -1558,8 +1565,10 @@
                     return;
                 }
 
-                // CRITICAL: Save to localStorage immediately
-                localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                // CRITICAL: Save to localStorage immediately with user-specific key
+                const { user: currentUser } = await getCurrentUser();
+                const userGoalsKey = currentUser?.id ? `destinylens_goals_${currentUser.id}` : 'destinylens_goals';
+                localStorage.setItem(userGoalsKey, JSON.stringify(goals));
                 console.log('Goals saved to localStorage:', goals);
 
                 renderGoals();
