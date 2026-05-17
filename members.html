@@ -641,11 +641,8 @@
     <script>
         // Load data from Supabase
         async function loadDashboardData() {
-            // Clear any cached data on page load
-            if (typeof localStorage !== 'undefined') {
-                localStorage.removeItem('destinylens_goals');
-                localStorage.removeItem('destinylens_calculation');
-            }
+            // DO NOT clear goals/calculation - they are shared with dashboard
+            // Only clear temporary/session-specific data here
             
             const { user } = await getCurrentUser();
             if (!user) return;
