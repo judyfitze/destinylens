@@ -393,10 +393,11 @@
         
         /* Goals Section - Bottom */
         .goals-area {
-            flex: 1;
+            flex: 0 0 auto;
             display: flex;
             flex-direction: column;
             min-height: 0;
+            margin-top: auto;
         }
         .goals-bar {
             display: flex;
@@ -437,7 +438,8 @@
             flex-wrap: wrap;
             justify-content: center;
             align-content: flex-start;
-            overflow-y: auto;
+            overflow: visible;
+            padding-bottom: 20px;
         }
         .goal-card {
             width: calc(25% - 12px);
@@ -1114,8 +1116,7 @@
         function renderGoals() {
             const grid = document.getElementById('goalsGrid');
             let html = goals.map((g, i) => `
-                <div class="goal-card">
-                    <img src="${g.image}" alt="${g.title}">
+                <div class="goal-card" style="background: linear-gradient(145deg, rgba(169, 76, 240, 0.2) 0%, rgba(246, 194, 107, 0.1) 100%);">
                     <div class="goal-info">
                         <div class="goal-emoji">${g.icon}</div>
                         <div class="goal-name">${g.title}</div>
