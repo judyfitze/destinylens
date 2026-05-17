@@ -881,17 +881,11 @@
         document.addEventListener('DOMContentLoaded', init);
         
         async function init() {
-            // Clear any cached data on page load
-            if (typeof localStorage !== 'undefined') {
-                localStorage.removeItem('destinylens_goals');
-                localStorage.removeItem('destinylens_calculation');
-            }
-            
             // Wait for auth
             const { user } = await getCurrentUser();
             if (!user) return;
             
-            // Load from Supabase with fresh data
+            // Load dashboard data
             await loadDashboardData(user.id);
             
             // Close dropdowns when clicking outside
@@ -994,33 +988,35 @@
                     document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
                 }
                 
-                // Load goals with cache-busting - force fresh data
-                const { data: dbGoals, error: goalsError } = await supabaseClient
-                    .from('goal_cards')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('sort_order', { ascending: true });
+                // Load goals from localStorage first, then fall back to calculation defaults
+                const savedGoals = localStorage.getItem('destinylens_goals');
+                if (savedGoals) {
+                    try {
+                        goals = JSON.parse(savedGoals);
+                        console.log('Loaded goals from localStorage:', goals);
+                    } catch (e) {
+                        console.error('Error parsing saved goals:', e);
+                        goals = [];
+                    }
+                }
                 
-                if (!goalsError && dbGoals && dbGoals.length > 0) {
-                    goals = dbGoals.map(g => ({
-                        id: g.id,
-                        icon: g.icon,
-                        title: g.title,
-                        amount: g.monthly_amount,
-                        image: g.image_url || 'dashboard-preview.jpg'
-                    }));
-                } else if (calc) {
+                // If no saved goals, create defaults from calculation
+                if (goals.length === 0 && calc) {
                     const map = [
-                        {k: 'home', i: '🏖️', t: 'Dream Home'},
-                        {k: 'vehicle', i: '🚗', t: 'Dream Vehicle'},
-                        {k: 'travel', i: '✈️', t: 'Travel'},
-                        {k: 'food', i: '🍽️', t: 'Food & Dining'}
+                        {k: 'home', i: '🏖️', t: calc.home_description || 'Dream Home'},
+                        {k: 'vehicle', i: '🚗', t: calc.vehicle_description || 'Dream Vehicle'},
+                        {k: 'travel', i: '✈️', t: calc.travel_description || 'Travel'},
+                        {k: 'food', i: '🍽️', t: calc.food_description || 'Food & Dining'}
                     ];
                     goals = map.map(g => ({
                         icon: g.i, title: g.t,
                         amount: calc[g.k + '_monthly_amount'] || 0,
                         image: 'dashboard-preview.jpg'
                     })).filter(g => g.amount > 0).slice(0, 4);
+                    
+                    // Save defaults to localStorage
+                    localStorage.setItem('destinylens_goals', JSON.stringify(goals));
+                    console.log('Created default goals from calculation:', goals);
                 }
                 
                 renderGoals();
@@ -1425,26 +1421,6 @@
                 return;
             }
             
-            // Get current user
-            const { user } = await getCurrentUser();
-            if (!user) {
-                if (window.showDLError) {
-                    window.showDLError('Not authenticated');
-                } else {
-                    alert('Not authenticated');
-                }
-                return;
-            }
-            
-            // Get dashboard settings for dashboard_id
-            const { data: settings } = await supabaseClient
-                .from('dashboard_settings')
-                .select('id')
-                .eq('user_id', user.id)
-                .single();
-            
-            const dashboardId = settings?.id || null;
-            
             try {
                 let imageUrl = tempGoalImage;
                 
@@ -1464,24 +1440,8 @@
                     // Update existing goal (local only since goal_cards table is deprecated)
                     goals[goalEditIndex] = { ...goals[goalEditIndex], ...goal };
                 } else if (goals.length < 4) {
-                    // Insert new
-                    const { data, error } = await supabaseClient
-                        .from('goal_cards')
-                        .insert({
-                            user_id: user.id,
-                            dashboard_id: dashboardId,
-                            title: goal.title,
-                            icon: goal.icon,
-                            monthly_amount: goal.amount,
-                            image_url: goal.image,
-                            sort_order: goals.length,
-                            visible: true
-                        })
-                        .select()
-                        .single();
-                    
-                    if (error) throw error;
-                    goals.push({ id: data.id, ...goal });
+                    // Add new goal locally
+                    goals.push(goal);
                 } else {
                     if (window.showDLWarning) {
                         window.showDLWarning('Maximum 4 goals reached');
