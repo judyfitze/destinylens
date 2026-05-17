@@ -6,11 +6,15 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <title>My Dream Life Dashboard — DestinyLens</title>
-    <meta name="version" content="2026-05-17-v2">
+    <meta name="version" content="2026-05-17-v3">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
     <script>
         // NUCLEAR OPTION: Clear ALL DestinyLens localStorage on every load
         // This ensures fresh data for every user session
         (function() {
+            console.log('NUCLEAR CLEAR v3: Clearing all destinylens keys');
             const keys = Object.keys(localStorage);
             keys.forEach(key => {
                 if (key.startsWith('destinylens_')) {
@@ -18,6 +22,16 @@
                     localStorage.removeItem(key);
                 }
             });
+            
+            // Also clear any cached calculation data
+            if (localStorage.getItem('cached_calculation')) {
+                console.log('NUCLEAR CLEAR: cached_calculation');
+                localStorage.removeItem('cached_calculation');
+            }
+            if (localStorage.getItem('dreamlife_data')) {
+                console.log('NUCLEAR CLEAR: dreamlife_data');
+                localStorage.removeItem('dreamlife_data');
+            }
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
