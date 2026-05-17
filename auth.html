@@ -6,6 +6,7 @@
     <title>Sign In — DestinyLens</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
+    <script src="js/notifications.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -251,15 +252,23 @@
         const successMessage = document.getElementById('successMessage');
         
         function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
+            if (window.showDLError) {
+                window.showDLError(message);
+            } else {
+                errorMessage.textContent = message;
+                errorMessage.classList.add('show');
+                successMessage.classList.remove('show');
+            }
         }
         
         function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.classList.add('show');
-            errorMessage.classList.remove('show');
+            if (window.showDLSuccess) {
+                window.showDLSuccess(message);
+            } else {
+                successMessage.textContent = message;
+                successMessage.classList.add('show');
+                errorMessage.classList.remove('show');
+            }
         }
         
         function clearMessages() {
