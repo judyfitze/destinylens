@@ -1643,15 +1643,6 @@
 
                 // ALSO save to Supabase for share page
                 try {
-                    // First, get dashboard_settings id for this user
-                    const { data: settings } = await supabaseClient
-                        .from('dashboard_settings')
-                        .select('id')
-                        .eq('user_id', currentUser.id)
-                        .single();
-                    
-                    const dashboardId = settings?.id;
-                    
                     // Upload image to Supabase Storage if it's base64
                     let imageUrl = goal.image;
                     if (goal.image && goal.image.startsWith('data:')) {
@@ -1667,59 +1658,30 @@
                         }
                     }
                     
-                    if (goalEditIndex !== null && goals[goalEditIndex].id) {
-                        // Update existing in Supabase
-                        console.log('Updating existing goal in Supabase:', goals[goalEditIndex].id);
-                        const { error: updateError } = await supabaseClient
-                            .from('goal_cards')
-                            .update({
-                                title: goal.title,
-                                icon: goal.icon,
-                                monthly_amount: goal.amount,
-                                image_url: imageUrl,
-                                sort_order: goalEditIndex,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', goals[goalEditIndex].id);
-                        
-                        if (updateError) {
-                            console.error('Error updating goal:', updateError);
-                        } else {
-                            console.log('Goal updated in Supabase');
-                        }
+                    // Save goals to dashboard_settings as JSON ( bypasses RLS issues)
+                    const goalsForShare = goals.map((g, idx) => ({
+                        icon: g.icon,
+                        title: g.title,
+                        monthly_amount: g.amount,
+                        image_url: g.image,
+                        sort_order: idx
+                    }));
+                    
+                    const { error: settingsError } = await supabaseClient
+                        .from('dashboard_settings')
+                        .update({
+                            shared_goals_json: goalsForShare,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('user_id', currentUser.id);
+                    
+                    if (settingsError) {
+                        console.error('Error saving goals to settings:', settingsError);
                     } else {
-                        // Insert new to Supabase
-                        console.log('Inserting new goal to Supabase');
-                        const { data: newGoal, error: insertError } = await supabaseClient
-                            .from('goal_cards')
-                            .insert({
-                                user_id: currentUser.id,
-                                dashboard_id: dashboardId,
-                                title: goal.title,
-                                icon: goal.icon,
-                                monthly_amount: goal.amount,
-                                image_url: imageUrl,
-                                sort_order: goals.length - 1,
-                                visible: true
-                            })
-                            .select()
-                            .single();
-                        
-                        if (insertError) {
-                            console.error('Error inserting goal:', insertError);
-                        } else {
-                            console.log('New goal inserted:', newGoal);
-                            // Store the Supabase ID in localStorage goal
-                            if (newGoal) {
-                                goals[goals.length - 1].id = newGoal.id;
-                                localStorage.setItem(userGoalsKey, JSON.stringify(goals));
-                            }
-                        }
+                        console.log('Goals saved to dashboard_settings');
                     }
                 } catch (syncErr) {
-                    console.error('Error syncing goal to Supabase:', syncErr);
-                    console.error('Error details:', syncErr.message, syncErr.code, syncErr.details);
-                    // Don't fail - localStorage is primary
+                    console.error('Error syncing goals:', syncErr);
                 }
 
                 renderGoals();

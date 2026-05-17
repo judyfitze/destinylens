@@ -413,20 +413,16 @@
                     calculation = calc;
                 }
                 
-                // Get goals
+                // Get goals from shared_goals_json or fallback to calculation
                 let goals = [];
                 if (settings.show_goal_cards_publicly !== false) {
-                    const { data: dbGoals } = await supabaseClient
-                        .from('goal_cards')
-                        .select('*')
-                        .eq('user_id', settings.user_id)
-                        .order('sort_order', { ascending: true });
-                    
-                    if (dbGoals && dbGoals.length > 0) {
-                        goals = dbGoals.slice(0, 4); // LIMIT TO 4
+                    // First try shared_goals_json from dashboard_settings
+                    if (settings.shared_goals_json && settings.shared_goals_json.length > 0) {
+                        goals = settings.shared_goals_json.slice(0, 4);
+                        console.log('Loaded goals from shared_goals_json:', goals);
                     }
                     
-                    // If no goals from DB, generate from calculation
+                    // If no goals, generate from calculation
                     if (goals.length === 0 && calculation) {
                         const map = [
                             {k: 'home', i: '🏖️', t: 'Dream Home'},
