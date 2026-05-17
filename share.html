@@ -6,7 +6,12 @@
     <title>Shared Dream Life Dashboard — DestinyLens</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --purple: #A94CF0; --gold: #F6C26B; }
+        :root { 
+            --purple: #A94CF0; 
+            --gold: #F6C26B;
+            --gold-light: #FFD700;
+            --gold-dark: #D4AF37;
+        }
         
         html, body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -86,7 +91,7 @@
         .metric-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
         .metric-value { font-size: 1.1rem; font-weight: 800; }
         .metric-value.highlight {
-            background: linear-gradient(135deg, var(--purple) 0%, var(--gold) 100%);
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -228,6 +233,22 @@
             letter-spacing: 0.1em;
         }
         
+        /* Goals Section Shading */
+        .goals-area {
+            position: relative;
+        }
+        .goals-area::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: radial-gradient(ellipse at center bottom, rgba(169, 76, 240, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
         /* Goals Grid */
         .goals-grid {
             display: flex;
@@ -236,6 +257,8 @@
             justify-content: center;
             align-content: flex-start;
             overflow-y: auto;
+            position: relative;
+            z-index: 1;
         }
         .goal-card {
             width: calc(25% - 12px);
@@ -473,12 +496,24 @@
             const monthly = settings.monthly_income_target || calc?.monthly_total || 0;
             const yearly = settings.yearly_income_target || calc?.yearly_total || 0;
             
+            // Calculate journey day
+            const timeframeDays = calc?.timeframe_days || settings.counter_total_days || 730;
+            const journeyStart = calc?.journey_start_date || calc?.created_at || settings.original_journey_start_date || settings.created_at;
+            const journeyStartDate = journeyStart ? new Date(journeyStart) : new Date();
+            const today = new Date();
+            const daysElapsed = Math.floor((today - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+            const currentDay = Math.min(daysElapsed, timeframeDays);
+            
             // Calculate actual progress
             const progress = daily > 0 ? Math.min(100, (todayIncome / daily) * 100) : 0;
             
             let html = `
                 <!-- Top Metrics -->
                 <div class="metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Journey Day</div>
+                        <div class="metric-value" style="background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${currentDay}/${timeframeDays}</div>
+                    </div>
                     <div class="metric-card">
                         <div class="metric-label">Weekly</div>
                         <div class="metric-value">${formatCurrency(weekly)}</div>
@@ -503,7 +538,7 @@
                         
                         <div class="daily-target">
                             <div class="daily-target-label">Daily Income Target</div>
-                            <div class="daily-target-amount">${formatCurrency(daily)}</div>
+                            <div class="daily-target-amount" style="background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${formatCurrency(daily)}</div>
                         </div>
                         
                         <div class="gauge-wrap">
