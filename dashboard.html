@@ -1154,7 +1154,11 @@
             console.log('Opening add goal modal. Current goals:', goals.length, goals);
             
             if (goals.length >= 4) {
-                alert('Maximum 4 goals reached. Delete one first.');
+                if (window.showDLWarning) {
+                    window.showDLWarning('Maximum 4 goals reached. Delete one first.');
+                } else {
+                    alert('Maximum 4 goals reached. Delete one first.');
+                }
                 return;
             }
             
@@ -1213,25 +1217,6 @@
         async function deleteGoal(index) {
             closeAllDropdowns();
             if (!confirm('Delete this goal?')) return;
-            
-            const goal = goals[index];
-            if (goal.id) {
-                // Delete from Supabase
-                const { user } = await getCurrentUser();
-                if (user) {
-                    const { error } = await supabaseClient
-                        .from('goal_cards')
-                        .delete()
-                        .eq('id', goal.id)
-                        .eq('user_id', user.id);
-                    
-                    if (error) {
-                        console.error('Error deleting goal:', error);
-                        alert('Error deleting goal');
-                        return;
-                    }
-                }
-            }
             
             goals.splice(index, 1);
             localStorage.setItem('destinylens_goals', JSON.stringify(goals));
@@ -1409,18 +1394,30 @@
             const amount = parseFloat(document.getElementById('goalAmount').value) || 0;
             
             if (!title) {
-                alert('Please enter a goal title');
+                if (window.showDLWarning) {
+                    window.showDLWarning('Please enter a goal title');
+                } else {
+                    alert('Please enter a goal title');
+                }
                 return;
             }
             if (amount <= 0) {
-                alert('Please enter a valid amount');
+                if (window.showDLWarning) {
+                    window.showDLWarning('Please enter a valid amount');
+                } else {
+                    alert('Please enter a valid amount');
+                }
                 return;
             }
             
             // Get current user
             const { user } = await getCurrentUser();
             if (!user) {
-                alert('Not authenticated');
+                if (window.showDLError) {
+                    window.showDLError('Not authenticated');
+                } else {
+                    alert('Not authenticated');
+                }
                 return;
             }
             
@@ -1448,21 +1445,8 @@
                     image: imageUrl || 'dashboard-preview.jpg'
                 };
                 
-                if (goalEditIndex !== null && goals[goalEditIndex].id) {
-                    // Update existing
-                    const { error } = await supabaseClient
-                        .from('goal_cards')
-                        .update({
-                            title: goal.title,
-                            icon: goal.icon,
-                            monthly_amount: goal.amount,
-                            image_url: goal.image,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', goals[goalEditIndex].id)
-                        .eq('user_id', user.id);
-                    
-                    if (error) throw error;
+                if (goalEditIndex !== null) {
+                    // Update existing goal (local only since goal_cards table is deprecated)
                     goals[goalEditIndex] = { ...goals[goalEditIndex], ...goal };
                 } else if (goals.length < 4) {
                     // Insert new
@@ -1484,15 +1468,22 @@
                     if (error) throw error;
                     goals.push({ id: data.id, ...goal });
                 } else {
-                    alert('Maximum 4 goals reached');
+                    if (window.showDLWarning) {
+                        window.showDLWarning('Maximum 4 goals reached');
+                    } else {
+                        alert('Maximum 4 goals reached');
+                    }
                     return;
                 }
-                
 
-                
                 renderGoals();
                 closeModal('goalModal');
-                
+
+                // Show success message
+                if (window.showDLSuccess) {
+                    window.showDLSuccess(goalEditIndex !== null ? 'Goal updated successfully!' : 'Goal added successfully!');
+                }
+
                 // Reset form
                 document.getElementById('goalTitle').value = '';
                 document.getElementById('goalAmount').value = '';
@@ -1501,10 +1492,14 @@
                 document.getElementById('goalUploadArea').classList.remove('has-image');
                 tempGoalImage = null;
                 goalEditIndex = null;
-                
+
             } catch (err) {
                 console.error('Error saving goal:', err);
-                alert('Error saving goal. Please try again.');
+                if (window.showDLError) {
+                    window.showDLError('Error saving goal. Please try again.');
+                } else {
+                    alert('Error saving goal. Please try again.');
+                }
             }
         }
         
