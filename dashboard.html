@@ -1082,7 +1082,13 @@
                     
                     // Save calculation totals to dashboard_settings for share page
                     try {
-                        await supabaseClient
+                        console.log('Saving targets to settings:', {
+                            daily: calc.daily_total,
+                            weekly: calc.weekly_total,
+                            monthly: calc.monthly_total,
+                            yearly: calc.yearly_total
+                        });
+                        const { error: updateError } = await supabaseClient
                             .from('dashboard_settings')
                             .update({
                                 daily_income_target: calc.daily_total,
@@ -1092,6 +1098,12 @@
                                 updated_at: new Date().toISOString()
                             })
                             .eq('user_id', userId);
+                        
+                        if (updateError) {
+                            console.error('Error updating settings:', updateError);
+                        } else {
+                            console.log('Targets saved to settings successfully');
+                        }
                     } catch (e) {
                         console.error('Error saving targets to settings:', e);
                     }
