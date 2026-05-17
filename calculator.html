@@ -1260,6 +1260,12 @@
                 window.selectedJourneyOption = journeyContinue.checked ? 'continue' : 'reset';
             }
             
+            // Make sure journey data is loaded before saving
+            if (!originalJourneyStartDate) {
+                console.log('Loading journey data before save...');
+                await loadExistingJourneyData();
+            }
+            
             // Now save to Supabase
             try {
                 await saveCalculationToSupabase(calculation);
@@ -1307,6 +1313,9 @@
                     console.error('No user found');
                     throw new Error('No user found');
                 }
+                
+                console.log('Saving calculation for user:', user.id);
+                console.log('Journey variables:', { originalJourneyStartDate, originalJourneyCalculationId, selectedJourneyOption: window.selectedJourneyOption });
                 
                 // Build insert object with only fields that exist in database
                 // NOTE: custom_goals, profile_*, is_active, timeframe_days may not exist in schema
