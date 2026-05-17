@@ -740,6 +740,7 @@
                 <a href="/calculator.html">🧮 Calculator</a>
                 <button onclick="openModal('bgModal'); toggleNavMenu();">🖼️ Background</button>
                 <a href="/settings.html">⚙️ Settings</a>
+                <button onclick="resetUserData(); toggleNavMenu();" style="color: #ff6b6b;">🔄 Reset My Data</button>
                 <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
             </div>
         </nav>
@@ -920,6 +921,20 @@
         document.addEventListener('DOMContentLoaded', init);
         
         async function init() {
+            // Clear ALL legacy localStorage keys to prevent cross-user contamination
+            // This ensures fresh start for each user
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('destinylens_') && !key.includes('_goals_')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => {
+                console.log('Clearing legacy localStorage key:', key);
+                localStorage.removeItem(key);
+            });
+            
             // Wait for auth
             const { user } = await getCurrentUser();
             if (!user) return;
@@ -940,6 +955,49 @@
         
         function toggleNavMenu() {
             document.getElementById('navMenu').classList.toggle('active');
+        }
+        
+        // Reset all user data
+        async function resetUserData() {
+            if (!confirm('This will clear all your dashboard data and goals. Are you sure?')) {
+                return;
+            }
+            
+            const { user } = await getCurrentUser();
+            if (!user) return;
+            
+            // Clear user-specific localStorage
+            const userGoalsKey = `destinylens_goals_${user.id}`;
+            localStorage.removeItem(userGoalsKey);
+            
+            // Clear all legacy keys
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('destinylens_')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Reset state
+            goals = [];
+            dailyTarget = 0;
+            
+            // Reset UI
+            document.getElementById('dailyTarget').textContent = '$0.00';
+            document.getElementById('weeklyTarget').textContent = '$0';
+            document.getElementById('monthlyTarget').textContent = '$0';
+            document.getElementById('yearlyTarget').textContent = '$0';
+            document.getElementById('dayCounter').textContent = 'Day 1';
+            document.getElementById('manualIncome').textContent = '$0.00';
+            document.getElementById('connectedIncome').textContent = '$0.00';
+            document.getElementById('gaugePercent').textContent = '0%';
+            document.getElementById('gaugeProgress').style.strokeDashoffset = 377;
+            
+            renderGoals();
+            
+            alert('Your data has been reset. Refresh the page to start fresh.');
         }
         
         async function loadDashboardData(userId) {
