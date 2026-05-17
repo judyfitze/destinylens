@@ -1706,6 +1706,7 @@
                     console.log('Goal synced to Supabase');
                 } catch (syncErr) {
                     console.error('Error syncing goal to Supabase:', syncErr);
+                    console.error('Error details:', syncErr.message, syncErr.code, syncErr.details);
                     // Don't fail - localStorage is primary
                 }
 
