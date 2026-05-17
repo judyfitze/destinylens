@@ -1669,7 +1669,8 @@
                     
                     if (goalEditIndex !== null && goals[goalEditIndex].id) {
                         // Update existing in Supabase
-                        await supabaseClient
+                        console.log('Updating existing goal in Supabase:', goals[goalEditIndex].id);
+                        const { error: updateError } = await supabaseClient
                             .from('goal_cards')
                             .update({
                                 title: goal.title,
@@ -1680,9 +1681,16 @@
                                 updated_at: new Date().toISOString()
                             })
                             .eq('id', goals[goalEditIndex].id);
+                        
+                        if (updateError) {
+                            console.error('Error updating goal:', updateError);
+                        } else {
+                            console.log('Goal updated in Supabase');
+                        }
                     } else {
                         // Insert new to Supabase
-                        const { data: newGoal } = await supabaseClient
+                        console.log('Inserting new goal to Supabase');
+                        const { data: newGoal, error: insertError } = await supabaseClient
                             .from('goal_cards')
                             .insert({
                                 user_id: currentUser.id,
@@ -1697,13 +1705,17 @@
                             .select()
                             .single();
                         
-                        // Store the Supabase ID in localStorage goal
-                        if (newGoal) {
-                            goals[goals.length - 1].id = newGoal.id;
-                            localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                        if (insertError) {
+                            console.error('Error inserting goal:', insertError);
+                        } else {
+                            console.log('New goal inserted:', newGoal);
+                            // Store the Supabase ID in localStorage goal
+                            if (newGoal) {
+                                goals[goals.length - 1].id = newGoal.id;
+                                localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                            }
                         }
                     }
-                    console.log('Goal synced to Supabase');
                 } catch (syncErr) {
                     console.error('Error syncing goal to Supabase:', syncErr);
                     console.error('Error details:', syncErr.message, syncErr.code, syncErr.details);
