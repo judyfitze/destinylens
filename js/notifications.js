@@ -225,6 +225,136 @@
         return window.showDLNotification({ title, message, type: 'info' });
     };
 
+    // Branded confirm dialog (replaces native confirm)
+    window.showDLConfirm = function(options) {
+        return new Promise((resolve) => {
+            const {
+                title = 'Confirm',
+                message = '',
+                confirmText = 'Confirm',
+                cancelText = 'Cancel',
+                type = 'warning'
+            } = options;
+
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                z-index: 20000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+
+            // Create dialog
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: linear-gradient(145deg, rgba(35, 35, 55, 0.98) 0%, rgba(20, 20, 35, 0.99) 100%);
+                border: 1px solid rgba(169, 76, 240, 0.3);
+                border-radius: 20px;
+                padding: 32px;
+                max-width: 400px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(169, 76, 240, 0.15);
+                transform: scale(0.9);
+                transition: transform 0.3s ease;
+            `;
+
+            const colors = {
+                warning: '#F6C26B',
+                error: '#ef4444',
+                info: '#A94CF0'
+            };
+
+            dialog.innerHTML = `
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="
+                        width: 60px;
+                        height: 60px;
+                        border-radius: 50%;
+                        background: ${colors[type]}20;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 16px;
+                        font-size: 1.8rem;
+                    ">${type === 'warning' ? '⚠️' : type === 'error' ? '✕' : '?'}</div>
+                    <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; color: #fff;">${title}</h3>
+                    <p style="color: rgba(255,255,255,0.7); line-height: 1.5;">${message}</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button id="dl-confirm-cancel" style="
+                        flex: 1;
+                        padding: 14px;
+                        background: rgba(255,255,255,0.1);
+                        border: 1px solid rgba(255,255,255,0.2);
+                        border-radius: 10px;
+                        color: #fff;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    ">${cancelText}</button>
+                    <button id="dl-confirm-ok" style="
+                        flex: 1;
+                        padding: 14px;
+                        background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+                        border: none;
+                        border-radius: 10px;
+                        color: #fff;
+                        font-weight: 700;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    ">${confirmText}</button>
+                </div>
+            `;
+
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            // Animate in
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                dialog.style.transform = 'scale(1)';
+            });
+
+            // Handle buttons
+            dialog.querySelector('#dl-confirm-cancel').addEventListener('click', () => {
+                overlay.style.opacity = '0';
+                dialog.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    overlay.remove();
+                    resolve(false);
+                }, 300);
+            });
+
+            dialog.querySelector('#dl-confirm-ok').addEventListener('click', () => {
+                overlay.style.opacity = '0';
+                dialog.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    overlay.remove();
+                    resolve(true);
+                }, 300);
+            });
+
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.style.opacity = '0';
+                    dialog.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve(false);
+                    }, 300);
+                }
+            });
+        });
+    };
+
     // Override default alert for branded experience
     window.alert = function(message) {
         window.showDLNotification({
@@ -232,6 +362,19 @@
             message: message,
             type: 'info',
             duration: 4000
+        });
+    };
+
+    // Override default confirm for branded experience
+    window.confirm = function(message) {
+        console.warn('Native confirm() is deprecated. Use showDLConfirm() instead for async/await support.');
+        // Fallback - but this won't work well since confirm is synchronous
+        // Code should be updated to use showDLConfirm() with async/await
+        return window.showDLConfirm({
+            title: 'Confirm',
+            message: message,
+            confirmText: 'OK',
+            cancelText: 'Cancel'
         });
     };
 

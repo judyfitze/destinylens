@@ -1224,7 +1224,14 @@
         
         async function deleteGoal(index) {
             closeAllDropdowns();
-            if (!confirm('Delete this goal?')) return;
+            const confirmed = await showDLConfirm({
+                title: 'Delete Goal?',
+                message: 'Are you sure you want to delete this goal? This action cannot be undone.',
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                type: 'warning'
+            });
+            if (!confirmed) return;
             
             goals.splice(index, 1);
             localStorage.setItem('destinylens_goals', JSON.stringify(goals));
