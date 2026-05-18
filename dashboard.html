@@ -1120,17 +1120,33 @@
                     goals = [];
                 }
                 
-                // Load goals from localStorage ONLY if they belong to current user
-                // Use user-specific key to prevent cross-user contamination
-                const userGoalsKey = userId ? `destinylens_goals_${userId}` : 'destinylens_goals';
-                const savedGoals = localStorage.getItem(userGoalsKey);
-                if (savedGoals) {
-                    try {
-                        goals = JSON.parse(savedGoals);
-                        console.log('Loaded goals from localStorage:', goals);
-                    } catch (e) {
-                        console.error('Error parsing saved goals:', e);
-                        goals = [];
+                // Load goals from dashboard_settings.shared_goals_json (single source of truth)
+                // This ensures dashboard and share page show the same goals with same images
+                if (settings.shared_goals_json && settings.shared_goals_json.length > 0) {
+                    goals = settings.shared_goals_json.map(g => ({
+                        icon: g.icon,
+                        title: g.title,
+                        amount: g.monthly_amount,
+                        image: g.image_url || 'dashboard-preview.jpg',
+                        createdAt: new Date().toISOString()
+                    }));
+                    console.log('Loaded goals from dashboard_settings:', goals);
+                    
+                    // Sync to localStorage for offline access
+                    const userGoalsKey = userId ? `destinylens_goals_${userId}` : 'destinylens_goals';
+                    localStorage.setItem(userGoalsKey, JSON.stringify(goals));
+                } else {
+                    // Fallback to localStorage if no shared_goals_json
+                    const userGoalsKey = userId ? `destinylens_goals_${userId}` : 'destinylens_goals';
+                    const savedGoals = localStorage.getItem(userGoalsKey);
+                    if (savedGoals) {
+                        try {
+                            goals = JSON.parse(savedGoals);
+                            console.log('Loaded goals from localStorage:', goals);
+                        } catch (e) {
+                            console.error('Error parsing saved goals:', e);
+                            goals = [];
+                        }
                     }
                 }
 
@@ -1152,6 +1168,7 @@
 
                     // Save defaults to localStorage with user-specific key
                     if (goals.length > 0) {
+                        const userGoalsKey = userId ? `destinylens_goals_${userId}` : 'destinylens_goals';
                         localStorage.setItem(userGoalsKey, JSON.stringify(goals));
                         console.log('Created and saved default goals:', goals);
                     }
