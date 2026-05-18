@@ -1071,12 +1071,17 @@
                     document.getElementById('monthlyTarget').textContent = format$(calc.monthly_total);
                     document.getElementById('yearlyTarget').textContent = format$(calc.yearly_total);
                     
-                    // Update Journey counter with timeframe
+                    // Update Journey counter with timeframe (PST timezone)
                     const timeframeDays = calc.timeframe_days || 730; // Default 2 years
                     // Use journey_start_date if available, fallback to created_at
                     const journeyStartDate = calc.journey_start_date ? new Date(calc.journey_start_date) : new Date(calc.created_at);
-                    const today = new Date();
-                    const daysElapsed = Math.floor((today - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                    // Calculate day in PST (UTC-7)
+                    const pstOffset = 7 * 60 * 60 * 1000;
+                    const pstNow = new Date(new Date().getTime() - pstOffset);
+                    const pstStart = new Date(journeyStartDate.getTime() - pstOffset);
+                    const todayPST = new Date(pstNow.getFullYear(), pstNow.getMonth(), pstNow.getDate());
+                    const startPST = new Date(pstStart.getFullYear(), pstStart.getMonth(), pstStart.getDate());
+                    const daysElapsed = Math.floor((todayPST - startPST) / (1000 * 60 * 60 * 24)) + 1;
                     const currentDay = Math.min(daysElapsed, timeframeDays);
                     document.getElementById('dayCounter').textContent = `Day ${currentDay}/${timeframeDays}`;
                     
@@ -1260,15 +1265,16 @@
             
             // Gauge (radius 60, circumference = 377)
             const pct = dailyTarget > 0 ? (todayIncome / dailyTarget) * 100 : 0;
+            const displayPct = Math.round(pct);
             document.getElementById('gaugeProgress').style.strokeDashoffset = 377 - (Math.min(pct, 100) / 100) * 377;
-            document.getElementById('gaugePercent').textContent = Math.round(pct) + '%';
+            document.getElementById('gaugePercent').textContent = displayPct + '%';
             
             // Save progress to settings for share page
             try {
                 await supabaseClient
                     .from('dashboard_settings')
                     .update({
-                        current_progress_percent: Math.round(pct),
+                        current_progress_percent: displayPct,
                         updated_at: new Date().toISOString()
                     })
                     .eq('user_id', user.id);

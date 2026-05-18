@@ -890,11 +890,16 @@
                             originalJourneyStartDate = new Date(journeyDate);
                             originalJourneyCalculationId = latestCalc.id;
                             
-                            const today = new Date();
-                            const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                            // Calculate day in PST (UTC-7)
+                            const pstOffset = 7 * 60 * 60 * 1000;
+                            const pstNow = new Date(new Date().getTime() - pstOffset);
+                            const pstStart = new Date(originalJourneyStartDate.getTime() - pstOffset);
+                            const todayPST = new Date(pstNow.getFullYear(), pstNow.getMonth(), pstNow.getDate());
+                            const startPST = new Date(pstStart.getFullYear(), pstStart.getMonth(), pstStart.getDate());
+                            const daysElapsed = Math.floor((todayPST - startPST) / (1000 * 60 * 60 * 24)) + 1;
                             currentJourneyDay = Math.max(1, daysElapsed);
                             
-                            console.log('Loaded journey from calculation:', {
+                            console.log('Loaded journey from calculation (PST):', {
                                 startDate: originalJourneyStartDate,
                                 currentDay: currentJourneyDay,
                                 source: latestCalc.journey_start_date ? 'journey_start_date' : 'created_at'
@@ -914,12 +919,16 @@
                     originalJourneyStartDate = new Date(settings.original_journey_start_date);
                     originalJourneyCalculationId = settings.original_journey_calculation_id;
                     
-                    // Calculate current day
-                    const today = new Date();
-                    const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                    // Calculate current day in PST (UTC-7)
+                    const pstOffset = 7 * 60 * 60 * 1000;
+                    const pstNow = new Date(new Date().getTime() - pstOffset);
+                    const pstStart = new Date(originalJourneyStartDate.getTime() - pstOffset);
+                    const todayPST = new Date(pstNow.getFullYear(), pstNow.getMonth(), pstNow.getDate());
+                    const startPST = new Date(pstStart.getFullYear(), pstStart.getMonth(), pstStart.getDate());
+                    const daysElapsed = Math.floor((todayPST - startPST) / (1000 * 60 * 60 * 24)) + 1;
                     currentJourneyDay = Math.max(1, daysElapsed);
                     
-                    console.log('Loaded existing journey:', {
+                    console.log('Loaded existing journey (PST):', {
                         startDate: originalJourneyStartDate,
                         currentDay: currentJourneyDay,
                         calculationId: originalJourneyCalculationId
@@ -942,11 +951,16 @@
                         originalJourneyStartDate = new Date(journeyDate);
                         originalJourneyCalculationId = latestCalc.id;
                         
-                        const today = new Date();
-                        const daysElapsed = Math.floor((today - originalJourneyStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                        // Calculate day in PST (UTC-7)
+                        const pstOffset = 7 * 60 * 60 * 1000;
+                        const pstNow = new Date(new Date().getTime() - pstOffset);
+                        const pstStart = new Date(originalJourneyStartDate.getTime() - pstOffset);
+                        const todayPST = new Date(pstNow.getFullYear(), pstNow.getMonth(), pstNow.getDate());
+                        const startPST = new Date(pstStart.getFullYear(), pstStart.getMonth(), pstStart.getDate());
+                        const daysElapsed = Math.floor((todayPST - startPST) / (1000 * 60 * 60 * 24)) + 1;
                         currentJourneyDay = Math.max(1, daysElapsed);
                         
-                        console.log('Loaded journey from calculation:', {
+                        console.log('Loaded journey from calculation (PST):', {
                             startDate: originalJourneyStartDate,
                             currentDay: currentJourneyDay,
                             source: latestCalc.journey_start_date ? 'journey_start_date' : 'created_at'
