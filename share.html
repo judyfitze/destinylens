@@ -243,6 +243,18 @@
         /* Goals Section Shading */
         .goals-area {
             position: relative;
+            padding: 10px;
+        }
+        .goals-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(10, 10, 18, 0.9) 0%, rgba(10, 10, 18, 0.5) 60%, transparent 100%);
+            border-radius: 20px 20px 0 0;
+            z-index: 0;
+            pointer-events: none;
         }
         .goals-area::before {
             content: '';
@@ -568,6 +580,7 @@
             if (settings.show_goal_cards_publicly !== false && goals.length > 0) {
                 html += `
                     <div class="goals-area">
+                        <div class="goals-bg"></div>
                         <div class="goals-bar">
                             <span class="goals-heading">🎯 My Dream Life Goals</span>
                         </div>
