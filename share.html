@@ -527,8 +527,8 @@
             const daysElapsed = Math.floor((today - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
             const currentDay = Math.min(daysElapsed, timeframeDays);
             
-            // Calculate actual progress - same as dashboard
-            const progress = daily > 0 ? (todayIncome / daily) * 100 : 0;
+            // Use saved progress from dashboard, fallback to calculated
+            const progress = settings.current_progress_percent || (daily > 0 ? (todayIncome / daily) * 100 : 0);
             
             let html = `
                 <!-- Top Metrics -->
@@ -585,10 +585,6 @@
                 html += `
                     <div class="goals-area">
                         <div class="goals-bg"></div>
-                        <div style="text-align: center; margin-bottom: 15px; position: relative; z-index: 1;">
-                            <div style="font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, #fff 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(246, 194, 107, 0.2); letter-spacing: 0.02em;">My Dream Life Dashboard</div>
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px;">Visualize Your Journey</div>
-                        </div>
                         <div class="goals-bar">
                             <span class="goals-heading">🎯 My Dream Life Goals</span>
                         </div>

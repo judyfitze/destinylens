@@ -1262,6 +1262,19 @@
             const pct = dailyTarget > 0 ? (todayIncome / dailyTarget) * 100 : 0;
             document.getElementById('gaugeProgress').style.strokeDashoffset = 377 - (Math.min(pct, 100) / 100) * 377;
             document.getElementById('gaugePercent').textContent = Math.round(pct) + '%';
+            
+            // Save progress to settings for share page
+            try {
+                await supabaseClient
+                    .from('dashboard_settings')
+                    .update({
+                        current_progress_percent: Math.round(pct),
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', user.id);
+            } catch (e) {
+                console.error('Error saving progress:', e);
+            }
         }
         
         function renderGoals() {
