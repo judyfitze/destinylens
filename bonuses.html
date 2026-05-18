@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Your Bonuses — DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --purple: #A94CF0; 
+            --gold: #F6C26B;
+            --gold-light: #FFD700;
+            --gold-dark: #D4AF37;
+            --dark-bg: #0a0a12;
+            --card-bg: rgba(20, 20, 35, 0.7);
+        }
+        body {
+            background: linear-gradient(135deg, #0a0a12 0%, #12121f 50%, #0a0a12 100%);
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-top {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .logo-bottom {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #F6C26B;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .nav-menu {
+            position: absolute;
+            top: 70px;
+            right: 40px;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 180px;
+            display: none;
+            z-index: 1000;
+        }
+        .nav-menu.active {
+            display: block;
+        }
+        .nav-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        .nav-menu a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 100px 40px 80px;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 0%, var(--gold-light) 50%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-header p {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+        }
+        .value-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 10px 24px;
+            background: rgba(246, 194, 107, 0.1);
+            border: 1px solid rgba(246, 194, 107, 0.3);
+            border-radius: 24px;
+            font-size: 0.95rem;
+            color: #F6C26B;
+            font-weight: 600;
+        }
+        
+        .bonus-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .bonus-card {
+            background: linear-gradient(145deg, rgba(30, 30, 50, 0.8) 0%, rgba(15, 15, 30, 0.9) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 32px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .bonus-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(246, 194, 107, 0.3);
+            box-shadow: 0 16px 48px rgba(169, 76, 240, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .bonus-card.coming-soon {
+            opacity: 0.7;
+            border-style: dashed;
+        }
+        
+        .bonus-number {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        
+        .bonus-content {
+            flex: 1;
+        }
+        .bonus-content h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .bonus-value {
+            color: #F6C26B;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .bonus-content p {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        
+        .bonus-image {
+            width: 160px;
+            height: 100px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #2a1a3e 50%, #1a2a3e 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            flex-shrink: 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .bonus-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .bonus-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .bonus-action:hover {
+            opacity: 0.9;
+        }
+        .bonus-action.coming-soon-btn {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            cursor: not-allowed;
+        }
+        
+        .video-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.1) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 3rem;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #F6C26B;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        
+        @media (max-width: 768px) {
+            .bonus-card {
+                flex-direction: column;
+            }
+            .bonus-image {
+                width: 100%;
+                height: 160px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav style="position: relative; justify-content: center;">
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+        <div class="hamburger" onclick="toggleNavMenu()" style="position: absolute; right: 40px;">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/members.html">👤 Members</a>
+            <a href="/calculator.html">🧮 Calculator</a>
+            <a href="/income-connections.html">💰 Income Connections</a>
+            <a href="/settings.html">⚙️ Settings</a>
+            <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <a href="/members.html" class="back-link">← Back to Members</a>
+        
+        <div class="page-header">
+            <h1>Your Exclusive Bonuses</h1>
+            <p>Fast-action bonuses included with your DestinyLens purchase</p>
+            <div class="value-badge">
+                <span>🎁</span>
+                <span>Total Value: $405 — Yours Free</span>
+            </div>
+        </div>
+        
+        <div class="bonus-list">
+            <!-- Bonus 1: Dream Life Visualization Audio -->
+            <div class="bonus-card">
+                <div class="bonus-number">1</div>
+                <div class="bonus-content">
+                    <h3>Dream Life Visualization Audio</h3>
+                    <div class="bonus-value">$37 Value</div>
+                    <div class="video-placeholder">
+                        🎬
+                    </div>
+                    <p>10-minute guided visualization: Future self embodiment, goal achievement rehearsal, and morning motivation track. Train your nervous system to expect abundance.</p>
+                    <!-- Replace with actual video embed when ready -->
+                    <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">Video content coming soon — placeholder ready for your embed</span>
+                </div>
+            </div>
+            
+            <!-- Bonus 2: Dream Life Planner PDF -->
+            <div class="bonus-card">
+                <div class="bonus-number">2</div>
+                <div class="bonus-content">
+                    <h3>Dream Life Planner PDF</h3>
+                    <div class="bonus-value">$27 Value</div>
+                    <p>30-day printable planner with daily income target tracker, morning visualization prompts, evening reflection questions, and weekly goal review.</p>
+                    <a href="#" class="bonus-action" onclick="alert('Add your PDF download link here')">📥 Download PDF</a>
+                </div>
+                <div class="bonus-image">
+                    📋
+                </div>
+            </div>
+            
+            <!-- Bonus 3: Income Connection Setup Guide -->
+            <div class="bonus-card coming-soon">
+                <div class="bonus-number">3</div>
+                <div class="bonus-content">
+                    <h3>Income Connection Setup Guide</h3>
+                    <div class="bonus-value">$47 Value</div>
+                    <p>Step-by-step video walkthroughs for connecting Stripe, PayPal, Shopify, and setting up webhooks. Get your income flowing into the dashboard fast.</p>
+                    <button class="bonus-action coming-soon-btn" disabled>⏳ Coming Soon</button>
+                </div>
+                <div class="bonus-image">
+                    🔌
+                </div>
+            </div>
+            
+            <!-- Bonus 4: 90-Day Sprint Template -->
+            <div class="bonus-card">
+                <div class="bonus-number">4</div>
+                <div class="bonus-content">
+                    <h3>The 90-Day Sprint Template</h3>
+                    <div class="bonus-value">$97 Value</div>
+                    <p>Notion template with 12-week goal breakdown, weekly milestone tracker, daily action planner, and progress visualization. Turn your Dream Life Number into a concrete execution plan.</p>
+                    <a href="#" class="bonus-action" onclick="alert('Add your Notion template link here')">🔗 Open Template</a>
+                </div>
+                <div class="bonus-image">
+                    🚀
+                </div>
+            </div>
+            
+            <!-- Bonus 5: Private Community Access -->
+            <div class="bonus-card">
+                <div class="bonus-number">5</div>
+                <div class="bonus-content">
+                    <h3>Private Community Access</h3>
+                    <div class="bonus-value">$197/yr Value</div>
+                    <p>Join the DestinyLens community for monthly Q&A calls, wins celebration channel, accountability pairs, and template sharing. You're not doing this alone.</p>
+                    <a href="#" class="bonus-action" onclick="alert('Add your community invite link here')">👥 Join Community</a>
+                </div>
+                <div class="bonus-image">
+                    🌐
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleNavMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+                document.getElementById('navMenu').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
