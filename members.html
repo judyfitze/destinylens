@@ -197,6 +197,86 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .intro-video-btn {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.3) 0%, rgba(246, 194, 107, 0.2) 100%);
+            border: 1px solid rgba(246, 194, 107, 0.4);
+            border-radius: 24px;
+            color: #F6C26B;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .intro-video-btn:hover {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.5) 0%, rgba(246, 194, 107, 0.3) 100%);
+            border-color: rgba(246, 194, 107, 0.6);
+            transform: translateX(-50%) translateY(-2px);
+        }
+        
+        /* Video Modal */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .video-modal.active {
+            display: flex;
+        }
+        .video-modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16/9;
+            background: #0a0a12;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+        }
+        .video-modal-content iframe,
+        .video-modal-content video {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .video-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .video-modal-close:hover {
+            background: rgba(255,255,255,0.2);
         }
         
         .progress-header h2 {
@@ -512,6 +592,17 @@
         </div>
     </nav>
     
+    <!-- Video Modal -->
+    <div class="video-modal" id="videoModal" onclick="closeIntroVideo(event)">
+        <div class="video-modal-content">
+            <button class="video-modal-close" onclick="closeIntroVideo(event)">✕</button>
+            <!-- Replace with your video embed when ready -->
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);font-size:1.1rem;">
+                🎬 Intro video placeholder — replace with your embed
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="welcome-section">
             <h1>Welcome back, Dream Builder</h1>
@@ -521,6 +612,9 @@
         <div class="progress-overview">
             <div class="progress-header">
                 <h2>Today's Progress</h2>
+                <button class="intro-video-btn" onclick="openIntroVideo()">
+                    <span>▶</span> How to Use DestinyLens
+                </button>
                 <div class="progress-status">
                     <span>●</span>
                     <span>On Track</span>
@@ -872,6 +966,27 @@
         function toggleNavMenu() {
             document.getElementById('navMenu').classList.toggle('active');
         }
+        
+        function openIntroVideo() {
+            document.getElementById('videoModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeIntroVideo(event) {
+            // Close if clicking modal background or close button
+            if (event.target.id === 'videoModal' || event.target.classList.contains('video-modal-close')) {
+                document.getElementById('videoModal').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+        
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('videoModal').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
     </script>
 </body>
 </html>
