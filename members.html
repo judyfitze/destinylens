@@ -965,9 +965,21 @@
         }
         
         function openIntroVideo() {
-            document.getElementById('introVideoFrame').src = 'https://www.youtube.com/embed/RQ05zZVXIig?autoplay=1';
-            document.getElementById('videoModal').classList.add('active');
+            const modal = document.getElementById('videoModal');
+            const iframe = document.getElementById('introVideoFrame');
+            
+            console.log('Opening intro video modal');
+            
+            iframe.src = 'https://www.youtube.com/embed/RQ05zZVXIig?autoplay=1&rel=0';
+            modal.style.display = 'flex';
+            modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            
+            // Force visibility check
+            setTimeout(() => {
+                console.log('Modal display:', modal.style.display, 'Modal classList:', modal.classList.contains('active'));
+                console.log('Iframe src:', iframe.src);
+            }, 100);
         }
         
         function closeIntroVideo(event) {
