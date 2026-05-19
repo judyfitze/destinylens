@@ -596,10 +596,7 @@
     <div class="video-modal" id="videoModal" onclick="closeIntroVideo(event)">
         <div class="video-modal-content">
             <button class="video-modal-close" onclick="closeIntroVideo(event)">✕</button>
-            <!-- Replace with your video embed when ready -->
-            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);font-size:1.1rem;">
-                🎬 Intro video placeholder — replace with your embed
-            </div>
+            <iframe id="introVideoFrame" width="100%" height="100%" src="" title="How to Use DestinyLens" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border:none;"></iframe>
         </div>
     </div>
 
@@ -968,6 +965,7 @@
         }
         
         function openIntroVideo() {
+            document.getElementById('introVideoFrame').src = 'https://www.youtube.com/embed/RQ05zZVXIig?autoplay=1';
             document.getElementById('videoModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -976,6 +974,7 @@
             // Close if clicking modal background or close button
             if (event.target.id === 'videoModal' || event.target.classList.contains('video-modal-close')) {
                 document.getElementById('videoModal').classList.remove('active');
+                document.getElementById('introVideoFrame').src = ''; // Stop video
                 document.body.style.overflow = '';
             }
         }
@@ -984,6 +983,7 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.getElementById('videoModal').classList.remove('active');
+                document.getElementById('introVideoFrame').src = ''; // Stop video
                 document.body.style.overflow = '';
             }
         });
