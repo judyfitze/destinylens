@@ -506,12 +506,33 @@
                 updates.share_password = document.getElementById('sharePassword').value;
             }
             
-            const { error } = await supabaseClient
+            // Check if settings exist first
+            const { data: existing } = await supabaseClient
                 .from('dashboard_settings')
-                .upsert({
-                    user_id: user.id,
-                    ...updates
-                });
+                .select('id')
+                .eq('user_id', user.id)
+                .maybeSingle();
+            
+            let saveError;
+            if (existing?.id) {
+                // Update existing row
+                const { error } = await supabaseClient
+                    .from('dashboard_settings')
+                    .update(updates)
+                    .eq('id', existing.id);
+                saveError = error;
+            } else {
+                // Insert new row
+                const { error } = await supabaseClient
+                    .from('dashboard_settings')
+                    .insert({
+                        user_id: user.id,
+                        ...updates
+                    });
+                saveError = error;
+            }
+            
+            const error = saveError;
             
             if (error) {
                 showStatus('Error saving: ' + error.message, 'error');
