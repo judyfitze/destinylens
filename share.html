@@ -436,6 +436,13 @@
                     return;
                 }
                 
+                console.log('Share page settings loaded:', {
+                    dashboard_title: settings.dashboard_title,
+                    dashboard_subtitle: settings.dashboard_subtitle,
+                    public_share_slug: settings.public_share_slug,
+                    has_settings: !!settings
+                });
+                
                 // Get calculation separately
                 let calculation = null;
                 if (settings.active_calculation_id) {
@@ -497,6 +504,12 @@
                 
                 renderDashboard(settings, calculation, goals, todayIncome);
                 
+                // Debug: log what was rendered
+                setTimeout(() => {
+                    console.log('Rendered title:', document.getElementById('shareTitle')?.textContent);
+                    console.log('Rendered subtitle:', document.getElementById('shareSubtitle')?.textContent);
+                }, 100);
+                
             } catch (err) {
                 console.error('Error loading dashboard:', err);
                 showError();
@@ -555,8 +568,8 @@
                 <div class="dashboard-panel">
                     <div class="panel">
                         <div class="panel-header">
-                            <div class="panel-title" style="font-size: 1.1rem; font-weight: 800; background: linear-gradient(135deg, #fff 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(246, 194, 107, 0.2); letter-spacing: 0.02em;">${settings.dashboard_title || 'Dream Life Dashboard'}</div>
-                            <div class="panel-title" style="margin-top: 8px;">${settings.dashboard_subtitle || 'Financial Command Center'}</div>
+                            <div class="panel-title" id="shareTitle" style="font-size: 1.1rem; font-weight: 800; background: linear-gradient(135deg, #fff 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(246, 194, 107, 0.2); letter-spacing: 0.02em;">${settings.dashboard_title || 'Dream Life Dashboard'}</div>
+                            <div class="panel-title" id="shareSubtitle" style="margin-top: 8px;">${settings.dashboard_subtitle || 'Financial Command Center'}</div>
                             <div class="panel-subtitle">Dream Life Targets</div>
                         </div>
                         
