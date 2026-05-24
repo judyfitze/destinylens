@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get DestinyLens — $47</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a12;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+            padding: 40px 24px;
+        }
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            margin-bottom: 40px;
+            justify-content: center;
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-top {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .logo-bottom {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #F6C26B;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .checkout-card {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.08) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .price {
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(255,255,255,0.8);
+        }
+        input {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: #A94CF0;
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        .cta-button {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 8px;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .cta-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .guarantee {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .bonuses {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .bonuses h3 {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            color: #F6C26B;
+        }
+        .bonus-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .bonus-item span:first-child {
+            font-size: 1.2rem;
+        }
+        .error {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: none;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+        
+        <div class="checkout-card">
+            <h1>Get DestinyLens</h1>
+            <div class="price">$47</div>
+            <p class="subtitle">One-time payment. Lifetime access.</p>
+            
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                    <div class="error" id="emailError">Please enter a valid email</div>
+                </div>
+                
+                <button type="submit" class="cta-button" id="submitBtn">
+                    Continue to Payment
+                    <span class="loading" id="loading"></span>
+                </button>
+            </form>
+            
+            <div class="guarantee">
+                <span>🛡️</span>
+                <span>30-day money-back guarantee</span>
+            </div>
+            
+            <div class="bonuses">
+                <h3>Included Bonuses ($405 value)</h3>
+                <div class="bonus-item">
+                    <span>🎯</span>
+                    <span>AI Prompt Generator ($97 value)</span>
+                </div>
+                <div class="bonus-item">
+                    <span>📊</span>
+                    <span>Financial Dashboard ($97 value)</span>
+                </div>
+                <div class="bonus-item">
+                    <span>🎓</span>
+                    <span>Quick Start Video Training ($97 value)</span>
+                </div>
+                <div class="bonus-item">
+                    <span>💰</span>
+                    <span>Income Connection Guides ($67 value)</span>
+                </div>
+                <div class="bonus-item">
+                    <span>📈</span>
+                    <span>Goal Setting Workbook ($47 value)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const emailError = document.getElementById('emailError');
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            
+            // Validate email
+            if (!email || !email.includes('@')) {
+                emailError.style.display = 'block';
+                return;
+            }
+            emailError.style.display = 'none';
+            
+            // Show loading
+            submitBtn.disabled = true;
+            loading.style.display = 'inline-block';
+            
+            try {
+                // Create Stripe checkout session
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        success_url: window.location.origin + '/thank-you.html?session_id={CHECKOUT_SESSION_ID}',
+                        cancel_url: window.location.origin + '/checkout.html'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to create checkout');
+                }
+                
+                // Redirect to Stripe checkout
+                window.location.href = result.url;
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                emailError.textContent = error.message || 'Something went wrong. Please try again.';
+                emailError.style.display = 'block';
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
