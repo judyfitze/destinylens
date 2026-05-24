@@ -137,7 +137,27 @@ export default async function handler(req, res) {
       console.error('Exception creating dashboard settings:', e);
     }
 
-    // Log credentials for now (replace with email sending)
+    // Send welcome email with credentials using Supabase Auth email
+    try {
+      // Send magic link email (this sends an email to the user)
+      const { error: magicLinkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: customerEmail,
+        options: {
+          redirectTo: 'https://www.destinylens.io/auth.html'
+        }
+      });
+      
+      if (magicLinkError) {
+        console.error('Magic link error:', magicLinkError);
+      } else {
+        console.log('Magic link sent to:', customerEmail);
+      }
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+    }
+
+    // Log credentials for debugging
     console.log('=== NEW USER CREDENTIALS ===');
     console.log('Email:', customerEmail);
     console.log('Temp Password:', tempPassword);
