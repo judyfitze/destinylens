@@ -173,7 +173,7 @@ export default async function handler(req, res) {
         headers: { 'X-API-KEY': gcApiKey }
       });
       const tagsData = await tagsResponse.json();
-      const buyerTag = tagsData.data?.find(t => t.name === 'DestinyLens Buyer');
+      const buyerTag = tagsData.data?.find(t => t.name === 'Buyer-DestinyLens');
       
       if (buyerTag) {
         // Write tag fire JSON to temp file
