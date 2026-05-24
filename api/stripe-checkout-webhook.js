@@ -3,7 +3,6 @@
 // Stripe sends checkout.session.completed events
 
 import { createClient } from '@supabase/supabase-js';
-import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -84,12 +83,13 @@ export default async function handler(req, res) {
     const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
 
     // Create new user in Supabase Auth
+    // NOTE: email_confirm is false so Supabase sends confirmation email via configured SMTP
     console.log('Creating user with email:', customerEmail);
     
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email: customerEmail,
       password: tempPassword,
-      email_confirm: true, // Auto-confirm email
+      email_confirm: false, // Let Supabase send confirmation email
       user_metadata: {
         paid: true,
         purchased_at: new Date().toISOString(),
@@ -138,68 +138,8 @@ export default async function handler(req, res) {
       console.error('Exception creating dashboard settings:', e);
     }
 
-    // Send welcome email with credentials via SMTP.com
-    try {
-      const transporter = nodemailer.createTransport({
-        host: 'send.smtp.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user: 'destinylens7859b',
-          pass: 'Destiny1!'
-        }
-      });
-
-      const emailHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Welcome to DestinyLens</title>
-</head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0a0a12; color: #fff;">
-  <div style="text-align: center; margin-bottom: 30px;">
-    <h1 style="color: #A94CF0; margin: 0; font-size: 2.5rem;">DestinyLens</h1>
-    <p style="color: #F6C26B; font-size: 14px; margin: 5px 0 0 0;">Your Dream Life In Focus</p>
-  </div>
-  
-  <div style="background: linear-gradient(135deg, rgba(169, 76, 240, 0.08) 0%, rgba(246, 194, 107, 0.05) 100%); border: 1px solid rgba(169, 76, 240, 0.2); border-radius: 16px; padding: 32px; margin-bottom: 24px;">
-    <h2 style="color: #fff; margin-top: 0;">Welcome to Your Dream Life Journey!</h2>
-    <p style="color: rgba(255,255,255,0.7); line-height: 1.6;">Thank you for purchasing DestinyLens. Your account has been created and is ready to use.</p>
-    
-    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid rgba(169, 76, 240, 0.3);">
-      <h3 style="margin-top: 0; color: #F6C26B;">Your Login Details</h3>
-      <p style="margin: 8px 0; color: #fff;"><strong>Email:</strong> ${customerEmail}</p>
-      <p style="margin: 8px 0; color: #fff;"><strong>Password:</strong> ${tempPassword}</p>
-    </div>
-    
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="https://www.destinylens.io/auth.html" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%); color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Log In Now</a>
-    </div>
-    
-    <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 20px;">You can change your password after logging in.</p>
-  </div>
-  
-  <div style="text-align: center; color: rgba(255,255,255,0.4); font-size: 12px;">
-    <p>DestinyLens | support@destinylens.io</p>
-    <p>If you didn't make this purchase, please contact us immediately.</p>
-  </div>
-</body>
-</html>`;
-
-      await transporter.sendMail({
-        from: 'judy@destinylens.io',
-        to: customerEmail,
-        subject: 'Welcome to DestinyLens - Your Login Details',
-        html: emailHtml,
-        text: `Welcome to DestinyLens!\n\nYour login details:\nEmail: ${customerEmail}\nPassword: ${tempPassword}\n\nLog in at: https://www.destinylens.io/auth.html\n\nYou can change your password after logging in.`
-      });
-
-      console.log('Welcome email sent via SMTP.com to:', customerEmail);
-    } catch (emailError) {
-      console.error('Email sending error:', emailError);
-    }
-
     // Add to Global Control with Buyer-DestinyLens tag
+    // This triggers the "DestinyLens - Buyer Delivery" workflow
     try {
       const gcApiKey = '21c6ddbd3338d2e75cffd56f6b6c3ed6bf419e870393e0a0bd02c985565d39ab';
       
@@ -242,7 +182,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ 
       success: true, 
-      message: 'User created',
+      message: 'User created - Supabase will send confirmation email',
       user_id: newUser.user.id 
     });
 
