@@ -137,6 +137,25 @@ export default async function handler(req, res) {
       console.error('Exception creating dashboard settings:', e);
     }
 
+    // Send password reset email so user can set their own password
+    try {
+      const { error: resetError } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: customerEmail,
+        options: {
+          redirectTo: 'https://www.destinylens.io/auth.html'
+        }
+      });
+      
+      if (resetError) {
+        console.error('Password reset email error:', resetError);
+      } else {
+        console.log('Password reset email sent to:', customerEmail);
+      }
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+    }
+
     // Add to Global Control with Buyer-DestinyLens tag
     // This triggers the "DestinyLens - Buyer Delivery" workflow
     try {
