@@ -213,6 +213,12 @@
                     <div class="error" id="emailError">Please enter a valid email</div>
                 </div>
                 
+                <div class="form-group">
+                    <label for="coupon">Coupon Code (optional)</label>
+                    <input type="text" id="coupon" placeholder="Enter code" style="text-transform: uppercase;">
+                    <div class="error" id="couponError">Invalid coupon code</div>
+                </div>
+                
                 <button type="submit" class="cta-button" id="submitBtn">
                     Continue to Payment
                     <span class="loading" id="loading"></span>
@@ -277,6 +283,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email: email,
+                        coupon: document.getElementById('coupon').value.trim().toUpperCase(),
                         success_url: window.location.origin + '/thank-you.html?session_id={CHECKOUT_SESSION_ID}',
                         cancel_url: window.location.origin + '/checkout.html'
                     })

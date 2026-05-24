@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email, success_url, cancel_url } = req.body;
+    const { email, coupon, success_url, cancel_url } = req.body;
 
     if (!email) {
       res.status(400).json({ error: 'Email is required' });
@@ -54,6 +54,7 @@ export default async function handler(req, res) {
         'line_items[0][price_data][unit_amount]': '4700', // $47.00 in cents
         'line_items[0][quantity]': '1',
         'metadata[email]': email,
+        ...(coupon ? { 'discounts[0][coupon]': coupon } : {}),
       }),
     });
 
