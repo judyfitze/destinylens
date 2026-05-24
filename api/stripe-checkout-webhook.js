@@ -3,6 +3,7 @@
 // Stripe sends checkout.session.completed events
 
 import { createClient } from '@supabase/supabase-js';
+import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -137,44 +138,18 @@ export default async function handler(req, res) {
       console.error('Exception creating dashboard settings:', e);
     }
 
-    // Send welcome email with credentials via Global Control SMTP
+    // Send welcome email with credentials via SMTP.com
     try {
-      const gcApiKey = '21c6ddbd3338d2e75cffd56f6b6c3ed6bf419e870393e0a0bd02c985565d39ab';
-      
-      // Get DestinyLens Buyer tag ID
-      const tagsResponse = await fetch('https://api.globalcontrol.io/api/ai/tags', {
-        headers: { 'X-API-KEY': gcApiKey }
-      });
-      const tagsData = await tagsResponse.json();
-      const buyerTag = tagsData.data?.find(t => t.name === 'Buyer-DestinyLens');
-      
-      if (buyerTag) {
-        // Fire tag to trigger workflow
-        const tagData = { 
-          email: customerEmail, 
-          firstName: customerName?.split(' ')[0] || '', 
-          lastName: customerName?.split(' ').slice(1).join(' ') || '' 
-        };
-        
-        const tagResponse = await fetch(`https://api.globalcontrol.io/api/ai/tags/fire-tag/${buyerTag._id}`, {
-          method: 'POST',
-          headers: { 
-            'X-API-KEY': gcApiKey,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(tagData)
-        });
-        
-        if (tagResponse.ok) {
-          console.log('Global Control tag applied:', buyerTag.name);
-        } else {
-          console.error('Failed to fire tag:', await tagResponse.text());
+      const transporter = nodemailer.createTransport({
+        host: 'send.smtp.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: 'destinylens7859b',
+          pass: 'Destiny1!'
         }
-      } else {
-        console.log('Buyer-DestinyLens tag not found in Global Control');
-      }
-      
-      // Also send direct email with credentials using GC's SMTP
+      });
+
       const emailHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -210,30 +185,59 @@ export default async function handler(req, res) {
   </div>
 </body>
 </html>`;
-      
-      // Send email via Global Control's email endpoint
-      const emailResponse = await fetch('https://api.globalcontrol.io/api/ai/emails/send', {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': gcApiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          to: customerEmail,
-          subject: 'Welcome to DestinyLens - Your Login Details',
-          html: emailHtml,
-          from_email: 'judy@sm.destinylens.io',
-          from_name: 'Judy Fitzpatrick'
-        })
+
+      await transporter.sendMail({
+        from: 'judy@destinylens.io',
+        to: customerEmail,
+        subject: 'Welcome to DestinyLens - Your Login Details',
+        html: emailHtml,
+        text: `Welcome to DestinyLens!\n\nYour login details:\nEmail: ${customerEmail}\nPassword: ${tempPassword}\n\nLog in at: https://www.destinylens.io/auth.html\n\nYou can change your password after logging in.`
       });
-      
-      if (emailResponse.ok) {
-        console.log('Welcome email with credentials sent to:', customerEmail);
-      } else {
-        console.error('Failed to send welcome email:', await emailResponse.text());
-      }
+
+      console.log('Welcome email sent via SMTP.com to:', customerEmail);
     } catch (emailError) {
       console.error('Email sending error:', emailError);
+    }
+
+    // Add to Global Control with Buyer-DestinyLens tag
+    try {
+      const gcApiKey = '21c6ddbd3338d2e75cffd56f6b6c3ed6bf419e870393e0a0bd02c985565d39ab';
+      
+      // Get DestinyLens Buyer tag ID
+      const tagsResponse = await fetch('https://api.globalcontrol.io/api/ai/tags', {
+        headers: { 'X-API-KEY': gcApiKey }
+      });
+      const tagsData = await tagsResponse.json();
+      const buyerTag = tagsData.data?.find(t => t.name === 'Buyer-DestinyLens');
+      
+      if (buyerTag) {
+        // Fire tag to trigger workflow
+        const tagData = { 
+          email: customerEmail, 
+          firstName: customerName?.split(' ')[0] || '', 
+          lastName: customerName?.split(' ').slice(1).join(' ') || '' 
+        };
+        
+        const tagResponse = await fetch(`https://api.globalcontrol.io/api/ai/tags/fire-tag/${buyerTag._id}`, {
+          method: 'POST',
+          headers: { 
+            'X-API-KEY': gcApiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(tagData)
+        });
+        
+        if (tagResponse.ok) {
+          console.log('Global Control tag applied:', buyerTag.name);
+        } else {
+          console.error('Failed to fire tag:', await tagResponse.text());
+        }
+      } else {
+        console.log('Buyer-DestinyLens tag not found in Global Control');
+      }
+    } catch (gcError) {
+      console.error('Global Control error:', gcError);
+      // Don't fail the webhook if GC fails
     }
 
     res.status(200).json({ 
