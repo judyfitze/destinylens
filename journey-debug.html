@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Journey Debug - DestinyLens</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="font-family: monospace; padding: 20px; background: #1a1a2e; color: #fff;">
+    <h1>Journey Debug Tool</h1>
+    <div id="output">Loading...</div>
+    
+    <script>
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        async function debugJourney() {
+            const output = document.getElementById('output');
+            
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                output.innerHTML = '<p style="color: red;">Not logged in</p>';
+                return;
+            }
+            
+            output.innerHTML = `<p>User: ${user.email}</p>`;
+            
+            // Get dashboard settings
+            const { data: settings } = await supabase
+                .from('dashboard_settings')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
+            
+            if (settings) {
+                output.innerHTML += `
+                    <h3>Dashboard Settings:</h3>
+                    <pre style="background: #2a2a4e; padding: 10px; border-radius: 5px;">${JSON.stringify({
+                        active_calculation_id: settings.active_calculation_id,
+                        original_journey_start_date: settings.original_journey_start_date,
+                        original_journey_calculation_id: settings.original_journey_calculation_id
+                    }, null, 2)}</pre>
+                `;
+            }
+            
+            // Get all calculations
+            const { data: calculations } = await supabase
+                .from('dream_life_calculations')
+                .select('id, created_at, journey_start_date, original_journey_calculation_id')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+            
+            if (calculations) {
+                output.innerHTML += `<h3>Calculations (newest first):</h3>`;
+                calculations.forEach((calc, i) => {
+                    const journeyDate = calc.journey_start_date || calc.created_at;
+                    const daysElapsed = Math.floor((new Date() - new Date(journeyDate)) / (1000 * 60 * 60 * 24)) + 1;
+                    output.innerHTML += `
+                        <div style="background: ${i === 0 ? '#3a3a6e' : '#2a2a4e'}; padding: 10px; margin: 5px 0; border-radius: 5px;">
+                            <strong>Calculation ${i + 1}${i === 0 ? ' (ACTIVE)' : ''}</strong><br>
+                            ID: ${calc.id}<br>
+                            Created: ${new Date(calc.created_at).toLocaleString()}<br>
+                            Journey Start: ${calc.journey_start_date ? new Date(calc.journey_start_date).toLocaleString() : '<span style="color: red;">NOT SET</span>'}<br>
+                            Current Day: Day ${daysElapsed}<br>
+                            Original Journey ID: ${calc.original_journey_calculation_id || 'N/A'}
+                        </div>
+                    `;
+                });
+            }
+            
+            // Calculate what the day SHOULD be
+            if (settings?.original_journey_start_date) {
+                const originalStart = new Date(settings.original_journey_start_date);
+                const daysElapsed = Math.floor((new Date() - originalStart) / (1000 * 60 * 60 * 24)) + 1;
+                output.innerHTML += `
+                    <h3 style="color: #F6C26B;">Expected Current Day (from settings):</h3>
+                    <p style="font-size: 24px; color: #F6C26B;">Day ${daysElapsed}</p>
+                `;
+            }
+        }
+        
+        debugJourney().catch(err => {
+            document.getElementById('output').innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
+        });
+    </script>
+</body>
+</html>

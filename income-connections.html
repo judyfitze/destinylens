@@ -441,6 +441,7 @@
             .manual-income-form { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="js/notifications.js"></script>
 </head>
 <body>
     <nav>
@@ -494,11 +495,11 @@
                     <div class="connect-name">Manual Entry</div>
                     <div class="connect-desc">Add income manually</div>
                 </div>
-                <div class="connect-card" onclick="startConnection('stripe')" style="position: relative;">
-                    <div style="position: absolute; top: 8px; right: 8px; color: var(--gold); font-size: 1.2rem;">✓</div>
+                <div class="connect-card" style="opacity: 0.6; cursor: not-allowed; position: relative;">
+                    <div style="position: absolute; top: 8px; right: 8px; background: var(--purple); color: #fff; font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700;">COMING SOON</div>
                     <div class="connect-icon">💳</div>
                     <div class="connect-name">Stripe</div>
-                    <div class="connect-desc">Connect Stripe account</div>
+                    <div class="connect-desc">One-click connection coming soon</div>
                 </div>
                 <div class="connect-card" style="opacity: 0.6; cursor: not-allowed; position: relative;">
                     <div style="position: absolute; top: 8px; right: 8px; background: var(--purple); color: #fff; font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700;">COMING SOON</div>
@@ -705,6 +706,9 @@
             manual: 'Manual Entry'
         };
 
+        // Auto-sync interval (5 minutes)
+        let autoSyncInterval = null;
+
         // Load connections on page load
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded, checking supabase...');
@@ -719,6 +723,49 @@
                 return;
             }
             loadConnections();
+            
+            // Start auto-sync for active Stripe connections
+            startAutoSync();
+        });
+        
+        function startAutoSync() {
+            // Sync every 5 minutes
+            autoSyncInterval = setInterval(async () => {
+                const { user } = await getCurrentUser();
+                if (!user) return;
+                
+                const { data: connections } = await supabaseClient
+                    .from('income_connections')
+                    .select('connection_id, provider, status')
+                    .eq('user_id', user.id)
+                    .eq('provider', 'stripe')
+                    .in('status', ['active', 'connected']);
+                
+                if (connections) {
+                    for (const conn of connections) {
+                        console.log('Auto-syncing:', conn.connection_id);
+                        try {
+                            await fetch('/api/poll-stripe', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ connection_id: conn.connection_id })
+                            });
+                        } catch (e) {
+                            console.error('Auto-sync error:', e);
+                        }
+                    }
+                }
+            }, 5 * 60 * 1000); // 5 minutes
+        }
+        
+        // Stop auto-sync when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && autoSyncInterval) {
+                clearInterval(autoSyncInterval);
+                autoSyncInterval = null;
+            } else if (!document.hidden && !autoSyncInterval) {
+                startAutoSync();
+            }
         });
 
         async function loadConnections() {
@@ -734,6 +781,9 @@
                 .select('*')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
+            
+            console.log('Connections loaded:', data);
+            console.log('Connections error:', error);
 
             if (error) {
                 console.error('Error loading connections:', error);
@@ -798,7 +848,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="status-badge status-${statusClass}">${statusText}</span>
                         <div class="connection-actions">
-                            ${(isStripe || isPayPal || isSquare) ? `<button class="btn-small" style="background: rgba(169, 76, 240, 0.2); color: var(--purple);" onclick="reviewWebhookInstructions('${conn.connection_id}', '${conn.connection_label || providerNames[conn.provider]}', '${conn.provider}')">👁️ Review</button>` : ''}
+                            ${isStripe ? `<button class="btn-small" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;" onclick="syncStripePayments('${conn.connection_id}')">🔄 Sync</button>` : ''}
                             ${isConnectedStripe ? `<button class="btn-small" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;" onclick="showTestPaymentModal('${conn.connection_id}', '${conn.provider}')">🧪 Test</button>` : ''}
                             <button class="btn-small" onclick="editConnection('${conn.connection_id}')">✏️</button>
                             <button class="btn-small btn-delete" onclick="deleteConnection('${conn.connection_id}')">🗑️</button>
@@ -818,7 +868,7 @@
 
                 if (!modal || !title || !subtitle || !input) {
                     console.error('Modal elements not found');
-                    alert('Error: Page not fully loaded. Please refresh.');
+                    window.showDLError('Error: Page not fully loaded. Please refresh.');
                     return;
                 }
 
@@ -828,14 +878,14 @@
                 modal.classList.add('active');
             } catch (err) {
                 console.error('Error opening modal:', err);
-                alert('Error opening connection form. Please try again.');
+                window.showDLError('Error opening connection form. Please try again.');
             }
         }
 
         async function confirmConnection() {
             const label = document.getElementById('connectionLabel').value.trim();
             if (!label) {
-                alert('Please enter a connection label');
+                window.showDLWarning('Please enter a connection label');
                 return;
             }
 
@@ -843,6 +893,14 @@
             if (!user) return;
 
             // Create pending connection
+            console.log('Creating connection for user:', user.id);
+            console.log('User object:', JSON.stringify(user));
+            
+            // Check if user has a valid JWT token
+            const { data: sessionData } = await supabaseClient.auth.getSession();
+            console.log('Session:', sessionData);
+            console.log('Access token exists:', !!sessionData?.session?.access_token);
+            
             const { data: connection, error } = await supabaseClient
                 .from('income_connections')
                 .insert({
@@ -856,9 +914,13 @@
 
             if (error) {
                 console.error('Error creating connection:', error);
-                alert('Error: ' + error.message);
+                console.error('Error code:', error.code);
+                console.error('Error details:', error.details);
+                window.showDLError('Error: ' + error.message + ' (Code: ' + error.code + ')');
                 return;
             }
+            
+            console.log('Connection created:', connection);
 
             closeModal('connectionModal');
 
@@ -870,14 +932,14 @@
             } else if (currentProvider === 'square') {
                 initiateSquareOAuth(connection.connection_id, user.id);
             } else {
-                alert(`${providerNames[currentProvider]} connection created! Integration coming soon. For now, you can add manual income entries.`);
+                window.showDLSuccess(`${providerNames[currentProvider]} connection created! Integration coming soon. For now, you can add manual income entries.`);
                 loadConnections();
             }
         }
 
         // Initiate Stripe OAuth flow
         async function initiateStripeOAuth(connectionId, userId) {
-            showToast('Connecting to Stripe...');
+            window.showDLInfo('Connecting to Stripe...', 'Stripe');
 
             try {
                 const response = await fetch('/api/stripe-connect', {
@@ -914,10 +976,10 @@
                         window.removeEventListener('message', handleOAuthMessage);
 
                         if (event.data.success) {
-                            showToast('✅ Stripe connected successfully!');
+                            window.showDLSuccess('Stripe connected successfully!', 'Connected');
                             loadConnections();
                         } else {
-                            showToast('❌ Connection failed: ' + (event.data.error || 'Unknown error'));
+                            window.showDLError('Connection failed: ' + (event.data.error || 'Unknown error'), 'Connection Error');
                         }
                     }
                 });
@@ -927,7 +989,7 @@
 
             } catch (error) {
                 console.error('OAuth error:', error);
-                showToast('❌ ' + error.message);
+                window.showDLError(error.message, 'Error');
                 // Fallback to manual webhook setup
                 showStripeWebhookInstructions(connectionId);
             }
@@ -947,7 +1009,7 @@
 
             if (connection && connection.status === 'active') {
                 const providerName = providerNames[connection.provider] || 'Account';
-                showToast(`✅ ${providerName} connected!`);
+                window.showDLSuccess(`${providerName} connected!`, 'Connected');
                 loadConnections();
                 return; // Stop polling once active
             } else {
@@ -957,7 +1019,7 @@
 
         // Initiate Square OAuth flow
         async function initiateSquareOAuth(connectionId, userId) {
-            showToast('Connecting to Square...');
+            window.showDLInfo('Connecting to Square...', 'Square');
 
             try {
                 const response = await fetch('/api/square-connect', {
@@ -994,10 +1056,10 @@
                         window.removeEventListener('message', handleOAuthMessage);
 
                         if (event.data.success) {
-                            showToast('✅ Square connected successfully!');
+                            window.showDLSuccess('Square connected successfully!', 'Connected');
                             loadConnections();
                         } else {
-                            showToast('❌ Connection failed: ' + (event.data.error || 'Unknown error'));
+                            window.showDLError('Connection failed: ' + (event.data.error || 'Unknown error'), 'Connection Error');
                         }
                     }
                 });
@@ -1007,7 +1069,7 @@
 
             } catch (error) {
                 console.error('Square OAuth error:', error);
-                showToast('❌ ' + error.message);
+                window.showDLError(error.message, 'Error');
             }
         }
 
@@ -1074,7 +1136,7 @@
             
             // Auto-copy to clipboard
             navigator.clipboard.writeText(webhookUrl).then(() => {
-                showToast('Webhook URL copied!');
+                window.showDLSuccess('Webhook URL copied!', 'Copied');
             });
             
             loadConnections();
@@ -1084,7 +1146,7 @@
             const url = window.currentPayPalWebhookUrl;
             if (url) {
                 navigator.clipboard.writeText(url).then(() => {
-                    showToast('Webhook URL copied!');
+                    window.showDLSuccess('Webhook URL copied!', 'Copied');
                 });
             }
         }
@@ -1094,7 +1156,7 @@
             const connectionId = window.currentPayPalConnectionId;
             
             if (!webhookId) {
-                alert('Please enter the Webhook ID from PayPal');
+                window.showDLWarning('Please enter the Webhook ID from PayPal');
                 return;
             }
             
@@ -1109,12 +1171,12 @@
                 .eq('connection_id', connectionId);
             
             if (error) {
-                showToast('❌ Error saving: ' + error.message);
+                window.showDLError('Error saving: ' + error.message, 'Save Error');
                 return;
             }
             
             closeModal('paypalInstructionsModal');
-            showToast('✅ PayPal connected! Complete a test payment to verify.');
+            window.showDLSuccess('PayPal connected! Complete a test payment to verify.', 'Connected');
             loadConnections();
         }
 
@@ -1132,7 +1194,7 @@
 
             // Auto-copy to clipboard
             navigator.clipboard.writeText(webhookUrl).then(() => {
-                showToast('Webhook URL copied!');
+                window.showDLSuccess('Webhook URL copied!', 'Copied');
             });
 
             loadConnections();
@@ -1142,7 +1204,7 @@
             const url = document.getElementById('stripeWebhookUrl').getAttribute('data-url');
             if (url) {
                 navigator.clipboard.writeText(url).then(() => {
-                    showToast('Webhook URL copied!');
+                    window.showDLSuccess('Webhook URL copied!', 'Copied');
                 });
             }
         }
@@ -1212,45 +1274,42 @@
             const provider = window.testProvider || 'stripe';
             if (!connectionId) return;
 
-            showToast('Checking for webhook...');
+            window.showDLInfo('Checking for payments...', 'Sync');
 
-            // Check if any events were received for this connection in last 5 minutes
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+            // Poll Stripe API for recent payments
+            try {
+                const response = await fetch('/api/poll-stripe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ connection_id: connectionId })
+                });
 
-            const { data: events, error } = await supabaseClient
-                .from('income_progress_events')
-                .select('*')
-                .eq('connection_id', connectionId)
-                .gte('received_at', fiveMinutesAgo)
-                .order('received_at', { ascending: false })
-                .limit(1);
+                const result = await response.json();
 
-            if (error) {
-                showToast('❌ Error checking: ' + error.message);
-                return;
-            }
+                if (!response.ok) {
+                    window.showDLError('Error: ' + (result.error || 'Unknown error'), 'Sync Error');
+                    return;
+                }
 
-            if (events && events.length > 0) {
-                // Webhook received! Update status to active
-                await supabaseClient
-                    .from('income_connections')
-                    .update({ status: 'active', last_synced_at: new Date().toISOString() })
-                    .eq('connection_id', connectionId);
-
-                const providerName = provider === 'paypal' ? 'PayPal' : 'Stripe';
-                showToast(`✅ Webhook verified! Receiving ${providerName} payments.`);
-                closeModal('testPaymentModal');
-                loadConnections();
-            } else {
-                const providerName = provider === 'paypal' ? 'PayPal' : 'Stripe';
-                showToast(`⏳ No webhook received yet. Complete a payment in ${providerName} first.`);
+                if (result.new > 0) {
+                    window.showDLSuccess(`Found ${result.new} new payment(s)!`, 'Sync Complete');
+                    closeModal('testPaymentModal');
+                    loadConnections();
+                } else if (result.checked > 0) {
+                    window.showDLWarning(`No new payments found. Checked ${result.checked} recent charges.`, 'No New Payments');
+                } else {
+                    window.showDLWarning('No payments found. Complete a test purchase first.', 'No Payments');
+                }
+            } catch (error) {
+                console.error('Polling error:', error);
+                window.showDLError('Error checking payments: ' + error.message, 'Check Error');
             }
         }
 
         function copyWebhookUrl() {
             if (window.currentWebhookUrl) {
                 navigator.clipboard.writeText(window.currentWebhookUrl).then(() => {
-                    showToast('Webhook URL copied to clipboard!');
+                    window.showDLSuccess('Webhook URL copied to clipboard!', 'Copied');
                 });
             }
         }
@@ -1259,8 +1318,38 @@
             const url = document.getElementById('reviewWebhookUrl').getAttribute('data-url');
             if (url) {
                 navigator.clipboard.writeText(url).then(() => {
-                    showToast('Webhook URL copied!');
+                    window.showDLSuccess('Webhook URL copied!', 'Copied');
                 });
+            }
+        }
+
+        async function syncStripePayments(connectionId) {
+            window.showDLInfo('Syncing Stripe payments...', 'Sync');
+            
+            try {
+                const response = await fetch('/api/poll-stripe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ connection_id: connectionId })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    window.showDLError('Sync error: ' + (result.error || 'Unknown error'), 'Sync Error');
+                    return;
+                }
+
+                if (result.new > 0) {
+                    window.showDLSuccess(`Synced ${result.new} new payment(s)!`, 'Sync Complete');
+                } else {
+                    window.showDLInfo('Sync complete. No new payments found.', 'Sync Complete');
+                }
+                
+                loadConnections();
+            } catch (error) {
+                console.error('Sync error:', error);
+                window.showDLError('Sync failed: ' + error.message, 'Sync Error');
             }
         }
 
@@ -1274,11 +1363,11 @@
 
             if (error) {
                 console.error('Error deleting:', error);
-                showToast('❌ Error deleting connection');
+                window.showDLError('Error deleting connection', 'Delete Error');
                 return;
             }
 
-            showToast('✅ Connection deleted');
+            window.showDLSuccess('Connection deleted', 'Deleted');
             loadConnections();
         }
 
@@ -1385,12 +1474,12 @@
             const note = document.getElementById('manualNote').value.trim();
 
             if (!amount || amount <= 0) {
-                alert('Please enter a valid amount');
+                window.showDLWarning('Please enter a valid amount');
                 return;
             }
 
             if (!date) {
-                alert('Please select a date');
+                window.showDLWarning('Please select a date');
                 return;
             }
 
@@ -1422,27 +1511,28 @@
                 connectionId = newConn?.connection_id;
             }
 
-            // Save the income event
+            // Save to manual_income_entries (not income_progress_events)
+            // manual_income_entries = user-entered income (shows as "Manual" on dashboard)
+            // income_progress_events = automated from connected providers (shows as "Connected" on dashboard)
             const { error } = await supabaseClient
-                .from('income_progress_events')
+                .from('manual_income_entries')
                 .insert({
                     user_id: user.id,
-                    connection_id: connectionId,
-                    provider: 'manual',
                     amount: amount,
-                    currency: 'USD',
-                    status: 'received',
-                    received_at: new Date(date).toISOString()
+                    income_source_label: note || 'Manual Entry',
+                    entry_date: date,
+                    note: note || '',
+                    include_in_dashboard: true
                 });
 
             if (error) {
                 console.error('Error saving income:', error);
-                alert('Error saving income. Please try again.');
+                window.showDLError('Error saving income. Please try again.');
                 return;
             }
 
             closeModal('manualModal');
-            alert('Income added successfully!');
+            window.showDLSuccess('Income added successfully!');
             loadConnections();
         }
 
@@ -1453,24 +1543,8 @@
 
         function copyToClipboard(text, message) {
             navigator.clipboard.writeText(text).then(() => {
-                showToast(message);
+                window.showDLSuccess(message, 'Copied!');
             });
-        }
-
-        function showToast(message) {
-            const existing = document.querySelector('.toast');
-            if (existing) existing.remove();
-
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = '<span class="toast-icon">✨</span><span>' + message + '</span>';
-            document.body.appendChild(toast);
-
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
         }
 
         function closeModal(id) {

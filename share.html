@@ -491,8 +491,8 @@
                     }
                 }
                 
-                // Get today's actual income
-                const today = new Date().toISOString().split('T')[0];
+                // Get today's actual income (PST)
+                const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
                 const { data: incomeData } = await supabaseClient
                     .from('manual_income_entries')
                     .select('amount')

@@ -2,20 +2,34 @@
 // Replaces default browser alerts with on-brand notifications
 
 (function() {
-    // Create notification container
-    const container = document.createElement('div');
-    container.id = 'dl-notifications';
-    container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        pointer-events: none;
-    `;
-    document.body.appendChild(container);
+    // Create notification container - defer until DOM is ready
+    let container = null;
+    
+    function getContainer() {
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'dl-notifications';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                pointer-events: none;
+            `;
+            if (document.body) {
+                document.body.appendChild(container);
+            } else {
+                // If body not ready, wait for it
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.appendChild(container);
+                });
+            }
+        }
+        return container;
+    }
 
     // Notification styles
     const styles = document.createElement('style');
@@ -190,7 +204,7 @@
             <div class="dl-notification-message">${message}</div>
         `;
 
-        container.appendChild(notification);
+        getContainer().appendChild(notification);
 
         // Trigger animation
         requestAnimationFrame(() => {

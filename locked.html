@@ -152,6 +152,7 @@
             background: rgba(255,255,255,0.1);
         }
     </style>
+    <script src="js/notifications.js"></script>
 </head>
 <body>
     <nav>
@@ -211,7 +212,7 @@
             
             const priceId = priceIds[feature];
             if (!priceId) {
-                alert('Please contact support to upgrade.');
+                window.showDLWarning('Please contact support to upgrade.');
                 return;
             }
             
@@ -224,7 +225,7 @@
             const { error } = await createCheckoutSession(priceId);
             
             if (error) {
-                alert('Error: ' + error.message);
+                window.showDLError('Error: ' + error.message);
                 btn.textContent = 'Upgrade to Access';
                 btn.disabled = false;
             }

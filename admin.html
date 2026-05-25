@@ -238,6 +238,7 @@
             .container { padding: 20px; }
         }
     </style>
+    <script src="js/notifications.js"></script>
 </head>
 <body>
     <div id="app">
@@ -525,7 +526,7 @@
         }
         
         function viewUser(userId) {
-            alert('User detail view not yet implemented for: ' + userId);
+            window.showDLWarning('User detail view not yet implemented for: ' + userId);
         }
         
         function refreshUsers() {

@@ -786,6 +786,7 @@
                 .from('income_progress_events')
                 .select('amount, received_at')
                 .eq('user_id', user.id)
+                .neq('provider', 'manual')  // Exclude manual entries (those are in manual_income_entries)
                 .order('received_at', { ascending: false });
             
             // Combine both sources
@@ -796,7 +797,9 @@
                 })),
                 ...(automatedIncomeEntries || []).map(e => ({ 
                     amount: e.amount, 
-                    entry_date: e.received_at ? e.received_at.split('T')[0] : new Date().toISOString().split('T')[0]
+                    entry_date: e.received_at 
+                        ? new Date(e.received_at).toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
+                        : new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
                 }))
             ];
             
@@ -808,9 +811,14 @@
             // Calculate and display journey progress (AFTER we have todayIncome)
             if (calculation) {
                 const timeframeDays = calculation.timeframe_days || 730;
-                const journeyStartDate = calculation.journey_start_date 
-                    ? new Date(calculation.journey_start_date) 
-                    : new Date(calculation.created_at);
+                
+                // Use original journey start date from settings if available, fallback to calculation
+                const journeyStartDate = settings?.original_journey_start_date 
+                    ? new Date(settings.original_journey_start_date)
+                    : (calculation.journey_start_date 
+                        ? new Date(calculation.journey_start_date) 
+                        : new Date(calculation.created_at));
+                
                 const todayDate = new Date();
                 const daysElapsed = Math.floor((todayDate - journeyStartDate) / (1000 * 60 * 60 * 24)) + 1;
                 const currentDay = Math.min(daysElapsed, timeframeDays);
@@ -819,7 +827,7 @@
                 document.getElementById('journeyStatus').textContent = 
                     `Day ${currentDay} of ${timeframeDays} • You're ${progressPercent}% to today's target`;
                 
-                console.log('Journey status:', { currentDay, timeframeDays, progressPercent, todayIncome, dailyTotal: calculation.daily_total });
+                console.log('Journey status:', { currentDay, timeframeDays, progressPercent, todayIncome, dailyTotal: calculation.daily_total, journeyStartDate });
             } else {
                 document.getElementById('journeyStatus').textContent = 'Start your Dream Life journey today!';
             }

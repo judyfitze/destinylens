@@ -91,12 +91,13 @@ export default async function handler(req, res) {
     // IMPORTANT: In production, store access_token in a proper secrets manager
 
     // Update connection as active
+    // Store access token for polling (in production, use proper encryption)
     await supabase
       .from('income_connections')
       .update({
         status: 'active',
-        external_account_id: stripe_user_id, // Now stores the actual Stripe account ID
-        vault_secret_reference: `stripe_token_${connection.connection_id}`,
+        external_account_id: stripe_user_id,
+        vault_secret_reference: access_token, // Store access token for polling
         updated_at: new Date().toISOString()
       })
       .eq('connection_id', connection.connection_id);

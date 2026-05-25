@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/auth-guard.js"></script>
+    <script src="js/notifications.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --purple: #A94CF0; --gold: #F6C26B; }
@@ -650,7 +651,7 @@
         
         function generatePrompts() {
             if (!userData) {
-                showToast('No dream life data found. Complete the calculator first.', '⚠️');
+                window.showDLWarning('No dream life data found. Complete the calculator first.', 'Missing Data');
                 return;
             }
             
@@ -664,7 +665,7 @@
             }));
             
             renderContent();
-            showToast('Prompts generated successfully!', '✨');
+            window.showDLSuccess('Prompts generated successfully!', 'Generated');
         }
         
         function generateMainScenePrompt(data) {
@@ -866,14 +867,14 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
             mainPrompt = '';
             goalPrompts = [];
             await loadUserData();
-            showToast('Data refreshed!', '🔄');
+            window.showDLInfo('Data refreshed!', 'Refreshed');
         }
         
         function copyPrompt(id) {
             const promptText = document.getElementById(id === 'main' ? 'mainPrompt' : id).textContent;
             
             navigator.clipboard.writeText(promptText).then(() => {
-                showToast('Copied to clipboard!', '✅');
+                window.showDLSuccess('Copied to clipboard!', 'Copied');
                 
                 // Visual feedback on button
                 const btn = event.target.closest('.icon-btn');
@@ -885,7 +886,7 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy:', err);
-                showToast('Failed to copy. Please try again.', '❌');
+                window.showDLError('Failed to copy. Please try again.', 'Copy Failed');
             });
         }
         
@@ -905,12 +906,12 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showToast('Downloaded!', '💾');
+            window.showDLSuccess('Downloaded!', 'Downloaded');
         }
         
         function exportAllPrompts() {
             if (!mainPrompt && goalPrompts.length === 0) {
-                showToast('Generate prompts first!', '⚠️');
+                window.showDLWarning('Generate prompts first!', 'Not Ready');
                 return;
             }
             
@@ -940,21 +941,10 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showToast('All prompts exported!', '📥');
+            window.showDLSuccess('All prompts exported!', 'Exported');
         }
         
-        function showToast(message, icon = '✅') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toast.querySelector('.toast-icon').textContent = icon;
-            toastMessage.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+        // showToast replaced with branded notifications from notifications.js
     </script>
 </body>
 </html>

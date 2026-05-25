@@ -3,12 +3,20 @@
     {
       "source": "/share/:slug",
       "destination": "/share.html"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     }
   ],
   "routes": [
     {
       "src": "/ai-prompt-generator",
       "dest": "/ai-prompt-generator.html"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     }
   ],
   "github": {

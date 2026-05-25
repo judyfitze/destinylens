@@ -1295,7 +1295,7 @@
             const calculation = window.pendingCalculation;
             if (!calculation) {
                 console.error('No pending calculation found');
-                alert('Error: No calculation data found. Please try again.');
+                window.showDLError('Error: No calculation data found. Please try again.');
                 return;
             }
             
@@ -1323,7 +1323,7 @@
                 window.location.href = '/members.html';
             } catch (err) {
                 console.error('Failed to save calculation:', err);
-                alert('Error saving your Dream Life calculation. Please try again.');
+                window.showDLError('Error saving your Dream Life calculation. Please try again.');
             }
         }
         
@@ -1343,7 +1343,7 @@
             const prompt = `Create a photorealistic dream-life image showing ${calculation.answers.home.description}. The scene should feel warm, abundant, peaceful, and emotionally grounded. Include ${calculation.answers.vehicle.description} in a natural way. The atmosphere should radiate freedom, prosperity, confidence, connection, and ease. Subtly incorporate these numbers: Monthly Dream Life Number: $${calculation.monthly.toLocaleString()}, Daily Dream Life Target: $${calculation.daily.toFixed(2)}. Use a luxurious color palette with purple #A94CF0 and gold #F6C26B accents, warm golden hour lighting, cinematic composition, high-end editorial style, ultra realistic, 16:9 aspect ratio.`;
             
             navigator.clipboard.writeText(prompt).then(() => {
-                alert('AI image prompt copied to clipboard! Paste it into ChatGPT or your favorite image generator.');
+                window.showDLSuccess('AI image prompt copied to clipboard! Paste it into ChatGPT or your favorite image generator.');
             });
         }
         
@@ -1404,22 +1404,28 @@
                 insertData.is_active = true;
                 
                 // Handle journey options - use global variable set by results page
+                console.log('Journey save state:', { 
+                    selectedOption: window.selectedJourneyOption, 
+                    originalJourneyStartDate, 
+                    originalJourneyCalculationId 
+                });
+                
                 if (typeof window.selectedJourneyOption !== 'undefined') {
                     if (window.selectedJourneyOption === 'continue' && originalJourneyStartDate) {
                         insertData.journey_start_date = originalJourneyStartDate.toISOString();
                         insertData.original_journey_calculation_id = originalJourneyCalculationId;
-                        console.log('Continuing journey from:', originalJourneyStartDate);
+                        console.log('✓ Continuing journey from:', originalJourneyStartDate);
                     } else {
                         insertData.journey_start_date = new Date().toISOString();
                         if (originalJourneyCalculationId) {
                             insertData.original_journey_calculation_id = originalJourneyCalculationId;
                         }
-                        console.log('Starting fresh journey from:', insertData.journey_start_date);
+                        console.log('✗ Starting fresh journey from:', insertData.journey_start_date);
                     }
                 } else {
                     // Default: start fresh
                     insertData.journey_start_date = new Date().toISOString();
-                    console.log('Default: Starting fresh journey from:', insertData.journey_start_date);
+                    console.log('✗ Default: Starting fresh journey from:', insertData.journey_start_date);
                 }
                 
                 // Only add profile fields if they exist in the object
@@ -1569,7 +1575,7 @@
         }
         
         function saveVersion() {
-            alert('Calculation saved to your account!');
+            window.showDLSuccess('Calculation saved to your account!');
         }
         
         // Load from Supabase on page load
