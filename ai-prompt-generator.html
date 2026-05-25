@@ -803,7 +803,7 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
                             Complete Dream Life Visualization
                         </div>
                         <div class="prompt-card-actions">
-                            <button class="icon-btn" onclick="copyPrompt('main')" title="Copy to clipboard">📋</button>
+                            <button class="icon-btn" onclick="copyPrompt('main', this)" title="Copy to clipboard">📋</button>
                             <button class="icon-btn" onclick="downloadPrompt('main')" title="Download as file">💾</button>
                         </div>
                     </div>
@@ -827,7 +827,7 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
                                     ${goal.title}
                                 </div>
                                 <div class="prompt-card-actions">
-                                    <button class="icon-btn" onclick="copyPrompt('goal-${index}')" title="Copy to clipboard">📋</button>
+                                    <button class="icon-btn" onclick="copyPrompt('goal-${index}', this)" title="Copy to clipboard">📋</button>
                                     <button class="icon-btn" onclick="downloadPrompt('goal-${index}')" title="Download as file">💾</button>
                                 </div>
                             </div>
@@ -870,20 +870,21 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
             window.showDLInfo('Data refreshed!', 'Refreshed');
         }
         
-        function copyPrompt(id) {
+        function copyPrompt(id, btnElement) {
             const promptText = document.getElementById(id === 'main' ? 'mainPrompt' : id).textContent;
             
             navigator.clipboard.writeText(promptText).then(() => {
                 window.showDLSuccess('Copied to clipboard!', 'Copied');
                 
                 // Visual feedback on button
-                const btn = event.target.closest('.icon-btn');
-                btn.classList.add('copied');
-                btn.innerHTML = '✓';
-                setTimeout(() => {
-                    btn.classList.remove('copied');
-                    btn.innerHTML = '📋';
-                }, 2000);
+                if (btnElement) {
+                    btnElement.classList.add('copied');
+                    btnElement.innerHTML = '✓';
+                    setTimeout(() => {
+                        btnElement.classList.remove('copied');
+                        btnElement.innerHTML = '📋';
+                    }, 2000);
+                }
             }).catch(err => {
                 console.error('Failed to copy:', err);
                 window.showDLError('Failed to copy. Please try again.', 'Copy Failed');
