@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <title>My Dream Life Dashboard — DestinyLens</title>
-    <meta name="version" content="2026-05-18-v1">
+    <meta name="version" content="2026-05-19-v2">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
@@ -27,6 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/notifications.js"></script>
+    <script src="js/timezone.js"></script>
     <script src="js/auth-guard.js"></script>
     <script src="js/data-migration.js"></script>
     <style>
@@ -792,6 +793,14 @@
                         <div class="panel-subtitle">Financial Command Center</div>
                     </div>
                     
+                    <div class="progress-header" style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;padding:0 4px;">
+                        <h3 style="font-size:0.95rem;font-weight:600;color:#fff;margin:0;">Today's Progress</h3>
+                        <div class="progress-status" style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:rgba(255,255,255,0.6);">
+                            <span style="color:#4ade80;">●</span>
+                            <span id="progressStatusText">On Track</span>
+                        </div>
+                    </div>
+                    
                     <div class="daily-target">
                         <div class="daily-target-label">Daily Income Target</div>
                         <div class="daily-target-amount" id="dailyTarget">$0.00</div>
@@ -938,6 +947,9 @@
         document.addEventListener('DOMContentLoaded', init);
         
         async function init() {
+            // Reset dailyTarget for each session to prevent cross-user contamination
+            dailyTarget = 0;
+            
             // Wait for auth first to know which user is logged in
             const { user } = await getCurrentUser();
             if (!user) return;
@@ -956,6 +968,10 @@
                 console.log('Clearing legacy key:', key);
                 localStorage.removeItem(key);
             });
+            
+            // Reset gauge to 0 before loading data
+            document.getElementById('gaugeProgress').style.strokeDashoffset = 377;
+            document.getElementById('gaugePercent').textContent = '0%';
             
             // Load dashboard data
             await loadDashboardData(user.id);
@@ -1073,8 +1089,10 @@
                     
                     // Update Journey counter with timeframe (PST timezone)
                     const timeframeDays = calc.timeframe_days || 730; // Default 2 years
-                    // Use journey_start_date if available, fallback to created_at
-                    const journeyStartDate = calc.journey_start_date ? new Date(calc.journey_start_date) : new Date(calc.created_at);
+                    // Use original journey start date from settings if available, fallback to calculation
+                    const journeyStartDate = settings?.original_journey_start_date 
+                        ? new Date(settings.original_journey_start_date)
+                        : (calc.journey_start_date ? new Date(calc.journey_start_date) : new Date(calc.created_at));
                     // Calculate day in PST (UTC-7)
                     const pstOffset = 7 * 60 * 60 * 1000;
                     const pstNow = new Date(new Date().getTime() - pstOffset);
@@ -1120,6 +1138,10 @@
                     document.getElementById('monthlyTarget').textContent = '$0';
                     document.getElementById('yearlyTarget').textContent = '$0';
                     document.getElementById('dayCounter').textContent = 'Day 1';
+                    
+                    // Reset gauge to 0% when no calculation exists
+                    document.getElementById('gaugeProgress').style.strokeDashoffset = 377;
+                    document.getElementById('gaugePercent').textContent = '0%';
                     
                     // Clear goals for new users without calculations
                     goals = [];
@@ -1182,6 +1204,9 @@
                 renderGoals();
                 await updateIncome();
                 
+                // Auto-sync Stripe payments on dashboard load
+                await syncStripePayments();
+                
             } catch (err) {
                 console.error('Error loading dashboard:', err);
                 showErrorMessage('Error loading dashboard data');
@@ -1213,13 +1238,18 @@
             const { user } = await getCurrentUser();
             if (!user) return;
             
-            // Fetch today's actual income from Supabase (UTC-7 Pacific Time)
+            // Use PST date consistently site-wide
             const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+            
+            console.log('=== updateIncome() called ===');
+            console.log('dailyTarget:', dailyTarget);
+            console.log('today (PST):', today);
+            console.log('user.id:', user.id);
             
             // Fetch manual income entries
             const { data: manualIncomeData, error: manualError } = await supabaseClient
                 .from('manual_income_entries')
-                .select('amount')
+                .select('amount, entry_date')
                 .eq('user_id', user.id)
                 .eq('entry_date', today)
                 .eq('include_in_dashboard', true);
@@ -1228,46 +1258,61 @@
                 console.error('Error fetching manual income:', manualError);
             }
             
+            console.log('manualIncomeData:', manualIncomeData);
+            console.log('manualIncomeData count:', manualIncomeData?.length || 0);
+            
             // Fetch connected income (Stripe, PayPal, etc.)
-            // Get today's date range in Pacific timezone (UTC-7)
-            const now = new Date();
+            // Use PST date range for today
+            const pstStart = new Date(today + 'T00:00:00-07:00').toISOString();
+            const pstEnd = new Date(today + 'T23:59:59.999-07:00').toISOString();
             
-            // Format as Pacific date string (YYYY-MM-DD)
-            const pacificDateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
-            
-            // Create UTC start of Pacific day (midnight PDT = 7am UTC)
-            const pacificStart = new Date(pacificDateStr + 'T00:00:00-07:00');
-            const pacificEnd = new Date(pacificDateStr + 'T23:59:59.999-07:00');
-            
-            const utcStart = pacificStart.toISOString();
-            const utcEnd = pacificEnd.toISOString();
-            
-            console.log('Pacific date:', pacificDateStr);
-            console.log('Querying income from:', utcStart, 'to:', utcEnd);
+            console.log('Querying income from:', pstStart, 'to:', pstEnd);
             
             const { data: connectedIncomeData, error: connectedError } = await supabaseClient
                 .from('income_progress_events')
-                .select('amount')
+                .select('amount, received_at, provider')
                 .eq('user_id', user.id)
                 .eq('status', 'received')
-                .gte('received_at', utcStart)
-                .lte('received_at', utcEnd);
+                .neq('provider', 'manual')  // Exclude manual entries (those go in manual_income_entries)
+                .gte('received_at', pstStart)
+                .lte('received_at', pstEnd);
             
             if (connectedError) {
                 console.error('Error fetching connected income:', connectedError);
             }
             
+            console.log('connectedIncomeData:', connectedIncomeData);
+            console.log('connectedIncomeData count:', connectedIncomeData?.length || 0);
+            
             const manualIncome = manualIncomeData?.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0) || 0;
             const connectedIncome = connectedIncomeData?.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0) || 0;
             const todayIncome = manualIncome + connectedIncome;
+            
+            console.log('manualIncome:', manualIncome);
+            console.log('connectedIncome:', connectedIncome);
+            console.log('todayIncome:', todayIncome);
+            console.log('dailyTarget:', dailyTarget);
+            console.log('progress %:', dailyTarget > 0 ? (todayIncome / dailyTarget) * 100 : 0);
+            
             document.getElementById('manualIncome').textContent = format$(manualIncome);
             document.getElementById('connectedIncome').textContent = format$(connectedIncome);
             
             // Gauge (radius 60, circumference = 377)
-            const pct = dailyTarget > 0 ? (todayIncome / dailyTarget) * 100 : 0;
+            // Force 0% if dailyTarget is 0 or undefined to prevent stale data showing
+            const pct = (dailyTarget && dailyTarget > 0) ? (todayIncome / dailyTarget) * 100 : 0;
             const displayPct = Math.round(pct);
             document.getElementById('gaugeProgress').style.strokeDashoffset = 377 - (Math.min(pct, 100) / 100) * 377;
             document.getElementById('gaugePercent').textContent = displayPct + '%';
+            
+            // Update progress status text
+            const statusText = document.getElementById('progressStatusText');
+            if (statusText) {
+                if (displayPct >= 100) statusText.textContent = 'Goal Met 🎉';
+                else if (displayPct >= 75) statusText.textContent = 'Almost There';
+                else if (displayPct >= 50) statusText.textContent = 'On Track';
+                else if (displayPct > 0) statusText.textContent = 'Building Momentum';
+                else statusText.textContent = 'Start Today';
+            }
             
             // Save progress to settings for share page
             try {
@@ -1280,6 +1325,43 @@
                     .eq('user_id', user.id);
             } catch (e) {
                 console.error('Error saving progress:', e);
+            }
+        }
+        
+        // Auto-sync Stripe payments
+        async function syncStripePayments() {
+            try {
+                const { user } = await getCurrentUser();
+                if (!user) return;
+                
+                // Find active Stripe connections
+                const { data: connections } = await supabaseClient
+                    .from('income_connections')
+                    .select('connection_id')
+                    .eq('user_id', user.id)
+                    .eq('provider', 'stripe')
+                    .in('status', ['active', 'connected']);
+                
+                if (!connections || connections.length === 0) return;
+                
+                console.log('Auto-syncing Stripe payments...');
+                
+                for (const conn of connections) {
+                    try {
+                        await fetch('/api/poll-stripe', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ connection_id: conn.connection_id })
+                        });
+                    } catch (e) {
+                        console.error('Sync error for connection:', conn.connection_id, e);
+                    }
+                }
+                
+                // Refresh income display after sync
+                await updateIncome();
+            } catch (e) {
+                console.error('Auto-sync error:', e);
             }
         }
         
@@ -1359,11 +1441,7 @@
             console.log('Opening add goal modal. Current goals:', goals.length, goals);
             
             if (goals.length >= 4) {
-                if (window.showDLWarning) {
-                    window.showDLWarning('Maximum 4 goals reached. Delete one first.');
-                } else {
-                    alert('Maximum 4 goals reached. Delete one first.');
-                }
+                window.showDLWarning('Maximum 4 goals reached. Delete one first.');
                 return;
             }
             
@@ -1582,13 +1660,13 @@
         
         async function saveBackground() {
             if (!tempBgImage) {
-                alert('Please select an image first');
+                window.showDLWarning('Please select an image first');
                 return;
             }
             
             const { user } = await getCurrentUser();
             if (!user) {
-                alert('Not authenticated');
+                window.showDLError('Not authenticated');
                 return;
             }
             
@@ -1620,7 +1698,7 @@
                 document.getElementById('bgFile').value = '';
             } catch (err) {
                 console.error('Error saving background:', err);
-                alert('Error saving background. Please try again.');
+                window.showDLError('Error saving background. Please try again.');
             }
         }
         
@@ -1654,15 +1732,11 @@
             const amount = parseFloat(document.getElementById('goalAmount').value) || 0;
 
             if (!title) {
-                const msg = 'Please enter a goal title';
-                if (window.showDLWarning) window.showDLWarning(msg);
-                else alert(msg);
+                window.showDLWarning('Please enter a goal title');
                 return;
             }
             if (amount <= 0) {
-                const msg = 'Please enter a valid amount';
-                if (window.showDLWarning) window.showDLWarning(msg);
-                else alert(msg);
+                window.showDLWarning('Please enter a valid amount');
                 return;
             }
 
@@ -1693,9 +1767,7 @@
                     goals.push(goal);
                     console.log('Added new goal:', goal);
                 } else {
-                    const msg = 'Maximum 4 goals reached';
-                    if (window.showDLWarning) window.showDLWarning(msg);
-                    else alert(msg);
+                    window.showDLWarning('Maximum 4 goals reached');
                     return;
                 }
 
@@ -1760,9 +1832,7 @@
 
             } catch (err) {
                 console.error('Error saving goal:', err);
-                const msg = 'Error saving goal. Please try again.';
-                if (window.showDLError) window.showDLError(msg);
-                else alert(msg);
+                window.showDLError('Error saving goal. Please try again.');
             }
         }
 
@@ -1790,14 +1860,14 @@
             const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
             
             if (!source || amount <= 0) {
-                alert('Please enter source and amount');
+                window.showDLWarning('Please enter source and amount');
                 return;
             }
             
             // Get current user
             const { user } = await getCurrentUser();
             if (!user) {
-                alert('Not authenticated');
+                window.showDLError('Not authenticated');
                 return;
             }
             
@@ -1826,7 +1896,7 @@
                 
             } catch (err) {
                 console.error('Error saving income:', err);
-                alert('Error saving income. Please try again.');
+                window.showDLError('Error saving income. Please try again.');
             }
         }
     </script>
