@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/notifications.js"></script>
+    <script src="js/referral-tracker.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -384,7 +385,10 @@
                 if (isSignIn) {
                     result = await signIn(email, password);
                 } else {
-                    result = await signUp(email, password);
+                    // Check for referral code
+                    const referralCode = window.DLReferral ? window.DLReferral.getCode() : null;
+                    const metadata = referralCode ? { referred_by_code: referralCode } : {};
+                    result = await signUp(email, password, metadata);
                 }
                 
                 if (result.error) {

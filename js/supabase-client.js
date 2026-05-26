@@ -30,12 +30,15 @@ function initSupabase() {
 }
 
 // Auth functions
-async function signUp(email, password) {
+async function signUp(email, password, metadata = {}) {
     if (!supabaseClient) return { error: { message: 'Supabase not configured' } };
     
     const { data, error } = await supabaseClient.auth.signUp({
         email,
-        password
+        password,
+        options: {
+            data: metadata
+        }
     });
     
     return { data, error };
