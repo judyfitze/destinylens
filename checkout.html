@@ -256,6 +256,9 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/referral-tracker.js"></script>
     <script>
         document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -277,18 +280,20 @@
             loading.style.display = 'inline-block';
             
             try {
-                // Read stored referral code
+                // Read stored referral code (tracker scripts are now loaded above)
                 let referralCode = null;
                 if (window.DLReferral && typeof window.DLReferral.getCode === 'function') {
                     referralCode = window.DLReferral.getCode();
                 }
-                // Fallback: read cookie directly if DLReferral not loaded
+                // Fallback: read cookie directly
                 if (!referralCode) {
                     referralCode = document.cookie.split('; ').reduce((r, v) => {
                         const parts = v.split('=');
                         return parts[0] === 'dl_ref' ? decodeURIComponent(parts[1]) : r;
                     }, '');
                 }
+
+                console.log('Referral code at checkout:', referralCode || '(none)');
 
                 // Create Stripe checkout session
                 const response = await fetch('/api/create-checkout-session', {
@@ -321,8 +326,5 @@
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/referral-tracker.js"></script>
 </body>
 </html>
