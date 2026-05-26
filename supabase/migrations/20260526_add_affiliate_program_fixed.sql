@@ -476,16 +476,28 @@ CREATE OR REPLACE FUNCTION mark_referral_converted(
 )
 RETURNS BOOLEAN AS $$
 DECLARE
+    target_visit_id UUID;
     updated_count INTEGER;
 BEGIN
-    UPDATE referral_visits
-    SET converted_to_user_id = p_user_id,
-        converted_at = NOW()
+    -- Find the most recent unconverted visit for this affiliate
+    SELECT id INTO target_visit_id
+    FROM referral_visits
     WHERE affiliate_code = p_affiliate_code
       AND converted_to_user_id IS NULL
       AND cookie_expires_at > NOW()
     ORDER BY created_at DESC
     LIMIT 1;
+
+    -- If no visit found, return false
+    IF target_visit_id IS NULL THEN
+        RETURN false;
+    END IF;
+
+    -- Update that specific visit
+    UPDATE referral_visits
+    SET converted_to_user_id = p_user_id,
+        converted_at = NOW()
+    WHERE id = target_visit_id;
 
     GET DIAGNOSTICS updated_count = ROW_COUNT;
 
