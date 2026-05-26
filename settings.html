@@ -461,17 +461,7 @@
             const urlInput = document.getElementById('shareUrl');
             urlInput.select();
             document.execCommand('copy');
-            window.showDLSuccess('Link copied to clipboard!', 'Copied');
-        }
-
-            // Show
-            setTimeout(() => toast.classList.add('show'), 10);
-
-            // Hide after 2.5 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
+            showStatus('Link copied to clipboard!', 'success');
         }
         
         async function saveSettings() {
