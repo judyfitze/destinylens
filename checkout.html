@@ -277,6 +277,19 @@
             loading.style.display = 'inline-block';
             
             try {
+                // Read stored referral code
+                let referralCode = null;
+                if (window.DLReferral && typeof window.DLReferral.getCode === 'function') {
+                    referralCode = window.DLReferral.getCode();
+                }
+                // Fallback: read cookie directly if DLReferral not loaded
+                if (!referralCode) {
+                    referralCode = document.cookie.split('; ').reduce((r, v) => {
+                        const parts = v.split('=');
+                        return parts[0] === 'dl_ref' ? decodeURIComponent(parts[1]) : r;
+                    }, '');
+                }
+
                 // Create Stripe checkout session
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
@@ -284,6 +297,7 @@
                     body: JSON.stringify({
                         email: email,
                         coupon: document.getElementById('coupon').value.trim().toUpperCase(),
+                        referral_code: referralCode || undefined,
                         success_url: window.location.origin + '/thank-you.html?session_id={CHECKOUT_SESSION_ID}',
                         cancel_url: window.location.origin + '/checkout.html'
                     })

@@ -30,6 +30,15 @@ export default async function handler(req, res) {
 
     const customerEmail = session.customer_email || session.customer_details?.email;
     const customerName = session.customer_details?.name || '';
+    const referralCode = session.metadata?.referral_code || null;
+
+    // TEMPORARY LOGGING for affiliate debugging
+    console.log('=== STRIPE CHECKOUT SESSION ===');
+    console.log('Customer:', customerEmail);
+    console.log('Session ID:', session.id);
+    console.log('Metadata:', JSON.stringify(session.metadata));
+    console.log('Referral Code:', referralCode);
+    console.log('================================');
 
     if (!customerEmail) {
       console.error('No email in checkout session');

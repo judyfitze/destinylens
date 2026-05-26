@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email, coupon, success_url, cancel_url } = req.body;
+    const { email, coupon, referral_code, success_url, cancel_url } = req.body;
 
     if (!email) {
       res.status(400).json({ error: 'Email is required' });
@@ -34,6 +34,45 @@ export default async function handler(req, res) {
     if (!stripeSecretKey) {
       res.status(500).json({ error: 'Stripe not configured' });
       return;
+    }
+
+    // Validate referral_code server-side if provided
+    let validReferralCode = null;
+    if (referral_code) {
+      try {
+        const supabase = createClient(
+          process.env.SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY,
+          { auth: { persistSession: false } }
+        );
+
+        const { data: affiliate, error: affiliateError } = await supabase
+          .from('affiliate_profiles')
+          .select('affiliate_code')
+          .eq('affiliate_code', referral_code)
+          .eq('is_affiliate_active', true)
+          .maybeSingle();
+
+        if (!affiliateError && affiliate) {
+          validReferralCode = affiliate.affiliate_code;
+          console.log('Valid referral code:', validReferralCode);
+        } else {
+          console.warn('Invalid or inactive referral code:', referral_code);
+        }
+      } catch (validationErr) {
+        console.error('Referral validation error:', validationErr);
+        // Continue without referral code — don't block purchase
+      }
+    }
+
+    // Build Stripe metadata
+    const stripeMetadata = {
+      'metadata[email]': email,
+      'metadata[source]': 'destinylens_affiliate',
+    };
+
+    if (validReferralCode) {
+      stripeMetadata['metadata[referral_code]'] = validReferralCode;
     }
 
     // Create Stripe checkout session
@@ -53,7 +92,7 @@ export default async function handler(req, res) {
         'line_items[0][price_data][product_data][description]': 'Dream Life Calculator + Dashboard',
         'line_items[0][price_data][unit_amount]': '4700', // $47.00 in cents
         'line_items[0][quantity]': '1',
-        'metadata[email]': email,
+        ...stripeMetadata,
         ...(coupon ? { 'discounts[0][coupon]': coupon } : {}),
       }),
     });
