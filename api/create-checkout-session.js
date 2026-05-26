@@ -38,6 +38,10 @@ export default async function handler(req, res) {
 
     // Validate referral_code server-side if provided
     let validReferralCode = null;
+    console.log('=== CHECKOUT SESSION REQUEST ===');
+    console.log('Email:', email);
+    console.log('Referral code received:', referral_code);
+    
     if (referral_code) {
       try {
         const supabase = createClient(
@@ -46,24 +50,38 @@ export default async function handler(req, res) {
           { auth: { persistSession: false } }
         );
 
+        console.log('Validating referral code against database...');
+        
         const { data: affiliate, error: affiliateError } = await supabase
           .from('affiliate_profiles')
-          .select('affiliate_code')
+          .select('affiliate_code, is_affiliate_active')
           .eq('affiliate_code', referral_code)
-          .eq('is_affiliate_active', true)
           .maybeSingle();
 
-        if (!affiliateError && affiliate) {
-          validReferralCode = affiliate.affiliate_code;
-          console.log('Valid referral code:', validReferralCode);
+        console.log('Affiliate query result:', { affiliate, error: affiliateError });
+
+        if (affiliateError) {
+          console.error('Database error during validation:', affiliateError);
+        } else if (affiliate) {
+          if (affiliate.is_affiliate_active) {
+            validReferralCode = affiliate.affiliate_code;
+            console.log('✅ Valid referral code:', validReferralCode);
+          } else {
+            console.warn('❌ Affiliate code exists but is inactive:', referral_code);
+          }
         } else {
-          console.warn('Invalid or inactive referral code:', referral_code);
+          console.warn('❌ Affiliate code not found:', referral_code);
         }
       } catch (validationErr) {
-        console.error('Referral validation error:', validationErr);
+        console.error('❌ Referral validation exception:', validationErr);
         // Continue without referral code — don't block purchase
       }
+    } else {
+      console.log('No referral code provided');
     }
+    
+    console.log('Final validReferralCode:', validReferralCode);
+    console.log('================================');
 
     // Build Stripe metadata
     const stripeMetadata = {
