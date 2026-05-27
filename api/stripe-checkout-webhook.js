@@ -125,7 +125,7 @@ export default async function handler(req, res) {
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email: customerEmail,
       password: tempPassword,
-      email_confirm: false,
+      email_confirm: true,  // Auto-confirm since they just paid
       user_metadata: {
         paid: true,
         purchased_at: new Date().toISOString(),
