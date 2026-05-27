@@ -4,7 +4,18 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'content-type, stripe-signature',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.status(200).setHeader('Access-Control-Allow-Origin', '*').end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -32,7 +43,6 @@ export default async function handler(req, res) {
     const customerName = session.customer_details?.name || '';
     const referralCode = session.metadata?.referral_code || null;
 
-    // TEMPORARY LOGGING for affiliate debugging
     console.log('=== STRIPE CHECKOUT SESSION ===');
     console.log('Customer:', customerEmail);
     console.log('Session ID:', session.id);
@@ -92,13 +102,12 @@ export default async function handler(req, res) {
     const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase();
 
     // Create new user in Supabase Auth
-    // NOTE: email_confirm is false so Supabase sends confirmation email via configured SMTP
     console.log('Creating user with email:', customerEmail);
     
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email: customerEmail,
       password: tempPassword,
-      email_confirm: false, // Let Supabase send confirmation email
+      email_confirm: false,
       user_metadata: {
         paid: true,
         purchased_at: new Date().toISOString(),
@@ -148,50 +157,46 @@ export default async function handler(req, res) {
     }
 
     // Add to Global Control with Buyer-DestinyLens tag
-    // This triggers the "DestinyLens - Buyer Delivery" workflow
     try {
-      const gcApiKey = '21c6ddbd3338d2e75cffd56f6b6c3ed6bf419e870393e0a0bd02c985565d39ab';
+      const gcApiKey = process.env.GC_API_KEY;
       
-      // Get DestinyLens Buyer tag ID
-      const tagsResponse = await fetch('https://api.globalcontrol.io/api/ai/tags', {
-        headers: { 'X-API-KEY': gcApiKey }
-      });
-      const tagsData = await tagsResponse.json();
-      const buyerTag = tagsData.data?.find(t => t.name === 'Buyer-DestinyLens');
-      
-      if (buyerTag) {
-        // Fire tag to trigger workflow
-        const tagData = { 
-          email: customerEmail, 
-          firstName: customerName?.split(' ')[0] || '', 
-          lastName: customerName?.split(' ').slice(1).join(' ') || '' 
-        };
-        
-        const tagResponse = await fetch(`https://api.globalcontrol.io/api/ai/tags/fire-tag/${buyerTag._id}`, {
-          method: 'POST',
-          headers: { 
-            'X-API-KEY': gcApiKey,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(tagData)
+      if (gcApiKey) {
+        const tagsResponse = await fetch('https://api.globalcontrol.io/api/ai/tags', {
+          headers: { 'X-API-KEY': gcApiKey }
         });
+        const tagsData = await tagsResponse.json();
+        const buyerTag = tagsData.data?.find(t => t.name === 'Buyer-DestinyLens');
         
-        if (tagResponse.ok) {
-          console.log('Global Control tag applied:', buyerTag.name);
-        } else {
-          console.error('Failed to fire tag:', await tagResponse.text());
+        if (buyerTag) {
+          const tagData = { 
+            email: customerEmail, 
+            firstName: customerName?.split(' ')[0] || '', 
+            lastName: customerName?.split(' ').slice(1).join(' ') || '' 
+          };
+          
+          const tagResponse = await fetch(`https://api.globalcontrol.io/api/ai/tags/fire-tag/${buyerTag._id}`, {
+            method: 'POST',
+            headers: { 
+              'X-API-KEY': gcApiKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(tagData)
+          });
+          
+          if (tagResponse.ok) {
+            console.log('Global Control tag applied:', buyerTag.name);
+          } else {
+            console.error('Failed to fire tag:', await tagResponse.text());
+          }
         }
-      } else {
-        console.log('Buyer-DestinyLens tag not found in Global Control');
       }
     } catch (gcError) {
       console.error('Global Control error:', gcError);
-      // Don't fail the webhook if GC fails
     }
 
     res.status(200).json({ 
       success: true, 
-      message: 'User created - Supabase will send confirmation email',
+      message: 'User created',
       user_id: newUser.user.id 
     });
 
