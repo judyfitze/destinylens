@@ -11,8 +11,13 @@ const corsHeaders = {
 };
 
 export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'content-type, stripe-signature');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+
   if (req.method === 'OPTIONS') {
-    res.status(200).setHeader('Access-Control-Allow-Origin', '*').end();
+    res.status(200).end();
     return;
   }
 
@@ -22,7 +27,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const payload = req.body;
+    // Parse body - handle both JSON and raw body
+    let payload = req.body;
+    if (typeof payload === 'string') {
+      payload = JSON.parse(payload);
+    }
+    
+    console.log('Webhook raw body type:', typeof req.body);
+    console.log('Webhook payload type:', typeof payload);
+    
     const eventType = payload.type;
 
     console.log('Stripe webhook received:', eventType);
