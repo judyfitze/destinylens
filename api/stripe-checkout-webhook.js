@@ -59,6 +59,9 @@ export default async function handler(req, res) {
     console.log('Processing purchase for:', customerEmail);
 
     // Initialize Supabase with service role
+    console.log('Supabase URL:', process.env.SUPABASE_URL ? 'Set' : 'MISSING');
+    console.log('Supabase Service Role Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set (length: ' + process.env.SUPABASE_SERVICE_ROLE_KEY.length + ')' : 'MISSING');
+    
     const supabase = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -104,6 +107,8 @@ export default async function handler(req, res) {
     // Create new user in Supabase Auth
     console.log('Creating user with email:', customerEmail);
     
+    console.log('Attempting to create user with email:', customerEmail);
+    
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email: customerEmail,
       password: tempPassword,
@@ -117,7 +122,7 @@ export default async function handler(req, res) {
     });
 
     if (createError) {
-      console.error('Error creating user:', createError);
+      console.error('Error creating user:', JSON.stringify(createError));
       res.status(500).json({ error: 'Failed to create user: ' + createError.message });
       return;
     }
