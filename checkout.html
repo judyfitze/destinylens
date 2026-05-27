@@ -294,15 +294,6 @@
                 }
 
                 console.log('Referral code at checkout:', referralCode || '(none)');
-                
-                // TEMPORARY DEBUG: Show referral code before sending
-                if (referralCode) {
-                    console.log('✅ Sending referral_code to server:', referralCode);
-                    alert('DEBUG: Sending referral code: ' + referralCode);
-                } else {
-                    console.warn('⚠️ No referral code found. Cookie:', document.cookie);
-                    alert('DEBUG: No referral code found. Cookie: ' + document.cookie);
-                }
 
                 // Create Stripe checkout session
                 const response = await fetch('/api/create-checkout-session', {
