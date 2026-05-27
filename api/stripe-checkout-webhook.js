@@ -135,8 +135,12 @@ export default async function handler(req, res) {
     });
 
     if (createError) {
-      console.error('Error creating user:', JSON.stringify(createError));
-      res.status(500).json({ error: 'Failed to create user: ' + createError.message });
+      console.error('=== USER CREATION ERROR ===');
+      console.error('Error code:', createError.code);
+      console.error('Error message:', createError.message);
+      console.error('Error details:', JSON.stringify(createError));
+      console.error('===========================');
+      res.status(500).json({ error: 'Failed to create user: ' + createError.message, code: createError.code });
       return;
     }
 
