@@ -183,7 +183,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 0 20px 10px;
+            padding: 20px 20px 10px;
             overflow: hidden;
             gap: 10px;
             min-height: 0;
@@ -748,18 +748,22 @@
                     <div class="logo-subtitle">Your Dream Life In Focus</div>
                 </div>
             </a>
-            <div class="hamburger" onclick="toggleNavMenu()" style="position: absolute; right: 20px;">
+            <div class="hamburger" onclick="toggleNavMenu()">
                 <span></span>
                 <span></span>
                 <span></span>
             </div>
             <div class="nav-menu" id="navMenu">
+                <a href="/profile.html">👤 Profile</a>
                 <a href="/dashboard.html">📊 Dashboard</a>
-                <a href="/members.html">👤 Members</a>
+                <a href="/members.html">👥 Members</a>
                 <a href="/calculator.html">🧮 Calculator</a>
                 <button onclick="openModal('bgModal'); toggleNavMenu();">🖼️ Background</button>
                 <a href="/settings.html">⚙️ Settings</a>
-                <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+                <a href="/affiliate.html">💰 Affiliate</a>
+                <a href="/admin.html" id="adminLink" style="display: none; color: #F6C26B;">🔒 Admin</a>
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"></div>
+                <button onclick="logout()" style="color: #ef4444;">🚪 Logout</button>
             </div>
         </nav>
         
