@@ -459,7 +459,7 @@
     <div class="app" id="appContent" style="display:none;">
         <div class="public-banner">
             This is a public share of a private Dream Life Dashboard. 
-            <a href="/">Create your own</a>
+            <a href="/" id="createOwnLink">Create your own</a>
         </div>
         
         <div class="main" id="mainContent">
@@ -467,7 +467,7 @@
         </div>
         
         <div class="footer">
-            Powered by <a href="/">DestinyLens</a> — Calculate your Dream Life Number
+            Powered by <a href="/" id="footerLink">DestinyLens</a> — Calculate your Dream Life Number
         </div>
     </div>
     
@@ -840,27 +840,57 @@
             return '$' + parseFloat(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
         
+        function getAffiliateParam() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('ref') || '';
+        }
+        
+        function updateLinksWithRef() {
+            const ref = getAffiliateParam();
+            if (!ref) return;
+            
+            const links = [
+                document.getElementById('createOwnLink'),
+                document.getElementById('footerLink')
+            ];
+            
+            links.forEach(link => {
+                if (link) {
+                    const url = new URL(link.href);
+                    url.searchParams.set('ref', ref);
+                    link.href = url.toString();
+                }
+            });
+        }
+        
         function showNotFound() {
+            const ref = getAffiliateParam();
+            const refParam = ref ? `?ref=${ref}` : '';
             document.getElementById('mainContent').innerHTML = `
                 <div class="locked-message">
                     <h2>🔒 Dashboard Not Found</h2>
                     <p>This share link may have expired or been disabled by the owner.</p>
-                    <a href="/" class="btn">Create Your Own Dashboard</a>
+                    <a href="/${refParam}" class="btn">Create Your Own Dashboard</a>
                 </div>
             `;
         }
         
         function showError() {
+            const ref = getAffiliateParam();
+            const refParam = ref ? `?ref=${ref}` : '';
             document.getElementById('mainContent').innerHTML = `
                 <div class="locked-message">
                     <h2>⚠️ Error Loading Dashboard</h2>
                     <p>Something went wrong. Please try again later.</p>
-                    <a href="/" class="btn">Go Home</a>
+                    <a href="/${refParam}" class="btn">Go Home</a>
                 </div>
             `;
         }
         
-        document.addEventListener('DOMContentLoaded', loadSharedDashboard);
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLinksWithRef();
+            loadSharedDashboard();
+        });
     </script>
 </body>
 </html>
