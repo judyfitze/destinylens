@@ -452,7 +452,7 @@
     
     <div class="app">
         <!-- Nav -->
-        <nav class="nav">
+        <nav class="nav" style="position: fixed; top: 0; left: 0; right: 0; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100; background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05);">
             <a href="/" class="logo">
                 <div class="logo-icon">DL</div>
                 <div class="logo-text">
@@ -460,18 +460,24 @@
                     <div class="logo-subtitle">Your Dream Life In Focus</div>
                 </div>
             </a>
-            <div class="hamburger" onclick="toggleNavMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <div class="nav-menu" id="navMenu">
-                <a href="/dashboard.html">📊 Dashboard</a>
-                <a href="/members.html">👤 Members</a>
-                <a href="/calculator.html">🧮 Calculator</a>
-                <a href="/ai-prompt-generator.html">🖼️ AI Prompt Generator</a>
-                <a href="/settings.html">⚙️ Settings</a>
-                <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+            <div style="display: flex; align-items: center; gap: 16px; position: relative;">
+                <div class="hamburger" onclick="toggleNavMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="nav-menu" id="navMenu">
+                    <a href="/profile.html">👤 Profile</a>
+                    <a href="/dashboard.html">📊 Dashboard</a>
+                    <a href="/members.html">👥 Members</a>
+                    <a href="/calculator.html">🧮 Calculator</a>
+                    <a href="/ai-prompt-generator.html">🖼️ AI Prompt Generator</a>
+                    <a href="/settings.html">⚙️ Settings</a>
+                    <a href="/affiliate.html">💰 Affiliate</a>
+                    <a href="/admin.html" id="adminLink" style="display: none; color: #F6C26B;">🔒 Admin</a>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"></div>
+                    <button onclick="logout()" style="color: #ef4444;">🚪 Logout</button>
+                </div>
             </div>
         </nav>
         
@@ -526,13 +532,6 @@
         function toggleNavMenu() {
             document.getElementById('navMenu').classList.toggle('active');
         }
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
-                document.getElementById('navMenu').classList.remove('active');
-            }
-        });
         
         async function loadUserData() {
             try {
@@ -946,6 +945,41 @@ Style: High-end lifestyle photography, cinematic, emotionally resonant, inspirin
         }
         
         // showToast replaced with branded notifications from notifications.js
+        
+        document.addEventListener('click', function(e) {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu && navMenu.classList.contains('active')) {
+                if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+                    navMenu.classList.remove('active');
+                }
+            }
+        });
+        
+        async function checkAdminStatus() {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+                
+                const { data: profile } = await supabaseClient
+                    .from('user_profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (profile?.role === 'admin') {
+                    const adminLink = document.getElementById('adminLink');
+                    if (adminLink) adminLink.style.display = 'block';
+                }
+            } catch (err) {
+                console.log('Admin check error:', err);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            checkAdminStatus();
+        });
     </script>
+    <script src="js/nav-component.js"></script>
 </body>
 </html>

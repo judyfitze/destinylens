@@ -334,7 +334,7 @@
                 <a href="/dashboard.html">📊 Dashboard</a>
                 <a href="/members.html">👥 Members</a>
                 <a href="/calculator.html">🧮 Calculator</a>
-                <a href="/ai-prompt-generator.html">🖼️ Background</a>
+                <a href="/ai-prompt-generator.html">🖼️ AI Prompt Generator</a>
                 <a href="/settings.html">⚙️ Settings</a>
                 <a href="/affiliate.html">💰 Affiliate</a>
                 <a href="/admin.html" id="adminLink" style="display: none; color: #F6C26B;">🔒 Admin</a>
@@ -585,7 +585,30 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', loadProfile);
+        async function checkAdminStatus() {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+                
+                const { data: profile } = await supabaseClient
+                    .from('user_profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (profile?.role === 'admin') {
+                    const adminLink = document.getElementById('adminLink');
+                    if (adminLink) adminLink.style.display = 'block';
+                }
+            } catch (err) {
+                console.log('Admin check error:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProfile();
+            checkAdminStatus();
+        });
     </script>
 </body>
 </html>

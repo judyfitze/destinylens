@@ -1,0 +1,30 @@
+#!/bin/bash
+# Apply the auth trigger fix
+# Run this script after connecting to your Supabase project
+
+echo "=== DestinyLens Auth Trigger Fix ==="
+echo ""
+echo "This script will fix the auth trigger that's causing user creation to fail."
+echo ""
+echo "Prerequisites:"
+echo "1. You need the Supabase CLI installed"
+echo "2. You need to be logged in to Supabase"
+echo "3. You need access to the DestinyLens project"
+echo ""
+echo "To apply the fix manually:"
+echo ""
+echo "1. Go to https://app.supabase.com/project/nfyabrvkqgzuzxjetqbe"
+echo "2. Click on 'SQL Editor' in the left sidebar"
+echo "3. Create a new query"
+echo "4. Copy and paste the SQL below:"
+echo ""
+echo "--- BEGIN SQL ---"
+cat supabase/migrations/20260527_fix_auth_trigger_final.sql
+echo "--- END SQL ---"
+echo ""
+echo "5. Click 'Run' to execute the SQL"
+echo ""
+echo "After applying the fix, test the webhook:"
+echo "curl -X POST https://www.destinylens.io/api/stripe-checkout-webhook \\"
+echo "  -H 'Content-Type: application/json' \\"
+echo "  -d '{\"type\":\"checkout.session.completed\",\"data\":{\"object\":{\"id\":\"test\",\"customer_email\":\"test@example.com\",\"metadata\":{\"referral_code\":\"TEST123\"}}}}'"
