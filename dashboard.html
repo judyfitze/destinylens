@@ -80,6 +80,12 @@
             padding: 12px 20px;
             flex-shrink: 0;
             position: relative;
+            width: 100%;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            position: relative;
         }
         .logo {
             display: flex;
@@ -747,12 +753,13 @@
                     <div class="logo-subtitle">Your Dream Life In Focus</div>
                 </div>
             </a>
-            <div class="hamburger" onclick="toggleNavMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <div class="nav-menu" id="navMenu">
+            <div class="nav-right">
+                <div class="hamburger" onclick="toggleNavMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="nav-menu" id="navMenu">
                 <a href="/profile.html">👤 Profile</a>
                 <a href="/dashboard.html">📊 Dashboard</a>
                 <a href="/members.html">👥 Members</a>
@@ -763,6 +770,7 @@
                 <a href="/admin.html" id="adminLink" style="display: none; color: #F6C26B;">🔒 Admin</a>
                 <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"></div>
                 <button onclick="logout()" style="color: #ef4444;">🚪 Logout</button>
+            </div>
             </div>
         </nav>
         
