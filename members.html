@@ -569,7 +569,7 @@
     </style>
 </head>
 <body>
-    <nav style="position: relative; justify-content: center;">
+    <nav style="position: fixed; top: 0; left: 0; right: 0; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 100; background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05);">
         <a href="/" class="logo-mark">
             <div class="logo-icon">DL</div>
             <div class="logo-text">
@@ -577,18 +577,24 @@
                 <span class="logo-bottom">Your Dream Life In Focus</span>
             </div>
         </a>
-        <div class="hamburger" onclick="toggleNavMenu()" style="position: absolute; right: 40px;">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="nav-menu" id="navMenu">
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/members.html">👤 Members</a>
-            <a href="/calculator.html">🧮 Calculator</a>
-            <a href="/income-connections.html">💰 Income Connections</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="/auth.html" onclick="supabaseClient.auth.signOut()">🚪 Logout</a>
+        <div style="display: flex; align-items: center; gap: 16px; position: relative;">
+            <div class="hamburger" onclick="toggleNavMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="/profile.html">👤 Profile</a>
+                <a href="/dashboard.html">📊 Dashboard</a>
+                <a href="/members.html">👥 Members</a>
+                <a href="/calculator.html">🧮 Calculator</a>
+                <a href="/ai-prompt-generator.html">🖼️ Background</a>
+                <a href="/settings.html">⚙️ Settings</a>
+                <a href="/affiliate.html">💰 Affiliate</a>
+                <a href="/admin.html" id="adminLink" style="display: none; color: #F6C26B;">🔒 Admin</a>
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"></div>
+                <button onclick="logout()" style="color: #ef4444;">🚪 Logout</button>
+            </div>
         </div>
     </nav>
     
@@ -958,19 +964,43 @@
             }
         }
         
-        // Load data when page loads
-        document.addEventListener('DOMContentLoaded', loadDashboardData);
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
-                document.getElementById('navMenu').classList.remove('active');
-            }
-        });
-        
         function toggleNavMenu() {
             document.getElementById('navMenu').classList.toggle('active');
         }
+        
+        document.addEventListener('click', function(e) {
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu && navMenu.classList.contains('active')) {
+                if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+                    navMenu.classList.remove('active');
+                }
+            }
+        });
+        
+        async function checkAdminStatus() {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+                
+                const { data: profile } = await supabaseClient
+                    .from('user_profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (profile?.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'block';
+                }
+            } catch (err) {
+                console.log('Admin check error:', err);
+            }
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            checkAdminStatus();
+        });
         
         function openIntroVideo() {
             const modal = document.getElementById('videoModal');
@@ -1008,5 +1038,6 @@
             }
         });
     </script>
+    <script src="js/nav-component.js"></script>
 </body>
 </html>
