@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Affiliate Dashboard - DestinyLens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a12;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 100px 24px 40px;
+        }
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 101;
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #fff;
+            transition: all 0.3s;
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 18, 0.98);
+            z-index: 99;
+            padding: 80px 24px 24px;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .mobile-menu.active {
+            display: flex;
+        }
+        .mobile-menu a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .login-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .dropdown {
+            position: relative;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            background: #1a1a2e;
+            border: 1px solid rgba(169, 76, 240, 0.3);
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 180px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .dropdown-menu.active {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 10px 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #fff;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-top {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .logo-bottom {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #F6C26B;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 32px;
+        }
+        .card {
+            background: linear-gradient(135deg, rgba(169, 76, 240, 0.08) 0%, rgba(246, 194, 107, 0.05) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #F6C26B;
+        }
+        .referral-link {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .referral-link input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+        }
+        .payout-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .payout-info:last-child { border-bottom: none; }
+        .payout-label { color: rgba(255,255,255,0.6); font-size: 0.9rem; }
+        .payout-value { font-weight: 700; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.5);
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <nav style="position: fixed; top: 0; left: 0; right: 0; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 100; background: rgba(10, 10, 18, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <a href="/" class="logo-mark">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <a href="/auth.html" class="login-btn" id="loginLink" style="padding: 10px 20px; background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem;">Login</a>
+            <div class="dropdown" id="userDropdown" style="display: none; position: relative;">
+                <button onclick="toggleDropdown()" style="padding: 10px 20px; background: linear-gradient(135deg, #A94CF0 0%, #F6C26B 100%); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">☰</button>
+                <div class="dropdown-menu" id="dropdownMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: #1a1a2e; border: 1px solid rgba(169, 76, 240, 0.3); border-radius: 12px; padding: 8px 0; min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000;">
+                    <a href="/profile.html" class="dropdown-item" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Profile</a>
+                    <a href="/dashboard.html" class="dropdown-item" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Dashboard</a>
+                    <a href="/members.html" class="dropdown-item" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Members</a>
+                    <a href="/calculator.html" class="dropdown-item" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Calculator</a>
+                    <a href="/ai-prompt-generator.html" class="dropdown-item" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Background</a>
+                    <a href="/settings.html" class="dropdown-item" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Settings</a>
+                    <a href="/affiliate.html" class="dropdown-item" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Affiliate</a>
+                    <a href="/admin.html" class="dropdown-item" id="adminLink" style="display: none; padding: 10px 20px; color: #F6C26B; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Admin</a>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"></div>
+                    <a href="#" onclick="logout()" class="dropdown-item" style="display: block; padding: 10px 20px; color: #ef4444; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/profile.html">Profile</a>
+        <a href="/settings.html">Settings</a>
+        <a href="/affiliate.html">Affiliate</a>
+        <a href="/admin.html" id="adminLinkMobile" style="display: none; color: #F6C26B;">Admin</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <div class="container">
+        <a href="/" class="logo-mark" style="justify-content: center;">
+            <div class="logo-icon">DL</div>
+            <div class="logo-text">
+                <span class="logo-top">DestinyLens</span>
+                <span class="logo-bottom">Your Dream Life In Focus</span>
+            </div>
+        </a>
+
+        <h1>Affiliate Dashboard</h1>
+        <p class="subtitle">Track your referrals, earnings, and performance</p>
+
+        <div id="loading" class="loading">Loading your affiliate data...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="content" style="display: none;">
+            
+            <div class="card">
+                <h2>Your Referral Link</h2>
+                <div class="referral-link">
+                    <input type="text" id="referralLink" readonly>
+                    <button class="btn" onclick="copyLink()">Copy</button>
+                </div>
+                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">
+                    Share this link. When someone purchases through it, you earn 30% commission.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>Performance Stats</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalClicks">0</div>
+                        <div class="stat-label">Link Clicks</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalReferrals">0</div>
+                        <div class="stat-label">Referrals</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalEarnings">$0</div>
+                        <div class="stat-label">Total Earnings</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="pendingEarnings">$0</div>
+                        <div class="stat-label">Pending (30 days)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Payout Information</h2>
+                <div class="payout-info">
+                    <span class="payout-label">Commission Rate</span>
+                    <span class="payout-value">30%</span>
+                </div>
+                <div class="payout-info">
+                    <span class="payout-label">Minimum Payout</span>
+                    <span class="payout-value">$50 CAD</span>
+                </div>
+                <div class="payout-info">
+                    <span class="payout-label">Pending Period</span>
+                    <span class="payout-value">30 days</span>
+                </div>
+                <div class="payout-info">
+                    <span class="payout-label">Payout Method</span>
+                    <span class="payout-value" id="payoutMethod">Not set</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js?v=2"></script>
+    <script src="js/nav-component.js"></script>
+    <script>
+        async function loadAffiliateData() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const content = document.getElementById('content');
+
+            try {
+                // Check if user is logged in
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                
+                if (!user) {
+                    window.location.href = '/auth.html?redirect=/affiliate.html';
+                    return;
+                }
+
+                // Get affiliate profile
+                const { data: affiliate, error: affiliateError } = await supabaseClient
+                    .from('affiliate_profiles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (affiliateError) {
+                    throw new Error('Could not load affiliate data');
+                }
+
+                // Get referral visits
+                const { data: visits } = await supabaseClient
+                    .from('referral_visits')
+                    .select('count')
+                    .eq('affiliate_code', affiliate.affiliate_code);
+
+                // Get commissions
+                const { data: commissions } = await supabaseClient
+                    .from('affiliate_commissions')
+                    .select('*')
+                    .eq('affiliate_user_id', user.id);
+
+                const totalClicks = visits?.length || 0;
+                const totalReferrals = affiliate.total_referrals || 0;
+                const totalEarnings = affiliate.total_commissions_earned || 0;
+                const pendingEarnings = affiliate.pending_commissions || 0;
+
+                // Update UI
+                document.getElementById('referralLink').value = affiliate.referral_link;
+                document.getElementById('totalClicks').textContent = totalClicks;
+                document.getElementById('totalReferrals').textContent = totalReferrals;
+                document.getElementById('totalEarnings').textContent = '$' + parseFloat(totalEarnings).toFixed(2);
+                document.getElementById('pendingEarnings').textContent = '$' + parseFloat(pendingEarnings).toFixed(2);
+                
+                if (affiliate.payout_method) {
+                    document.getElementById('payoutMethod').textContent = affiliate.payout_method;
+                }
+
+                loading.style.display = 'none';
+                content.style.display = 'block';
+
+            } catch (err) {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = err.message;
+            }
+        }
+
+        function copyLink() {
+            const input = document.getElementById('referralLink');
+            input.select();
+            document.execCommand('copy');
+            alert('Link copied to clipboard!');
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadAffiliateData);
+    </script>
+</body>
+</html>
