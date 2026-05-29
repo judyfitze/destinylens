@@ -352,6 +352,68 @@
             font-weight: 700;
         }
         
+        /* Password Gate */
+        .password-gate {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .password-gate.hidden {
+            display: none;
+        }
+        .password-gate-box {
+            background: linear-gradient(145deg, rgba(30, 30, 50, 0.9) 0%, rgba(15, 15, 30, 0.95) 100%);
+            border: 1px solid rgba(169, 76, 240, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .password-gate-box h2 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .password-gate-box p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .password-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 16px;
+            outline: none;
+        }
+        .password-input:focus {
+            border-color: var(--purple);
+        }
+        .password-error {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .password-error.visible {
+            display: block;
+        }
+        
         @media (max-width: 1200px) {
             .goal-card { width: calc(33.33% - 10px); }
         }
@@ -383,7 +445,18 @@
     </div>
     
     <!-- App -->
-    <div class="app">
+    <!-- Password Gate -->
+    <div class="password-gate" id="passwordGate">
+        <div class="password-gate-box">
+            <h2>🔒 Password Protected</h2>
+            <p>This Dream Life Dashboard is password protected. Enter the password to view it.</p>
+            <input type="password" class="password-input" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter')checkPassword()">
+            <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
+            <button class="btn" onclick="checkPassword()" style="border:none;cursor:pointer;width:100%;">Unlock Dashboard</button>
+        </div>
+    </div>
+    
+    <div class="app" id="appContent" style="display:none;">
         <div class="public-banner">
             This is a public share of a private Dream Life Dashboard. 
             <a href="/">Create your own</a>
@@ -420,6 +493,8 @@
         
         console.log('Share slug:', shareSlug, 'Path:', window.location.pathname, 'Parts:', pathParts);
         
+        let shareSettings = null;
+        
         async function loadSharedDashboard() {
             try {
                 // Get dashboard settings
@@ -436,12 +511,29 @@
                     return;
                 }
                 
+                shareSettings = settings;
+                
                 console.log('Share page settings loaded:', {
                     dashboard_title: settings.dashboard_title,
                     dashboard_subtitle: settings.dashboard_subtitle,
                     public_share_slug: settings.public_share_slug,
+                    password_protected: settings.password_protected,
                     has_settings: !!settings
                 });
+                
+                // Check if password protected
+                if (settings.password_protected) {
+                    // Check if already authenticated in this session
+                    const sessionAuth = sessionStorage.getItem('share_auth_' + shareSlug);
+                    if (sessionAuth === 'true') {
+                        showDashboard();
+                    } else {
+                        showPasswordGate();
+                    }
+                    return;
+                }
+                
+                showDashboard();
                 
                 // Get calculation separately
                 let calculation = null;
@@ -512,6 +604,115 @@
                 
             } catch (err) {
                 console.error('Error loading dashboard:', err);
+                showError();
+            }
+        }
+        
+        function showPasswordGate() {
+            document.getElementById('passwordGate').classList.remove('hidden');
+            document.getElementById('appContent').style.display = 'none';
+            document.getElementById('passwordInput').focus();
+        }
+        
+        function showDashboard() {
+            document.getElementById('passwordGate').classList.add('hidden');
+            document.getElementById('appContent').style.display = 'flex';
+            loadDashboardData();
+        }
+        
+        async function checkPassword() {
+            const input = document.getElementById('passwordInput').value.trim();
+            const errorEl = document.getElementById('passwordError');
+            
+            if (!input) {
+                errorEl.classList.add('visible');
+                return;
+            }
+            
+            if (!shareSettings) {
+                errorEl.textContent = 'Error loading settings. Please refresh.';
+                errorEl.classList.add('visible');
+                return;
+            }
+            
+            if (input === shareSettings.share_password) {
+                sessionStorage.setItem('share_auth_' + shareSlug, 'true');
+                errorEl.classList.remove('visible');
+                showDashboard();
+            } else {
+                errorEl.textContent = 'Incorrect password. Please try again.';
+                errorEl.classList.add('visible');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+        
+        async function loadDashboardData() {
+            if (!shareSettings) return;
+            
+            try {
+                const settings = shareSettings;
+                
+                // Get calculation separately
+                let calculation = null;
+                if (settings.active_calculation_id) {
+                    const { data: calc } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('*')
+                        .eq('id', settings.active_calculation_id)
+                        .single();
+                    calculation = calc;
+                }
+                
+                // If no active calculation, try to get user's latest
+                if (!calculation) {
+                    const { data: calc } = await supabaseClient
+                        .from('dream_life_calculations')
+                        .select('*')
+                        .eq('user_id', settings.user_id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+                    calculation = calc;
+                }
+                
+                // Get goals from shared_goals_json or fallback to calculation
+                let goals = [];
+                if (settings.show_goal_cards_publicly !== false) {
+                    if (settings.shared_goals_json && settings.shared_goals_json.length > 0) {
+                        goals = settings.shared_goals_json.slice(0, 4);
+                    }
+                    
+                    if (goals.length === 0 && calculation) {
+                        const map = [
+                            {k: 'home', i: '🏖️', t: 'Dream Home'},
+                            {k: 'vehicle', i: '🚗', t: 'Dream Vehicle'},
+                            {k: 'travel', i: '✈️', t: 'Travel'},
+                            {k: 'food', i: '🍽️', t: 'Food & Dining'}
+                        ];
+                        goals = map.map(g => ({
+                            icon: g.i, title: g.t,
+                            monthly_amount: calculation[g.k + '_monthly_amount'] || 0,
+                            image_url: 'dashboard-preview.jpg'
+                        })).filter(g => g.monthly_amount > 0).slice(0, 4);
+                    }
+                }
+                
+                // Get today's actual income (PST)
+                const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+                const { data: incomeData } = await supabaseClient
+                    .from('manual_income_entries')
+                    .select('amount')
+                    .eq('user_id', settings.user_id)
+                    .eq('entry_date', today)
+                    .eq('include_in_dashboard', true);
+                
+                const todayIncome = incomeData?.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0) || 0;
+                
+                renderDashboard(settings, calculation, goals, todayIncome);
+                
+            } catch (err) {
+                console.error('Error loading dashboard data:', err);
                 showError();
             }
         }
