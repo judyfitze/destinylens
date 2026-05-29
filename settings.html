@@ -403,9 +403,22 @@
     <script>
         let settings = {};
         
+        let userAffiliateCode = '';
+        
         async function loadSettings() {
             const { user } = await getCurrentUser();
             if (!user) return;
+            
+            // Get user's affiliate code
+            const { data: affiliateData } = await supabaseClient
+                .from('affiliate_profiles')
+                .select('affiliate_code')
+                .eq('user_id', user.id)
+                .maybeSingle();
+            
+            if (affiliateData?.affiliate_code) {
+                userAffiliateCode = affiliateData.affiliate_code;
+            }
             
             const { data, error } = await supabaseClient
                 .from('dashboard_settings')
@@ -424,7 +437,7 @@
                 if (data.public_share_enabled) {
                     document.getElementById('shareToggle').classList.add('active');
                     document.getElementById('shareOptions').style.display = 'block';
-                    document.getElementById('shareUrl').value = `${window.location.origin}/share/${data.public_share_slug}`;
+                    document.getElementById('shareUrl').value = buildShareUrl(data.public_share_slug);
                 }
                 
                 if (data.password_protected) {
@@ -442,6 +455,14 @@
             }
         }
         
+        function buildShareUrl(slug) {
+            let url = `${window.location.origin}/share/${slug}`;
+            if (userAffiliateCode) {
+                url += `?ref=${userAffiliateCode}`;
+            }
+            return url;
+        }
+        
         function toggleShare() {
             const toggle = document.getElementById('shareToggle');
             toggle.classList.toggle('active');
@@ -450,7 +471,7 @@
             if (toggle.classList.contains('active') && !settings.public_share_slug) {
                 // Generate random slug
                 settings.public_share_slug = Math.random().toString(36).substring(2, 15);
-                document.getElementById('shareUrl').value = `${window.location.origin}/share/${settings.public_share_slug}`;
+                document.getElementById('shareUrl').value = buildShareUrl(settings.public_share_slug);
             }
         }
         
